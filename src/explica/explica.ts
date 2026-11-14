@@ -99,6 +99,14 @@ function avisoDeuda(perfil: Perfil, analisis: Analisis): Aviso | undefined {
       ? `Pagando solo el mínimo nunca baja. Con lo que ya pagas cada mes terminas en ${avalancha.meses} meses.`
       : `Con lo que ya pagas cada mes terminas en ${avalancha.meses} meses y te ahorras ${formatoSoles(ahorroVsMinimos)} en intereses frente a pagar solo el mínimo (${minimos.meses} meses).`;
   const varias = perfil.deudas.length > 1;
+  // Sin TCEA anotada (el motor la toma como 0 %): no se afirma un costo ni un ahorro que no conocemos.
+  if (primera.tceaBp === 0) {
+    return {
+      id: "deuda", nivel: "atencion",
+      titulo: `Anota la TCEA de ${primera.nombre}`,
+      cuerpo: "Sin la tasa no sé cuánto te cuesta ni en qué orden conviene pagar. Sale en tu estado de cuenta; si esa deuda no cobra intereses, déjala en 0.",
+    };
+  }
   return {
     id: "deuda", nivel: "atencion",
     titulo: varias ? `Paga primero ${primera.nombre}` : `No te quedes en el mínimo de ${primera.nombre}`,

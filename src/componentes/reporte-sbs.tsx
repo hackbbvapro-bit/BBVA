@@ -18,7 +18,7 @@ const TONO: Record<Calificacion, string> = {
 
 const clave = (entidad: string, nombre: string) => `${entidad}|${nombre}`.toLowerCase();
 
-/** Pestaña «Reporte SBS»: las deudas agrupadas por calificación y el orden de pago que calcula el motor. */
+/** Pestaña «Simulación de clasificación»: las deudas agrupadas por clasificación simulada y el orden de pago que calcula el motor. No es un reporte oficial. */
 export function ReporteSbs({ analisis }: { analisis: Analisis }) {
   const { datos } = useDatos();
   const doc = [...datos.documentos].reverse().map(d => ({ d, e: Extraccion.safeParse(d.datos) })).find(x => x.d.tipo === "reporte-sbs" && x.e.success);
@@ -32,8 +32,8 @@ export function ReporteSbs({ analisis }: { analisis: Analisis }) {
   return (
     <div className="space-y-5">
       <p className="leading-relaxed text-gris">
-        {doc ? <>Sacado de tu documento del {doc.d.fecha}. {doc.d.resumen}</> : "Aún no subes un reporte de la SBS: la calificación sale de los días de atraso que tú registraste."}{" "}
-        La SBS califica cada deuda según tu atraso; con atraso, la calificación empeora y cuesta más conseguir crédito.
+        {doc ? <>Sacado de tu documento del {doc.d.fecha}. {doc.d.resumen}</> : "Simulación: la clasificación sale de los días de atraso registrados en el caso."}{" "}
+        En el sistema financiero cada deuda se clasifica según sus días de atraso; con más atraso, la clasificación empeora y suele costar más conseguir crédito.
       </p>
       {filas.length === 0 ? (
         <p className="font-medium text-noche">No tienes deudas abiertas para calificar.</p>
@@ -56,11 +56,11 @@ export function ReporteSbs({ analisis }: { analisis: Analisis }) {
       <OrdenDePago r={prioridadDePagos(datos, analisis)} />
       <Recomendaciones datos={datos} analisis={analisis} />
       <p className="text-sm leading-relaxed text-gris">
-        Puedes descargar tu reporte gratis en la{" "}
+        Lo que ves aquí es una simulación educativa, no un reporte oficial ni tu calificación real. El reporte oficial de deudas se pide gratis en la{" "}
         <a className="font-semibold text-electrico underline" href="https://www.sbs.gob.pe/usuarios/nuestros-servicios/reporte-de-deudas" target="_blank" rel="noreferrer">
           web de la SBS
         </a>
-        . Lo que ves aquí es una guía, no tu calificación oficial.
+        .
       </p>
     </div>
   );

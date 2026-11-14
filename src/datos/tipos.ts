@@ -34,7 +34,7 @@ export type TipoDeudaDebo = "tarjeta" | "prestamo" | "personal";
 
 export interface DeudaGuardada {
   id: string;
-  /** Con quién se tiene la deuda: BBVA, otra entidad o una persona. */
+  /** Con quién se tiene la deuda: una entidad financiera o una persona. */
   entidad: string;
   /** Cómo se muestra: «Tarjeta Azul». */
   nombre: string;

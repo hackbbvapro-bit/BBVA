@@ -8,14 +8,14 @@ describe("propuesta de un documento", () => {
   it("convierte las 5 deudas del reporte de ejemplo a céntimos exactos", () => {
     const p = propuestaDeudas(EXTRACCION_EJEMPLO, []);
     expect(p).toHaveLength(5);
-    const bbva = deudaDesdePropuesta(p[0], "d1");
-    expect(bbva).toMatchObject({ entidad: "BBVA", saldo: 235000, pagoMinimo: 18000, tceaBp: 6900, diaPago: 12, diasAtraso: 0, pagada: false });
+    const tarjeta = deudaDesdePropuesta(p[0], "d1");
+    expect(tarjeta).toMatchObject({ entidad: "Banco Demo", saldo: 235000, pagoMinimo: 18000, tceaBp: 6900, diaPago: 12, diasAtraso: 0, pagada: false });
     const caja = deudaDesdePropuesta(p[1], "d2");
     expect(caja).toMatchObject({ saldo: 480000, diasAtraso: 22 });
   });
   it("reconoce una deuda ya guardada para actualizarla y no duplicarla", () => {
     const datos = datosDeRosa();
-    const guardada = { ...datos.deudas[0], entidad: "BBVA", nombre: "Tarjeta de crédito BBVA" };
+    const guardada = { ...datos.deudas[0], entidad: "Banco Demo", nombre: "Tarjeta de crédito clásica" };
     const p = propuestaDeudas(EXTRACCION_EJEMPLO, [guardada]);
     expect(p[0].existenteId).toBe(guardada.id);
     expect(p[1].existenteId).toBeNull();

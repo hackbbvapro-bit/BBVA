@@ -20,6 +20,8 @@ export interface Repositorio {
   borrarCobro(id: string): Promise<void>;
   guardarDocumento(documento: DocumentoAnalizado): Promise<void>;
   marcarAvisoLeido(clave: string): Promise<void>;
+  /** Reemplaza todo lo guardado por estos datos (empezar con datos propios o con la demo). */
+  cargar(datos: Datos): Promise<void>;
   /** Vuelve a los datos de la demo (Rosa). */
   restablecer(): Promise<void>;
 }
@@ -51,6 +53,16 @@ export function validado(base: Repositorio): Repositorio {
     },
     guardarCobro: async c => base.guardarCobro(validarCobro(c)),
     guardarDocumento: async d => base.guardarDocumento(validarDocumento(d)),
+    cargar: async d =>
+      base.cargar({
+        ...d,
+        perfil: validarPerfil(d.perfil),
+        cuentas: d.cuentas.map(validarCuenta),
+        ingresosFijos: d.ingresosFijos.map(validarFijo),
+        gastosFijos: d.gastosFijos.map(validarFijo),
+        deudas: d.deudas.map(validarDeuda),
+        cobros: d.cobros.map(validarCobro),
+      }),
   };
 }
 
@@ -86,6 +98,7 @@ export function crearRepositorioMemoria(inicial: Datos = datosDeRosa()): Reposit
     borrarCobro: async id => { datos = { ...datos, cobros: sin(datos.cobros, id) }; },
     guardarDocumento: async d => { datos = { ...datos, documentos: reemplazar(datos.documentos, structuredClone(d)) }; },
     marcarAvisoLeido: async clave => { if (!datos.avisosLeidos.includes(clave)) datos = { ...datos, avisosLeidos: [...datos.avisosLeidos, clave] }; },
+    cargar: async nuevos => { datos = structuredClone(nuevos); },
     restablecer: async () => { datos = datosDeRosa(); },
   };
   return validado(base);

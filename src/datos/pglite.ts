@@ -119,6 +119,12 @@ export async function crearRepositorioPGlite(db: PGlite): Promise<Repositorio> {
   const hay = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM perfil")).rows[0].n;
   if (hay === 0) await db.transaction(tx => escribirTodo(tx, datosDeRosa()));
   const borrar = (tabla: string) => async (id: string) => void (await db.query(`DELETE FROM ${tabla} WHERE id = $1`, [id]));
+  // Todo o nada: si una fila falla, la base queda como estaba.
+  const reemplazarTodo = (datos: Datos) =>
+    db.transaction(async tx => {
+      for (const t of TABLAS) await tx.exec(`DELETE FROM ${t}`);
+      await escribirTodo(tx, datos);
+    });
   return validado({
     leerTodo: () => leer(db),
     guardarPerfil: async p => void (await upsertPerfil(db, p)),
@@ -132,10 +138,7 @@ export async function crearRepositorioPGlite(db: PGlite): Promise<Repositorio> {
     borrarCobro: borrar("cobros"),
     guardarDocumento: async d => void (await upsertDocumento(db, d)),
     marcarAvisoLeido: async clave => void (await db.query("INSERT INTO avisos_leidos (clave) VALUES ($1) ON CONFLICT DO NOTHING", [clave])),
-    restablecer: () =>
-      db.transaction(async tx => {
-        for (const t of TABLAS) await tx.exec(`DELETE FROM ${t}`);
-        await escribirTodo(tx, datosDeRosa());
-      }),
+    cargar: datos => reemplazarTodo(datos),
+    restablecer: () => reemplazarTodo(datosDeRosa()),
   });
 }

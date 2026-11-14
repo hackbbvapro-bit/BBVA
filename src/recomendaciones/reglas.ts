@@ -16,8 +16,8 @@ export interface Recomendacion {
 const plural = (n: number, uno: string, varios: string): string => `${n} ${n === 1 ? uno : varios}`;
 
 /**
- * Motivo de la garantía líquida: un atraso que ya saca la calificación de Normal, o una calificación
- * distinta de Normal en el último reporte SBS. Un atraso de pocos días sigue en Normal: no basta.
+ * Motivo de la tarjeta con garantía: un atraso que ya saca la calificación de Normal, o una calificación
+ * distinta de Normal en el último reporte de deudas cargado. Un atraso de pocos días sigue en Normal: no basta.
  */
 function motivoCalificacion(datos: Datos): string | null {
   const abiertas = datos.deudas.filter(d => !d.pagada && d.saldo > 0);
@@ -32,7 +32,7 @@ function motivoCalificacion(datos: Datos): string | null {
   if (doc) {
     const e = Extraccion.parse(doc.datos);
     const conMarca = e.deudas.filter(x => x.calificacion !== null && x.calificacion !== "normal");
-    if (conMarca.length > 0) return `Tu calificación no es Normal en tu reporte de la SBS del ${doc.fecha} (${plural(conMarca.length, "deuda", "deudas")}).`;
+    if (conMarca.length > 0) return `Tu calificación no es Normal en tu reporte de deudas del ${doc.fecha} (${plural(conMarca.length, "deuda", "deudas")}).`;
   }
   return null;
 }
@@ -64,10 +64,10 @@ export function recomendar(datos: Datos, analisis: Analisis): Recomendacion[] {
   // Las dos tarjetas piden inmovilizar un depósito: no se proponen a quien ya no llega a fin de mes.
   if (!reprogramar) {
     const calificacion = motivoCalificacion(datos);
-    if (calificacion) salida.push({ entrada: entrada("garantia-liquida"), porQue: calificacion });
+    if (calificacion) salida.push({ entrada: entrada("tarjeta-con-garantia"), porQue: calificacion });
 
     const hayTarjeta = datos.deudas.some(d => d.tipo === "tarjeta" && !d.pagada && d.saldo > 0);
-    if (!hayTarjeta) salida.push({ entrada: entrada("tarjeta-start"), porQue: "No tienes ninguna tarjeta de crédito abierta, así que aún no hay historial con tarjeta en tu base." });
+    if (!hayTarjeta) salida.push({ entrada: entrada("tarjeta-inicio"), porQue: "No tienes ninguna tarjeta de crédito abierta, así que aún no hay historial con tarjeta en tu base." });
   }
 
   if (reprogramar) salida.push({ entrada: entrada("reprogramar"), porQue: reprogramar });

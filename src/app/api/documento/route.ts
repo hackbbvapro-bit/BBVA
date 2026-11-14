@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { extraerDocumento } from "@/documentos/extraer";
 import { MAXIMO_CUERPO_BYTES, validarArchivo } from "@/documentos/validar";
-import { claveAnthropic } from "@/servidor/entorno";
+import { claveAnthropic, lecturaDocumentos } from "@/servidor/entorno";
 import { errorJson, mismoOrigen, visitante } from "@/servidor/http";
 import { crearLimite } from "@/servidor/limite";
 import { registrarFallo } from "@/servidor/registro";
@@ -47,6 +47,10 @@ async function leerCuerpo(req: Request): Promise<Cuerpo> {
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
   if (!haySesion(req)) return sinSesion();
+  // Apagada por defecto: el prototipo solo usa el reporte de ejemplo (datos sintéticos, lectura precargada).
+  if (!lecturaDocumentos()) {
+    return fallo("lectura_apagada", "La lectura de documentos está apagada en este prototipo. Usa el reporte de ejemplo.", 403);
+  }
   if (!limite.permite(visitante(req))) return errorJson("demasiadas_peticiones", 429);
 
   const cuerpo = await leerCuerpo(req);
@@ -60,7 +64,7 @@ export async function POST(req: Request): Promise<Response> {
   if (!clave) {
     return fallo(
       "sin-ia",
-      "El análisis con IA no está disponible ahora. Puedes usar el reporte SBS de ejemplo.",
+      "El análisis con IA no está disponible ahora. Puedes usar el reporte de ejemplo.",
       503,
     );
   }

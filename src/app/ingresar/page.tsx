@@ -12,23 +12,23 @@ export default function Ingresar() {
           <h1 className="text-[1.75rem] font-semibold leading-tight tracking-[-0.025em] text-noche md:text-[2rem]">
             Copiloto financiero
           </h1>
-          <p className="mt-2 text-lg leading-relaxed text-gris">Exclusivo para clientes BBVA.</p>
+          <p className="mt-2 text-lg leading-relaxed text-gris">Prototipo de hackathon con datos sintéticos. No es un producto oficial de ningún banco.</p>
           <p className="mt-6 leading-relaxed text-tinta">
-            Te avisa antes de que te falte dinero y te dice qué pagar primero. Para probarlo entras con una cuenta de
-            ejemplo: Rosa, que vende comida y cobra por Yape y Plin.
+            Te avisa antes de que te falte dinero y te dice qué pagar primero. Para probarlo entras con un caso de
+            ejemplo: Rosa, una persona inventada que vende comida y cobra con billeteras digitales.
           </p>
           <form method="post" action="/api/ingresar" className="mt-8">
             <button
               type="submit"
               className="min-h-12 w-full cursor-pointer rounded-2xl bg-electrico px-4 py-3 text-[17px] font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-marino active:scale-[.97]"
             >
-              Ingresar con mi cuenta demo
+              Entrar al prototipo
             </button>
           </form>
         </section>
         <p className="mt-5 px-1 text-sm leading-relaxed text-gris">
-          Prototipo de hackathon. En la versión real entrarías con el inicio de sesión de tu app BBVA; aquí no se piden
-          ni se guardan claves.
+          Simulación educativa: no es asesoría financiera ni opera con dinero real. No se piden ni se guardan claves, y
+          no hace falta ningún dato personal real.
         </p>
       </div>
     </main>

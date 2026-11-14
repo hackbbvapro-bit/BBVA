@@ -24,6 +24,39 @@ describe('recurrentes', () => {
     expect(r[0].diaDelMes).toBe(31);
     expect(detectarRecurrentes(['2026-08-31', '2026-09-30', '2026-10-31'].map(f => movimiento(f)), [])[0].diaDelMes).toBe(31);
   });
+  it('reconoce la quincena como dos series mensuales: día 15 y fin de mes', () => {
+    const sueldo = (f: string, monto = 150000) => movimiento(f, 'Sueldo', monto, 'sueldo');
+    const cobros = ['2026-08-15', '2026-08-31', '2026-09-15', '2026-09-30', '2026-10-15', '2026-10-31'].map(f => sueldo(f));
+    const r = detectarRecurrentes(cobros, []);
+    expect(r.map(x => x.id)).toEqual(['rec-sueldo-entrada-dia-15', 'rec-sueldo-entrada-dia-31']);
+    expect(r.map(x => [x.frecuencia, x.diaDelMes, x.veces, x.monto])).toEqual([['mensual', 15, 3, 150000], ['mensual', 31, 3, 150000]]);
+    expect(idsRecurrentes(cobros, [])).toEqual(new Set(cobros.map(m => m.id)));
+    // Cada mitad lleva su propio monto (mediana de sus cobros): 1000 el 15 y 3000 a fin de mes.
+    const desiguales = cobros.map(m => sueldo(m.fecha, m.fecha.endsWith('-15') ? 1000 : 3000));
+    expect(detectarRecurrentes(desiguales, []).map(x => x.monto)).toEqual([1000, 3000]);
+  });
+  it('la quincena de fin de mes cae el último día en febrero (bisiesto o no) y cruza el año', () => {
+    const dias = (fechas: string[]) => detectarRecurrentes(fechas.map(f => movimiento(f, 'Sueldo', 1000, 'sueldo')), []).map(x => x.diaDelMes);
+    expect(dias(['2027-12-15', '2027-12-31', '2028-01-15', '2028-01-31', '2028-02-15', '2028-02-29'])).toEqual([15, 31]);
+    expect(dias(['2027-01-15', '2027-01-31', '2027-02-15', '2027-02-28', '2027-03-15', '2027-03-31'])).toEqual([15, 31]);
+  });
+  it('con historia corta acepta dos cobros en una mitad si la otra tiene tres y las dos son regulares', () => {
+    // La historia empieza el 16 de agosto: el día 15 solo aparece dos veces; el 31 de agosto va con los fines de mes.
+    const corta = ['2026-08-31', '2026-09-15', '2026-09-30', '2026-10-15', '2026-10-31'].map(f => movimiento(f, 'Sueldo', 1000, 'sueldo'));
+    expect(detectarRecurrentes(corta, []).map(x => [x.diaDelMes, x.veces])).toEqual([[15, 2], [31, 3]]);
+    // Dos y dos no bastan.
+    expect(detectarRecurrentes(corta.slice(1), [])).toEqual([]);
+  });
+  it('no inventa quincenas: mitad irregular, cobros pegados o tres cobros en un mes', () => {
+    const grupo = (fechas: string[]) => fechas.map(f => movimiento(f, 'Taxi', -1000, 'transporte'));
+    // El segundo cobro del mes baila entre el 20 y el 31: ninguna de las dos mitades se da por fija.
+    const irregular = grupo(['2026-08-15', '2026-08-20', '2026-09-15', '2026-09-28', '2026-10-15', '2026-10-31']);
+    expect(detectarRecurrentes(irregular, [])).toEqual([]);
+    expect(idsRecurrentes(irregular, [])).toEqual(new Set());
+    // Dos cobros a 5 días (menos de 10) no son quincena.
+    expect(detectarRecurrentes(grupo(['2026-08-20', '2026-08-25', '2026-09-20', '2026-09-25', '2026-10-20', '2026-10-25']), [])).toEqual([]);
+    expect(detectarRecurrentes(grupo(['2026-08-01', '2026-08-15', '2026-08-31', '2026-09-15', '2026-09-30', '2026-10-15', '2026-10-31']), [])).toEqual([]);
+  });
   it('detecta semanal y rechaza montos o días fuera de tolerancia y duplicados mensuales', () => {
     const semanal = Array.from({ length: 6 }, (_, i) => movimiento(sumarDias('2026-09-01', i * 7)));
     expect(detectarRecurrentes(semanal, [])[0].frecuencia).toBe('semanal');

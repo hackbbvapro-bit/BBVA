@@ -36,6 +36,8 @@ const respuestaIA = (texto: string) => ({ stop_reason: "end_turn", content: [{ t
 beforeEach(() => {
   crear.mockReset();
   vi.stubEnv("ANTHROPIC_API_KEY", "");
+  // La lectura con IA está apagada por defecto: estas pruebas ejercitan la ruta con el interruptor encendido.
+  vi.stubEnv("LECTURA_DOCUMENTOS", "1");
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -89,13 +91,28 @@ describe("POST /api/documento: validación del archivo", () => {
   });
 });
 
+describe("POST /api/documento: interruptor de lectura", () => {
+  it("apagada por defecto: 403 lectura_apagada sin llamar al SDK, aunque haya clave", async () => {
+    vi.stubEnv("LECTURA_DOCUMENTOS", "");
+    vi.stubEnv("ANTHROPIC_API_KEY", "clave-falsa-de-prueba");
+    const r = await POST(peticion(conArchivo()));
+    expect(r.status).toBe(403);
+    expect((await r.json()).error).toBe("lectura_apagada");
+    expect(crear).not.toHaveBeenCalled();
+  });
+  it("solo «1» la enciende", async () => {
+    vi.stubEnv("LECTURA_DOCUMENTOS", "true");
+    expect((await POST(peticion(conArchivo()))).status).toBe(403);
+  });
+});
+
 describe("POST /api/documento: sin y con IA", () => {
   it("503 sin-ia si no hay clave, sin llamar al SDK", async () => {
     const r = await POST(peticion(conArchivo()));
     expect(r.status).toBe(503);
     expect(await r.json()).toEqual({
       error: "sin-ia",
-      mensaje: "El análisis con IA no está disponible ahora. Puedes usar el reporte SBS de ejemplo.",
+      mensaje: "El análisis con IA no está disponible ahora. Puedes usar el reporte de ejemplo.",
     });
     expect(crear).not.toHaveBeenCalled();
   });
