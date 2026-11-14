@@ -77,8 +77,8 @@ motor y la voz es la del propio celular. Con `ANTHROPIC_API_KEY` conversa el age
 - [x] Motor de proyección + tests
 - [x] Interfaz para celular, chat con respaldo sin IA y avisos dentro de la app
 - [x] Cifras del pitch revisadas contra su fuente (`investigacion/10-verificacion-de-cifras.md`)
-- [x] Rama `base-motor` en GitHub y pull request 1 abierto (sin fusionar)
-- [ ] Poner tope de gasto en Anthropic y Fish Audio, y cargar sus claves
+- [x] Pull request 1 fusionado a `main` y app publicada en `https://copiloto-anticipador.vercel.app` (chat con el motor, sin IA todavía)
+- [ ] Poner tope de gasto en Anthropic y Fish Audio, cargar sus claves en Vercel y hacer Redeploy
 - [ ] Probar el agente con clave real de Anthropic y la voz con clave real de Fish Audio
-- [ ] Publicar en Vercel (fusionar el pull request) y probar micrófono y notificaciones en un celular real
+- [ ] Probar micrófono y notificaciones en un celular real (en iPhone, con la app instalada)
 - [ ] Demo y pitch (guion en `docs/GUIA-FINAL.md`)

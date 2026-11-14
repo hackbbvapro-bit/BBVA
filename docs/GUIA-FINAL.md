@@ -11,8 +11,8 @@ Marcas: **[MEDIDO]** salió de ejecutar algo · **[ASUMIDO]** no se comprobó to
 | Pieza | Estado |
 |---|---|
 | Motor que calcula, pantallas, chat, avisos dentro de la app | Funciona y está probado en vista de celular **[MEDIDO]** |
-| Código en GitHub | Rama `base-motor` subida y pull request 1 abierto. **Sin fusionar a `main`** |
-| Dirección pública (producción) | **Sin publicar.** Se publica al fusionar el pull request **[ASUMIDO]** |
+| Código en GitHub | Pull request 1 fusionado a `main` el 13-nov-2026 **[MEDIDO]** |
+| Dirección pública (producción) | **Publicada** en `https://copiloto-anticipador.vercel.app`. Cada fusión a `main` la vuelve a publicar sola **[MEDIDO]**. Es pública, sin contraseña |
 | Claves de notificaciones | Cargadas en Vercel **[MEDIDO]** |
 | Agente de IA (Anthropic) | Código listo. **Falta la clave. Nunca se probó con una clave real** |
 | Voz (Fish Audio) | Código listo. **Faltan la clave y el id de la voz. Nunca se probó con una clave real** |
@@ -67,17 +67,20 @@ Abre `http://localhost:3000` y comprueba, en este orden:
    Si el agente dice un número que no está en pantalla, **apaga el agente** (quita la clave) y
    presenta con el plan B: la regla de oro vale más que el efecto.
 
-## Paso 4 · Publicar (5 min, decisión tuya)
+## Paso 4 · Publicar (ya hecho; solo falta el Redeploy con tus claves)
 
-1. Abre el pull request: `https://github.com/Goldeniapro/hack-bbva-2026/pull/1`.
-2. Revisa que la comprobación automática de Vercel esté en verde.
-3. Pulsa **Merge**. Vercel publica `main` como producción **[ASUMIDO]**.
-4. Si cargaste claves después de publicar: en Vercel → Deployments → el último → **Redeploy**.
-5. Abre la dirección de producción y repite el paso 3 ahí, incluida `/api/estado`.
+La app ya está publicada en `https://copiloto-anticipador.vercel.app` **[MEDIDO el 13-nov]**: la
+pantalla carga con Rosa y el chat responde con el motor («Respuesta del motor, sin IA»). Ahí
+`/api/estado` devuelve hoy `"ia":false` y `"voz":false` porque faltan tus claves.
 
-Si Vercel no publica y el aviso habla del autor del commit, es la restricción del plan gratuito con
-repositorio privado: los commits de esta noche llevan una línea de coautoría **[ASUMIDO: no se
-comprobó si eso lo activa]**. Salida rápida: Redeploy desde el panel con tu usuario.
+1. Cuando cargues las claves en Vercel: Deployments → el último → **Redeploy**. Una variable nueva
+   solo vale desde la siguiente publicación.
+2. Abre `https://copiloto-anticipador.vercel.app/api/estado` y comprueba `"ia":true`, `"voz":true`
+   y `"push":true`.
+3. Repite el paso 3 en la dirección de producción.
+
+Cualquier cambio que se fusione a `main` se publica solo. No fusiones nada el domingo antes de
+presentar sin probarlo antes.
 
 ## Paso 5 · En el celular (15 min, hazlo antes de salir de casa)
 
