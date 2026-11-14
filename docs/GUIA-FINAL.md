@@ -16,6 +16,8 @@ Marcas: **[MEDIDO]** salió de ejecutar algo · **[ASUMIDO]** no se comprobó to
 | Claves de notificaciones | Cargadas en el Vercel del equipo (producción y vista previa); `/api/estado` da `"push":true` [MEDIDO el 14-nov] |
 | Agente de IA (Anthropic) | Clave cargada en local y en Vercel (producción y vista previa). En local respondió «¿Cómo llego a fin de mes?» con IA y sus cifras coinciden con el motor (S/ 200.00, S/ 4.64, S/ 35.44, S/ 677.20) [MEDIDO 14-nov] |
 | Voz (Fish Audio) | Voz elegida: «Mayordomo Digital» (`9386123a44af4d43abf10de6e2eea923`). Clave cargada en local y en Vercel; producción devuelve audio con esa voz (tono comparado con la voz de referencia) [MEDIDO 14-nov]. La transcripción con Fish no se probó |
+| Datos de la persona | Se guardan **en el navegador** (PGlite, base local); no hay servidor de datos ni cuentas reales. Se entra con una cuenta demo (Rosa) y «Restablecer datos de la demo» está en Perfil [MEDIDO 14-nov] |
+| Subir un documento con IA real | Con clave: **sin probar con un archivo real**; sin clave ofrece el reporte de ejemplo [MEDIDO con el ejemplo] |
 | Micrófono y notificaciones en un celular real | **Sin probar** |
 
 Sin claves la app igual funciona completa: el chat responde con textos del motor (mismos números)
@@ -63,7 +65,7 @@ Abre `http://localhost:3000` y comprueba, en este orden:
 2. Pestaña **Hablar** → toca «¿Cómo llego a fin de mes?». Si debajo de la respuesta aparece
    «Respuesta del motor, sin IA», el agente **no** está contestando: revisa la clave.
 3. Con «Voz sí», la respuesta debe oírse con la voz de Fish Audio (no la del sistema).
-4. Compara un monto de la respuesta con el de la pantalla **Hoy**. Deben coincidir al céntimo.
+4. Compara un monto de la respuesta con el de la pantalla **Inicio**. Deben coincidir al céntimo.
    Si el agente dice un número que no está en pantalla, **apaga el agente** (quita la clave) y
    presenta con el plan B: la regla de oro vale más que el efecto.
 
@@ -100,27 +102,32 @@ presentar sin probarlo antes.
 
 El tiempo exacto y el formato no están confirmados por los organizadores **[ASUMIDO: 3 min]**.
 
-Todas las cifras de abajo salen de la app **[MEDIDO el 13-nov]**. La pantalla dice «Datos de
-demostración al viernes 13 de noviembre»: la fecha está congelada a propósito para que los números
-no cambien entre el ensayo y el escenario. Por eso di «el lunes 23», no «en 10 días».
+Las cifras salen de la app servida el 14-nov **[MEDIDO]**. La pantalla dice «Datos de demostración al
+viernes 13 de noviembre»: la fecha está congelada a propósito para que los números no cambien entre el
+ensayo y el escenario. Di «el lunes 23», no «en 10 días». La app solo muestra a **Rosa** (Carlos y Lucía
+ya no aparecen).
 
 | Momento | Qué haces | Qué se ve |
 |---|---|---|
-| 1. Problema (30 s) | Hablas, sin tocar | Las frases de la sección «Cifras para el pitch» |
-| 2. Rosa (20 s) | Perfil **Rosa**, pantalla Hoy | Independiente, ingresos irregulares. Hoy tiene **S/ 461.40** |
-| 3. El aviso (60 s) | Lees el aviso y tocas la primera jugada | «Te faltarán **S/ 200.00**»: el **lunes 23 de noviembre** se juntan el alquiler y el pago de la tarjeta. Tres jugadas con su precio: cambiar la fecha del pago (**S/ 4.64**), pagar solo el mínimo (**S/ 26.16**), gastar menos en comida (gratis, pero sola no alcanza: guarda S/ 57.60). El gráfico dibuja el «después» |
-| 4. Hablar (40 s) | Pestaña Hablar, pregunta con el micrófono «¿Me alcanza para gastar 300 soles?» | Contesta con voz que ahora no conviene y por qué. Luego «¿Qué deuda pago primero?» |
-| 5. Deudas (20 s) | Pestaña Deudas | Con lo que ya paga termina en **5 meses** y ahorra **S/ 1,206.37** frente a pagar el mínimo (20 meses) |
-| 6. Confianza (10 s) | Cierras | «Ningún número lo inventa la IA: los calcula un motor con 123 pruebas automáticas. La IA solo explica» |
+| 1. Problema (20 s) | Hablas, sin tocar | Las frases de «Cifras para el pitch» |
+| 2. Entrar (10 s) | `/ingresar` → «Ingresar con mi cuenta demo» | Rosa, independiente, ingresos irregulares. Hoy tiene **S/ 461.40** |
+| 3. El aviso (35 s) | Lees el titular en Inicio y tocas la primera jugada | «El lunes 23 de noviembre te faltarán **S/ 200.00**»: se juntan el alquiler y el pago de la Tarjeta Azul. La salida más barata cuesta **S/ 4.64** (cambiar la fecha de un pago). El gráfico dibuja el «después» |
+| 4. Tus datos (30 s) | Mi dinero → agregas un gasto fijo (por ejemplo S/ 150.50) | Inicio recalcula al instante: el faltante sube a **S/ 350.50** [MEDIDO con `verificar-mi-dinero.mjs`]. Recarga la página: sigue ahí (vive en tu navegador) |
+| 5. Reporte SBS (40 s) | Hablar → «Usar reporte SBS de ejemplo» → «Esto encontré» → revisas y «Guardar lo marcado»; luego Deudas → Reporte SBS | La IA solo lee lo escrito y **tú confirmas**. Salen las 5 deudas del ejemplo, la calificación de cada una y «Qué pagar primero» con los grupos Pagar ya / Este mes / Negociar. Si hay clave, prueba antes con una foto tuya |
+| 6. Hablar (30 s) | Pestaña Hablar, micrófono: «¿Qué deuda pago primero?» | Contesta con voz; la respuesta repite cifras del motor |
+| 7. Cierre (15 s) | Cierras | «Ningún número lo inventa la IA: los calcula un motor con más de 300 pruebas automáticas (327). La IA solo explica y extrae lo que dice un documento, y tú confirmas» |
 
-Si sobra tiempo o preguntan «¿y si no hay problema?»:
+Sin tocar nada más, solo con la cuenta demo (sin documento): Deudas muestra que con lo que ya paga
+Rosa termina en **5 meses** y ahorra **S/ 1,206.37** en intereses frente a pagar solo el mínimo (20 meses).
+«Qué pagar primero» con la semilla: S/ 400.00 disponibles este mes; Tarjeta Azul S/ 320.00 (mínimo 160 más
+160 extra porque es la más cara, TCEA 100.00 %) y Tarjeta Verde S/ 80.00.
 
-- **Carlos** (sueldo fijo, S/ 1,503.50): no hay déficit. La app lo dice: su día más ajustado es el
-  domingo 29 de noviembre, con S/ 151.74. Si pregunta por gastar S/ 300, responde que quedaría en
-  rojo el martes 24 y que su máximo es S/ 151.74.
-- **Lucía** (sueldo más Yape, S/ 899.20): le faltan S/ 25.30 el lunes 23, y si no hace nada el hueco
-  crece hasta S/ 100.00 el domingo 29. La salida más barata no cuesta dinero: recortar comida guarda
-  S/ 124.48.
+Si preguntan «¿y si no hay problema?» o «¿y si me deben plata?»: en Deudas → Me deben agrega un cobro
+(quién, cuánto, fecha prometida); en Inicio aparece «Ver si te pagan S/ X» con una línea punteada. Los
+cobros no entran en la proyección base: la app lo dice.
+
+Si falla la voz o el micrófono, escribe la pregunta o toca una sugerida; el flujo de documento y Mi dinero
+no dependen de la voz.
 
 ## Cifras para el pitch
 
@@ -153,15 +160,15 @@ chatbots), ni la cuota de mercado de BBVA (sin verificar).
 | No suena la voz de Fish | La app usa la voz del celular. Si tampoco suena, lee la respuesta en voz alta |
 | El micrófono no escucha | Escribe la pregunta o toca una sugerida |
 | No llega la notificación | Abre la campanita: los avisos están dentro de la app |
-| No hay internet | Si la app **ya estaba abierta**, Hoy y Deudas siguen funcionando (calculan en el celular). **No la cierres ni la recargues:** sin red no vuelve a abrir, porque la app no guarda copia para uso sin internet. El chat responde con el motor; la voz es la del celular. Lleva además una grabación de pantalla de la demo completa |
+| No hay internet | Si la app **ya se abrió una vez con internet** en ese navegador, recargada sin red abre y calcula igual (guarda sus archivos tras la primera visita) [MEDIDO en Chromium; **sin probar en iPhone/Safari**]. Ábrela una vez con internet antes de salir. El chat responde con el motor; la voz es la del celular. Lleva además una grabación de pantalla de la demo completa |
 | Todo falla | `npm run dev` en la laptop y se muestra en el navegador en tamaño celular |
 
 **Graba un video de la demo completa el sábado apenas funcione.** Es el seguro más barato.
 
 ## Preguntas probables del jurado (respuestas honestas)
 
-- **«¿De dónde salen los datos?»** Son sintéticos, como pide el reto: tres perfiles con 90 días de
-  movimientos generados por código. No hay ningún dato real de nadie.
+- **«¿De dónde salen los datos?»** Son sintéticos, como pide el reto: la cuenta demo de Rosa con 90 días de
+  movimientos generados por código; lo que agregas tú vive solo en tu navegador. No hay ningún dato real de nadie.
 - **«¿Y si la IA se equivoca con un número?»** El agente no calcula: llama a funciones del motor y
   repite sus resultados. Si la IA no está, la app responde igual con textos del motor.
 - **«¿Una TCEA de 100 % es real?»** Es un dato sintético del perfil. La tasa real del mercado solo
@@ -171,7 +178,7 @@ chatbots), ni la cuota de mercado de BBVA (sin verificar).
   pago tardío. No promete que el banco acepte.
 - **«¿Se conecta a mi cuenta?»** No. Hoy no mueve dinero ni lee cuentas reales. El siguiente paso
   natural sería leer los movimientos con permiso del cliente.
-- **«¿Dónde se guardan mis datos?»** En ningún lado: no hay base de datos ni cuentas de usuario.
+- **«¿Dónde se guardan mis datos?»** En tu propio navegador (base local PGlite). No hay servidor de datos ni cuentas reales. Al conversar o subir un archivo, a la IA se le envía lo necesario para contestar; el archivo no se guarda.
 - **«¿Qué falta para producción?»** Datos reales con consentimiento, cuentas, guardar las
   suscripciones de avisos y una revisión legal de protección de datos. No está hecho y no hay que
   decir que sí.
@@ -183,5 +190,6 @@ chatbots), ni la cuota de mercado de BBVA (sin verificar).
 - El micrófono en un celular real.
 - Las notificaciones en un celular real, sobre todo en iPhone.
 - Que la publicación en Vercel salga bien a la primera.
+- Subir una foto o PDF **real** con la IA (solo se probó el reporte de ejemplo) y el modo Conversar con micrófono real.
 - El tope de preguntas por hora es por cada copia del servidor, no global de verdad: por eso el
   paso 1 (tope en el proveedor) no es opcional.

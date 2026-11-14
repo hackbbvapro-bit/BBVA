@@ -4,15 +4,18 @@ import type { Analisis } from "../motor/tipos";
 import type { Datos } from "./tipos";
 
 /**
- * Dinero que queda para pagar deudas en los próximos 30 días: el punto más bajo de la proyección prudente (o el saldo final, si es menor)
- * (ya descontados gastos fijos, gasto diario típico y solo el ingreso variable prudente) más lo que esa
- * proyección ya reservaba para cuotas de deuda. Nunca cuenta cobros «me deben»: no son dinero seguro.
+ * Dinero que se puede dedicar a deudas en los próximos 30 días sin quedar en rojo ningún día: el punto más bajo del saldo
+ * de la proyección prudente si no se pagara ninguna deuda (se suma cada pago de deuda desde el día en que ocurre).
+ * Nunca cuenta cobros «me deben»: no son dinero seguro.
  */
 export function disponibleParaDeudas(analisis: Analisis): number {
-  const pagosDeDeuda = sumar(
-    analisis.proyeccion.dias.flatMap(d => d.eventos).filter(e => e.categoria === "deuda" && e.monto < 0).map(e => -e.monto),
-  );
-  return Math.max(0, Math.min(analisis.proyeccion.saldoFinal, analisis.proyeccion.saldoMinimo) + pagosDeDeuda);
+  let pagado = 0;
+  let minimo = Number.POSITIVE_INFINITY;
+  for (const dia of analisis.proyeccion.dias) {
+    pagado += sumar(dia.eventos.filter(e => e.categoria === "deuda" && e.monto < 0).map(e => -e.monto));
+    minimo = Math.min(minimo, dia.saldo + pagado);
+  }
+  return Math.max(0, Number.isFinite(minimo) ? minimo : 0);
 }
 
 export function entradaPrioridad(datos: Datos, analisis: Analisis): EntradaPrioridad {
