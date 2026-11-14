@@ -41,7 +41,7 @@
 5. **Confianza** (30 s): todos los números salen de un motor con tests; la IA solo explica.
 
 ## Preguntas pendientes para los organizadores
-- ¿Se puede llegar con código previo?
+- ~~¿Se puede llegar con código previo?~~ Sí (confirmado 13-nov).
 - ¿Hay datos sintéticos oficiales o API de BBVA para usar?
 - ¿Hay restricción de stack o de proveedor de IA?
 - ¿Cómo se presenta (tiempo, formato, entregables)?
