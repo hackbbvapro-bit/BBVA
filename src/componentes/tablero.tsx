@@ -4,6 +4,7 @@ import { enLista, mejorJugada, type Aviso } from "@/explica/explica";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Icono, unido } from "@/componentes/ui";
 import type { CobroPendiente } from "@/motor";
+import { etiquetaVencimiento, proximoVencimiento } from "@/motor/prioridad";
 
 type Props = {
   cobros: CobroPendiente[];
@@ -38,7 +39,7 @@ export function cifras(perfil: Perfil, analisis: Analisis): [string, string][] {
   return [
     ["Hoy tienes", formatoSoles(perfil.saldoActual)],
     ["Deuda de tarjeta de crédito ", formatoSoles(debes)],
-    ["Deuda a pagar mensual", formatoSoles(cuotas)],
+    [etiquetaVencimiento(perfil.hoy, proximoVencimiento(perfil.hoy, perfil.deudas.map(d => d.diaPago))), formatoSoles(cuotas)],
     p.deficit && barata
       ? ["La salida más barata", barata.costo === 0 ? "S/ 0.00" : formatoSoles(barata.costo)]
       : ["Al final del mes", formatoSoles(p.saldoFinal)],

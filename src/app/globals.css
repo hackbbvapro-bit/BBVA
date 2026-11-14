@@ -72,6 +72,12 @@ body {
   gap: 10px;
 }
 
+.cifra-tarjeta[data-cuota="true"] {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc((100% - 10px) / 2);
+}
+
 .cifra-tarjeta {
   position: relative;
   --cifra-color: #1464a5;
@@ -156,8 +162,11 @@ body {
 .cifra-selector[aria-expanded="true"] .cifra-icono { background: #d5eaff; }
 .cifra-selector:focus-visible { outline: 2px solid var(--color-electrico); outline-offset: 2px; }
 
+.cifra-pie { display: flex; align-items: baseline; gap: 4px; margin-top: 5px; }
+
 .cifra-cuenta {
-  margin-top: 5px;
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
   color: var(--color-agua-fuerte);
   font-size: 11px;
@@ -165,6 +174,18 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.cifra-gestionar {
+  display: block;
+  flex-shrink: 0;
+  color: #008fca;
+  font-size: 10px;
+  line-height: 1.35;
+  font-weight: 500;
+  cursor: pointer;
+}
+.cifra-gestionar:hover { text-decoration: underline; }
+.cifra-gestionar:focus-visible { outline: 2px solid var(--color-electrico); outline-offset: 2px; border-radius: 4px; }
 
 /* Cuentas ancladas al saldo: tarjetas deslizables, sin bloquear la p?gina. */
 .cifra-tarjeta:first-child { position: relative; z-index: 2; }
@@ -217,7 +238,6 @@ body {
 .cuentas-inline button:focus-visible { outline: 2px solid var(--color-electrico); outline-offset: 2px; }
 .cuentas-inline .cuenta-tarjeta:focus-visible { outline-color: var(--color-agua-fuerte); }
 
-.cuentas-inline-gestionar { min-height: 28px; margin-left: auto; color: var(--color-electrico); font-size: 9px; font-weight: 500; cursor: pointer; }
 .cuentas-carrusel::-webkit-scrollbar { display: none; }
 
 .cifra-valor {
@@ -244,12 +264,41 @@ body {
 }
 
 @media (min-width: 1024px) {
-  .cifras-mes { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .cifras-mes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .cifra-tarjeta[data-cuota="true"] { grid-column: auto; width: 100%; }
   .cifra-tarjeta { padding: 14px; }
   .cifra-valor { font-size: clamp(1rem, 1.8vw, 1.375rem); }
 }
 
 /* Tarjetas y jugadas: 250 ms (MOTION.md §2). El héroe del déficit conserva 600 ms. */
+.proyeccion-toque { transform-box: fill-box; transform-origin: center; animation: proyeccion-onda 1.3s ease-out infinite; }
+@keyframes proyeccion-onda {
+  0%, 30% { opacity: 0; transform: scale(.5); }
+  40% { opacity: 1; }
+  80%, 100% { opacity: 0; transform: scale(1.8); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .proyeccion-toque { animation: none; }
+  .proyeccion-toque { opacity: .5; }
+}
+.proyeccion-resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.proyeccion-resumen > div { min-width: 0; padding: 9px; border-radius: 12px; background: #f2f7fb; }
+.proyeccion-resumen span { display: block; color: var(--color-gris); font-size: 10px; }
+.proyeccion-resumen strong { display: block; margin-top: 3px; color: var(--color-noche); font-size: clamp(11px, 3vw, 15px); font-weight: 600; letter-spacing: -0.035em; }
+.proyeccion-control { display: block; width: 100%; height: 28px; margin: 0 0 10px; accent-color: var(--color-electrico); cursor: pointer; }
+.proyeccion-control:focus-visible { outline: 2px solid var(--color-electrico); outline-offset: 3px; border-radius: 6px; }
+.proyeccion-detalle { padding: 12px; border: 1px solid #d7e7f4; border-radius: 14px; background: #f7fbff; }
+.proyeccion-dia { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.proyeccion-dia p { color: var(--color-noche); font-size: 12px; font-weight: 600; text-transform: capitalize; }
+.proyeccion-dia span { color: var(--color-gris); font-size: 10px; }
+.proyeccion-dia > strong { font-size: 18px; font-weight: 650; letter-spacing: -0.04em; }
+.proyeccion-interactiva [data-negativo="true"] { color: var(--color-coral-fuerte); }
+.proyeccion-movimiento { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--color-linea); color: var(--color-tinta); font-size: 11px; line-height: 1.4; }
+.proyeccion-movimiento > span:first-child { min-width: 0; }
+.proyeccion-movimiento small { display: block; margin-top: 2px; color: var(--color-gris); font-size: 9px; }
+.proyeccion-movimiento [data-entrada="true"] { color: var(--color-verde-fuerte); }
+.proyeccion-advertencia { margin-top: 7px; padding: 8px 10px; border-radius: 9px; background: var(--color-coral-suave); color: var(--color-coral-fuerte); font-size: 11px; line-height: 1.4; }
+
 .aparecer {
   animation: aparecer 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
