@@ -31,7 +31,7 @@ export function useDatos(): ValorDatos {
   return valor;
 }
 
-/** Contenido mientras la base local se abre (la primera vez descarga el motor de base de datos). */
+/** Contenido mientras se leen los datos guardados en el navegador. */
 function Pantalla({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-papel px-4 text-tinta">
@@ -101,7 +101,7 @@ export function ProveedorDatos({ children }: { children: ReactNode }) {
     return (
       <Pantalla>
         <p role="status" className="text-lg font-semibold text-noche">Preparando tus datos…</p>
-        <p className="mt-2 text-gris">La primera vez tarda unos segundos. Tus datos se quedan en este equipo.</p>
+        <p className="mt-2 text-gris">Tus datos se quedan en este equipo.</p>
       </Pantalla>
     );
   }

@@ -5,7 +5,7 @@ import {
   ErrorDatos, validarCobro, validarCuenta, validarDeuda, validarDocumento, validarFijo, validarPerfil,
 } from "./validar";
 
-/** Todo lo que la app lee y escribe. Hay una implementación en PGlite (navegador) y otra en memoria (tests y respaldo). */
+/** Todo lo que la app lee y escribe. IndexedDB en el navegador, PGlite para migrar casos anteriores y memoria como respaldo. */
 export interface Repositorio {
   /** Foto completa y ordenada de lo guardado. */
   leerTodo(): Promise<Datos>;

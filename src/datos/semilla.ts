@@ -1,6 +1,7 @@
 import { detectarRecurrentes, estimarIngresoVariable, idsRecurrentes } from "../motor/recurrentes";
 import { partes } from "../motor/fechas";
 import { generarPerfil } from "./perfiles";
+import { cuentasDeEjemplo } from "./cuentas-demo";
 import type { TipoPerfil } from "../motor/tipos";
 import type { Datos, DeudaGuardada, Fijo } from "./tipos";
 
@@ -56,7 +57,7 @@ export function datosDeRosa(): Datos {
       id: rosa.id, nombre: rosa.nombre, tipo: rosa.tipo, descripcion: rosa.descripcion,
       ingresoAprox, diasCobro: [], hoy: rosa.hoy,
     },
-    cuentas: [{ id: "cuenta-principal", nombre: "Cuenta principal", saldo: rosa.saldoActual }],
+    cuentas: cuentasDeEjemplo(rosa.saldoActual),
     ingresosFijos: fijos.filter(r => r.monto > 0).map(aFijo),
     gastosFijos: fijos.filter(r => r.monto < 0).map(aFijo),
     movimientos: rosa.movimientos.filter(m => !fijosIds.has(m.id)),
