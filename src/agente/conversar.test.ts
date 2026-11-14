@@ -106,6 +106,15 @@ describe("herramientas e instrucciones", () => {
     const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
     expect(texto).toContain("no sugieras pagar más que la cuota mínima");
   });
+
+  it("las instrucciones obligan a explicar las consecuencias del pago mínimo y de no pagar", () => {
+    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
+    expect(texto).toContain("# Educas");
+    expect(texto).toContain("no es una salida");
+    expect(texto).toContain("mucho mejor que no pagar");
+    expect(texto).toContain("si_no_pagas_nada");
+    expect(texto).toContain("para_salir");
+  });
 });
 
 describe("herramientas e instrucciones cuando hay ruta", () => {

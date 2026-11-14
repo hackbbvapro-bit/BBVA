@@ -57,6 +57,34 @@ describe("datos que ve el agente", () => {
     }
   });
 
+  it("enseña qué pasa con el pago mínimo, con las cifras del motor y las consecuencias de no pagar", () => {
+    const { perfil, analisis } = porId("independiente");
+    const educacion = datosDeudas(perfil, analisis).educacion!;
+    const azul = educacion.pago_minimo_por_tarjeta[0];
+    expect(azul.tarjeta).toBe("Tarjeta Azul");
+    expect(azul.pago_minimo).toBe("S/ 160.00");
+    // 180000 × (2^(30/360) − 1) = 10 703 céntimos de interés; el resto del mínimo baja la deuda.
+    expect(azul.del_minimo_se_va_en_intereses_el_primer_mes).toBe("S/ 107.03");
+    expect(azul.del_minimo_baja_la_deuda_el_primer_mes).toBe("S/ 52.97");
+    expect(azul.pagando_solo_el_minimo.termina).toBe(true);
+    expect(azul.pagando_lo_que_suele_pagar?.suele_pagar).toBe("S/ 600.00");
+    expect(educacion.si_pagas_solo_el_minimo.join(" ")).toMatch(/mejor que no pagar/);
+    expect(educacion.si_no_pagas_nada.join(" ")).toMatch(/central de riesgos/);
+    expect(educacion.para_salir.join(" ")).toMatch(/ANTES de la fecha de pago/);
+    expect(educacion.glosario.map(t => t.termino)).toContain("Pago mínimo");
+  });
+
+  it("el ahorro frente a los mínimos se explica como pagar más, no solo como el orden", () => {
+    const { perfil, analisis } = porId("independiente");
+    expect(datosDeudas(perfil, analisis).de_donde_sale_el_ahorro).toMatch(/No sale solo del orden/);
+  });
+
+  it("una deuda sin tasa conocida no recibe cifras inventadas del mínimo", () => {
+    const { perfil, analisis } = porId("independiente");
+    const sinTasa = { ...perfil, deudas: perfil.deudas.map(d => ({ ...d, tceaBp: 0 })) };
+    expect(datosDeudas(sinTasa, analisis).educacion?.pago_minimo_por_tarjeta).toEqual([]);
+  });
+
   it("los próximos pagos se muestran como montos positivos", () => {
     const { analisis } = porId("independiente");
     for (const pago of datosProximosPagos(analisis, 30).pagos) expect(pago.monto).toMatch(/^S\/ /);

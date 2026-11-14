@@ -3,7 +3,8 @@
  * fechas YA escritos como texto, para que el modelo los copie tal cual y no tenga que calcular nada.
  */
 import { mejorJugada, proximosPagos } from "../explica/explica";
-import { formatoLargo, formatoSoles, formatoTasa, redondear, simularGasto } from "../motor";
+import { formatoLargo, formatoSoles, formatoTasa, leccionesMinimo, redondear, simularGasto, type LeccionMinimo } from "../motor";
+import { GLOSARIO, NOTA_MINIMO, PARA_SALIR, SI_NO_PAGAS, SI_PAGAS_EL_MINIMO } from "../explica/educacion";
 import { conCobros, type CobroPendiente } from "../motor/cobros";
 import type { Analisis, Centimos, EventoProyectado, Perfil, PlanDeudas } from "../motor";
 import { contadorDeAvance, fraseLibre, MESES_DE_COLCHON, type Avance, type Ruta } from "../ruta/ruta";
@@ -100,6 +101,30 @@ function plan(p: PlanDeudas) {
   return { termina: true, meses: p.meses, intereses_totales: formatoSoles(p.interesTotal), total_pagado: formatoSoles(p.totalPagado) };
 }
 
+/** Las cifras del mínimo de una tarjeta, ya en texto, y lo que significan. */
+function leccion(l: LeccionMinimo) {
+  return {
+    tarjeta: l.nombre,
+    pago_minimo: formatoSoles(l.pagoMinimo),
+    del_minimo_se_va_en_intereses_el_primer_mes: formatoSoles(l.interesPrimerMes),
+    del_minimo_baja_la_deuda_el_primer_mes: formatoSoles(l.abonoPrimerMes),
+    pagando_solo_el_minimo: plan(l.soloMinimo),
+    pagando_lo_que_suele_pagar: l.conLoQuePaga ? { suele_pagar: formatoSoles(l.pagoHabitual), ...plan(l.conLoQuePaga) } : null,
+  };
+}
+
+/** Lo que el agente explica sobre el pago mínimo: cifras del motor por tarjeta + reglas fijas. */
+export function educacionDeudas(perfil: Perfil) {
+  return {
+    pago_minimo_por_tarjeta: leccionesMinimo(perfil.deudas).map(leccion),
+    si_pagas_solo_el_minimo: SI_PAGAS_EL_MINIMO,
+    si_no_pagas_nada: SI_NO_PAGAS,
+    para_salir: PARA_SALIR,
+    glosario: GLOSARIO,
+    nota_de_calculo: NOTA_MINIMO,
+  };
+}
+
 export function datosDeudas(perfil: Perfil, analisis: Analisis) {
   const comparacion = analisis.deudas;
   if (!comparacion) return { tiene_deudas: false };
@@ -123,6 +148,8 @@ export function datosDeudas(perfil: Perfil, analisis: Analisis) {
     plan_empezando_por_la_mas_cara: plan(comparacion.avalancha),
     plan_pagando_solo_minimos: plan(comparacion.minimos),
     ahorro_en_intereses_frente_a_solo_minimos: comparacion.ahorroVsMinimos > 0 ? formatoSoles(comparacion.ahorroVsMinimos) : null,
+    de_donde_sale_el_ahorro: "De pagar cada mes lo considerado en vez de solo los mínimos, empezando por la más cara. No sale solo del orden.",
+    educacion: educacionDeudas(perfil),
   };
 }
 

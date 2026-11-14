@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { formatoSoles, type Perfil, type Analisis, type PlanDeudas } from "@/motor";
-import { avisos } from "@/explica/explica";
-import { tarjeta, TarjetaAviso, unido, Encabezado, Icono, botonPrincipal, botonSecundario, desplazar } from "@/componentes/ui";
+import { formatoSoles, formatoTasa, type Perfil, type Analisis, type PlanDeudas } from "@/motor";
+import { tarjeta, unido, Encabezado, Icono, botonPrincipal, botonSecundario, desplazar } from "@/componentes/ui";
+import { EducacionMinimo } from "@/componentes/educacion-minimo";
 import { Adjuntar } from "@/componentes/documento";
 import { useDatos } from "@/componentes/datos";
 import { OrdenDePago } from "@/componentes/orden-pago";
@@ -60,7 +60,7 @@ function Pestanas({ actual, cambiar, debo, medeben }: { actual: Pestana; cambiar
     <div role="tablist" aria-label="Deudas" className="grid grid-cols-3 gap-1 rounded-full bg-niebla p-1">
       {una("debo", "Debo", debo)}
       {una("medeben", "Me deben", medeben)}
-      {una("sbs", <><span className="md:hidden">Clasificación</span><span className="hidden md:inline">Simulación de clasificación</span></>)}
+      {una("sbs", <><span className="md:hidden">Clasificación</span><span className="hidden md:inline">Clasificación SBS</span></>)}
     </div>
   );
 }
@@ -96,7 +96,9 @@ export function Deudas({
   const comparacion = analisis.deudas;
   const debo = totalDebo(datos.deudas);
   const meDeben = totalMeDeben(datos.cobros);
-  const avisoDeuda = comparacion ? avisos(perfil, analisis).find(a => a.id === "deuda") : undefined;
+  // Suma de los mínimos del caso: lo que paga el plan «solo mínimos». Es una suma de céntimos, sin redondeos.
+  const sumaMinimos = perfil.deudas.reduce((t, d) => t + d.pagoMinimo, 0);
+  const soles = (c: number) => unido(formatoSoles(c));
   const tope = comparacion ? Math.max(comparacion.avalancha.meses, comparacion.minimos.meses, 1) : 1;
 
   const resumen = (
@@ -109,33 +111,50 @@ export function Deudas({
         </>
       ) : (
         <>
-          <p className="text-xs font-semibold uppercase tracking-wide text-gris">Que tus deudas bajen</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gris">Tu plan para salir de deudas</p>
           {comparacion.avalancha.noTermina ? (
-            <h2 id="resumen-deudas" className="mt-1 text-lg font-semibold leading-tight text-noche text-balance md:text-[1.375rem]">
-              Con lo que pagas hoy, tus deudas no bajan
-            </h2>
-          ) : (
-            <div className="mt-1 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-              <h2 id="resumen-deudas" className="text-sm font-normal text-noche md:text-[15px]">
-                Pagando en orden terminas en
-                <span className="block text-[2rem] font-semibold leading-none tracking-[-0.03em] tabular-nums md:text-[2.25rem]">
-                  {comparacion.avalancha.meses}
-                  <span className="ml-1.5 text-base font-medium tracking-normal text-gris md:text-lg">meses</span>
-                </span>
+            <>
+              <h2 id="resumen-deudas" className="mt-1 text-lg font-semibold leading-tight text-noche text-balance md:text-[1.375rem]">
+                Con lo que pagas hoy, tus deudas no bajan
               </h2>
-              {comparacion.ahorroVsMinimos > 0 && (
-                <p className="rounded-xl bg-verde-suave px-3 py-1.5 text-[13px] font-semibold leading-snug text-verde-fuerte md:text-sm">
-                  Te ahorrarías cerca de {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses (estimado)
-                </p>
-              )}
+              <p className="mt-1.5 text-sm leading-relaxed text-gris md:text-[15px]">
+                Los intereses crecen más rápido que tus pagos. Habla con tu entidad antes de la próxima fecha de pago.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 id="resumen-deudas" className="mt-1.5 flex items-baseline gap-2 text-noche">
+                <span className="text-[2.25rem] font-semibold leading-none tracking-[-0.03em] tabular-nums md:text-[2.5rem]">{comparacion.avalancha.meses}</span>
+                <span className="text-base font-medium text-gris md:text-lg">meses para quedar libre</span>
+              </h2>
+              <p className="mt-1.5 text-sm leading-relaxed text-gris md:text-[15px]">
+                Si sigues pagando <span className="font-semibold text-noche tabular-nums">{soles(comparacion.presupuestoMensual)}</span> al mes, como sueles, y siempre primero la más cara.
+              </p>
+            </>
+          )}
+          {comparacion.primera && (
+            <div className="mt-4 flex items-start gap-3 rounded-xl bg-agua-suave px-3 py-2.5 md:px-4 md:py-3">
+              <span aria-hidden="true" className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-electrico text-xs font-semibold text-white">1</span>
+              <p className="min-w-0 text-sm leading-snug text-noche md:text-[15px]">
+                <span className="font-semibold">Paga primero {comparacion.primera.nombre}</span>
+                <span className="block text-[13px] text-tinta">
+                  Tiene la tasa más alta ({formatoTasa(comparacion.primera.tceaBp).replace(".00 %", " %")} TCEA): cada sol extra ahí ahorra más intereses.
+                </span>
+              </p>
             </div>
           )}
-          <div className="mt-4 space-y-3 border-t border-linea pt-4 md:mt-6 md:space-y-4 md:pt-5">
-            <Carrera nombre="Pagando en orden" plan={comparacion.avalancha} tope={tope} bueno />
-            <Carrera nombre="Pagando solo el mínimo" plan={comparacion.minimos} tope={tope} />
+          <div className="mt-4 space-y-3 md:space-y-4">
+            <Carrera nombre={`Lo que sueles pagar (${soles(comparacion.presupuestoMensual)})`} plan={comparacion.avalancha} tope={tope} bueno />
+            <Carrera nombre={`Solo mínimos (${soles(sumaMinimos)})`} plan={comparacion.minimos} tope={tope} />
           </div>
+          {comparacion.ahorroVsMinimos > 0 && (
+            <p className="mt-4 rounded-xl bg-verde-suave px-3 py-2 text-[13px] leading-snug text-verde-fuerte md:text-sm">
+              Seguir pagando <span className="font-semibold tabular-nums">{soles(comparacion.presupuestoMensual)}</span> en vez de solo los mínimos te ahorra cerca de{" "}
+              <span className="font-semibold tabular-nums">{soles(comparacion.ahorroVsMinimos)}</span> en intereses.
+            </p>
+          )}
           <p className="mt-3 text-[11px] leading-snug text-gris md:text-xs">
-            Meses e intereses estimados por el código con las tasas y los pagos del caso, si no cambian. Tu entidad puede cobrar distinto.
+            Estimado por el código con las tasas y los pagos del caso, sin compras nuevas. Tu entidad puede cobrar distinto.
           </p>
         </>
       )}
@@ -163,15 +182,9 @@ export function Deudas({
   );
 
   const orden = prioridadDePagos(datos, analisis);
-  // El aviso repite lo que ya dicen el resumen y «Qué pagar primero»: en el celular sobra; en escritorio acompaña.
-  const resto = avisoDeuda && (
-    <div className="order-4 hidden md:block">
-      <TarjetaAviso aviso={avisoDeuda} />
-    </div>
-  );
 
   // Dos columnas independientes en escritorio (sin filas compartidas, para que no queden huecos);
-  // en celular y iPad vertical, un solo flujo: resumen, lista con «Agregar», orden de pago, aviso y plan.
+  // en celular y iPad vertical, un solo flujo: plan, lista con «Agregar», orden de pago y «¿Y si solo pago el mínimo?».
   return (
     <>
       <Encabezado
@@ -217,9 +230,11 @@ export function Deudas({
             </div>
           )}
         </div>
-        <div className={`contents xl:col-span-5 xl:col-start-8 xl:block ${pestana === "sbs" ? "xl:sticky xl:top-6" : ""}`}>
+        <div className="contents xl:col-span-5 xl:col-start-8 xl:block">
           <div className="order-1 mb-3 md:mb-6">{resumen}</div>
-          {resto}
+          <div className="order-4 mb-3 md:mb-6 xl:mb-0">
+            <EducacionMinimo deudas={perfil.deudas} />
+          </div>
         </div>
       </div>
       <p role="status" className="sr-only">
