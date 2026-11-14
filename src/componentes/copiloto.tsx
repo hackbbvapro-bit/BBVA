@@ -6,22 +6,23 @@ import { avisos } from "@/explica/explica";
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
 import { Hoy } from "@/componentes/hoy";
 import { Deudas } from "@/componentes/deudas";
+import { MiDinero } from "@/componentes/mi-dinero";
 import { Chat } from "@/componentes/chat";
 import { HojaAvisos } from "@/componentes/avisos";
 import { Icono } from "@/componentes/ui";
-type Pestana = "hoy" | "deudas" | "hablar";
-export type Direccion = "a" | "b";
+type Pestana = "hoy" | "dinero" | "deudas" | "hablar";
 /** Un solo perfil en la interfaz: Rosa (independiente), el del guion de la demo. */
 const ROSA = PERFILES.find(p => p.id === "independiente") ?? PERFILES[0];
 const PESTANAS = [
   ["hoy", "Inicio"],
+  ["dinero", "Mi dinero"],
   ["deudas", "Deudas"],
   ["hablar", "Hablar"],
 ] as const;
-export function Copiloto({ direccion = "a" }: { direccion?: Direccion }) {
+export function Copiloto() {
   return (
     <div className="relative min-h-dvh w-full bg-papel text-base text-tinta [overflow-wrap:anywhere] md:pl-[232px] [&_button]:cursor-pointer [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-4 [&_:focus-visible]:outline-electrico">
-      <Sesion perfil={ROSA} direccion={direccion} />
+      <Sesion perfil={ROSA} />
     </div>
   );
 }
@@ -38,7 +39,7 @@ function Marca() {
     </span>
   );
 }
-function Sesion({ perfil, direccion }: { perfil: Perfil; direccion: Direccion }) {
+function Sesion({ perfil }: { perfil: Perfil }) {
   const analisis = useMemo(() => analizar(perfil), [perfil]);
   const lista = useMemo(() => avisos(perfil, analisis), [perfil, analisis]);
   const [pestana, setPestana] = useState<Pestana>("hoy"),
@@ -138,7 +139,12 @@ function Sesion({ perfil, direccion }: { perfil: Perfil; direccion: Direccion })
       </header>
       <main className="px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pb-0 md:pt-0">
         {pestana === "hoy" && (
-          <Hoy perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} direccion={direccion} />
+          <Hoy perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} />
+        )}
+        {pestana === "dinero" && (
+          <div className="md:mx-auto md:max-w-4xl md:px-8 md:py-10">
+            <MiDinero perfil={perfil} analisis={analisis} />
+          </div>
         )}
         {pestana === "deudas" && (
           <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10">
@@ -155,7 +161,7 @@ function Sesion({ perfil, direccion }: { perfil: Perfil; direccion: Direccion })
         aria-label="Navegación inferior"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-linea bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
       >
-        <div className="mx-auto grid max-w-md grid-cols-3">
+        <div className="mx-auto grid max-w-md grid-cols-4">
           {PESTANAS.map(([id, nombre]) => (
             <button
               key={id}

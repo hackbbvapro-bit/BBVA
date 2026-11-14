@@ -4,13 +4,14 @@ import type { Aviso } from "@/explica/explica";
 export const boton =
   "min-h-11 rounded-2xl px-4 py-3 font-semibold transition-[transform,background-color,color] duration-200 active:scale-[.97] disabled:opacity-50 disabled:cursor-not-allowed";
 export const tarjeta =
-  "rounded-[1.5rem] bg-white p-5 ring-1 ring-linea";
+  "rounded-[22px] border border-linea bg-white p-5 md:p-6";
 /** Evita que «S/» quede en una línea y el monto en la siguiente. Solo cambia el espacio. */
 export function unido(texto: string) {
   return texto.replace(/S\/ /g, "S/ ");
 }
 const trazos = {
   hoy: "M3 11 12 3l9 8M5 10v11h14V10M9 21v-7h6v7",
+  dinero: "M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4ZM4 7V5h12v2M16 13.5h1",
   deudas: "M3 6h18v14H3zM3 10h18M7 15h4",
   hablar: "M21 11a9 9 0 0 1-9 9H4l-2 2v-11a9 9 0 0 1 19 0ZM7 10h10M7 14h6",
   campana: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4",
@@ -44,9 +45,9 @@ export const tonos = {
 };
 export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
   return (
-    <article className={`aparecer rounded-[1.75rem] p-5 ${tonos[aviso.nivel]}`}>
-      <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-        <span className="punto-vivo size-2 rounded-full bg-current" aria-hidden="true" />
+    <article className={`aparecer rounded-[22px] p-5 ${tonos[aviso.nivel]}`}>
+      <p className="mb-2 flex items-center gap-2 text-sm font-semibold">
+        <span className="size-2 rounded-full bg-current" aria-hidden="true" />
         {aviso.nivel === "urgente"
           ? "Anticípate"
           : aviso.nivel === "bien"
@@ -59,23 +60,9 @@ export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
     </article>
   );
 }
-/** Cabina oscura que abre cada pestaña, pegada bajo la cabecera fija. */
-export function Portada({
-  alerta = false,
-  children,
-}: {
-  alerta?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <section
-      data-alerta={alerta ? "si" : "no"}
-      className="cabina relative -mx-4 -mt-[calc(5.25rem+env(safe-area-inset-top))] mb-6 overflow-hidden rounded-b-[2.5rem] px-5 pb-7 pt-[calc(6.75rem+env(safe-area-inset-top))] text-white lg:mx-0 lg:mt-0 lg:rounded-[2rem] lg:px-10 lg:py-10"
-    >
-      <div aria-hidden="true" className={`aurora ${alerta ? "bg-coral" : "bg-agua"}`} />
-      <div className="relative">{children}</div>
-    </section>
-  );
+/** Cabecera clara de cada pestaña: tarjeta blanca con borde, nunca una superficie azul (ANCLA). */
+export function Portada({ children }: { children: ReactNode }) {
+  return <section className="aparecer mb-6 rounded-[22px] border border-linea bg-white p-6 md:p-8">{children}</section>;
 }
 export function desplazar(elemento: HTMLElement | null) {
   elemento?.scrollIntoView({
