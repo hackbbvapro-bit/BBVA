@@ -9,6 +9,10 @@ export type MotorVoz = "fish" | "navegador" | "ninguna";
 
 const SILENCIO = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
 const MAX_TEXTO = 800;
+/** El arranque debe durar lo suficiente (unos 9 s hablados) para que el resto llegue mientras suena. */
+const MINIMO_ARRANQUE = 140;
+/** Con menos resto que esto no vale la pena partir: se pide todo de una vez. */
+const MINIMO_RESTO = 80;
 
 let reproductor: HTMLAudioElement | undefined;
 let urlActual: string | undefined;
@@ -86,6 +90,31 @@ async function pedirAudio(texto: string): Promise<Blob | undefined> {
   }
 }
 
+/**
+ * Parte lo que se va a leer en un arranque corto y el resto, siempre en un fin de frase.
+ * La voz tarda en generarse según el largo del texto: pidiendo primero un arranque corto empieza a sonar
+ * a los pocos segundos, y el resto se genera mientras tanto. Un texto corto no se parte.
+ */
+export function partirParaVoz(texto: string): string[] {
+  const finDeFrase = /[.!?…]+["»)]?\s+/g;
+  for (let m = finDeFrase.exec(texto); m; m = finDeFrase.exec(texto)) {
+    const corte = m.index + m[0].length;
+    if (corte < MINIMO_ARRANQUE) continue;
+    const resto = texto.slice(corte).trim();
+    return resto.length >= MINIMO_RESTO ? [texto.slice(0, corte).trim(), resto] : [texto];
+  }
+  return [texto];
+}
+
+function reproducir(audio: Blob, alAcabar: () => void): Promise<void> {
+  const elemento = obtenerReproductor();
+  liberarUrl();
+  urlActual = URL.createObjectURL(audio);
+  elemento.src = urlActual;
+  elemento.onended = alAcabar;
+  return elemento.play();
+}
+
 /** Lee un texto en voz alta. Devuelve qué voz se usó. `alTerminar` se llama al acabar (o si no pudo sonar). */
 export async function hablar(texto: string, alTerminar?: () => void): Promise<MotorVoz> {
   if (typeof window === "undefined") return "ninguna";
@@ -98,16 +127,27 @@ export async function hablar(texto: string, alTerminar?: () => void): Promise<Mo
   }
   const limpio = paraVoz(texto).slice(0, MAX_TEXTO);
   if (!limpio) { alTerminar?.(); return "ninguna"; }
-  const audio = await pedirAudio(limpio);
+  // Las partes se piden a la vez; suenan en orden. Si una falla, lo que falta lo dice la voz del celular.
+  const partes = partirParaVoz(limpio);
+  const pedidos = partes.map(pedirAudio);
+  const sonar = async (i: number): Promise<void> => {
+    if (miTurno !== turno) return;
+    if (i >= partes.length) { alTerminar?.(); return; }
+    const audio = await pedidos[i];
+    if (miTurno !== turno) return;
+    const falta = partes.slice(i).join(" ");
+    if (!audio) { hablarConNavegador(falta, alTerminar); return; }
+    try {
+      await reproducir(audio, () => void sonar(i + 1));
+    } catch {
+      if (miTurno === turno) hablarConNavegador(falta, alTerminar);
+    }
+  };
+  const primero = await pedidos[0];
   if (miTurno !== turno) return "ninguna";
-  if (!audio) return hablarConNavegador(limpio, alTerminar);
-  const elemento = obtenerReproductor();
-  liberarUrl();
-  urlActual = URL.createObjectURL(audio);
-  elemento.src = urlActual;
-  elemento.onended = () => alTerminar?.();
+  if (!primero) return hablarConNavegador(limpio, alTerminar);
   try {
-    await elemento.play();
+    await reproducir(primero, () => void sonar(1));
     return "fish";
   } catch {
     return miTurno === turno ? hablarConNavegador(limpio, alTerminar) : "ninguna";
