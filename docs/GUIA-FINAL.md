@@ -115,7 +115,7 @@ ya no aparecen).
 | 4. Tus datos (30 s) | Mi dinero → agregas un gasto fijo (por ejemplo S/ 150.50) | Inicio recalcula al instante: el faltante sube a **S/ 350.50** [MEDIDO con `verificar-mi-dinero.mjs`]. Recarga la página: sigue ahí (vive en tu navegador) |
 | 5. Reporte SBS (40 s) | Hablar → «Usar reporte SBS de ejemplo» → «Esto encontré» → revisas y «Guardar lo marcado»; luego Deudas → Reporte SBS | La IA solo lee lo escrito y **tú confirmas**. Salen las 5 deudas del ejemplo, la calificación de cada una y «Qué pagar primero» con los grupos Pagar ya / Este mes / Negociar. Si hay clave, prueba antes con una foto tuya |
 | 6. Hablar (30 s) | Pestaña Hablar, micrófono: «¿Qué deuda pago primero?» | Contesta con voz; la respuesta repite cifras del motor |
-| 7. Cierre (15 s) | Cierras | «Ningún número lo inventa la IA: los calcula un motor con más de 300 pruebas automáticas (327). La IA solo explica y extrae lo que dice un documento, y tú confirmas» |
+| 7. Cierre (15 s) | Cierras | «Ningún número lo inventa la IA: los calcula un motor con más de 300 pruebas automáticas (343). La IA solo explica y extrae lo que dice un documento, y tú confirmas» |
 
 Sin tocar nada más, solo con la cuenta demo (sin documento): Deudas muestra que con lo que ya paga
 Rosa termina en **5 meses** y ahorra **S/ 1,206.37** en intereses frente a pagar solo el mínimo (20 meses).
@@ -189,7 +189,9 @@ chatbots), ni la cuota de mercado de BBVA (sin verificar).
 - La transcripción de audio con Fish Audio (la voz sí está probada).
 - El micrófono en un celular real.
 - Las notificaciones en un celular real, sobre todo en iPhone.
-- Que la publicación en Vercel salga bien a la primera.
+- ~~Que la publicación en Vercel salga bien a la primera.~~ Verificado el 14-nov de madrugada: producción
+  sirve la versión nueva, el ingreso demo, el chat con IA (respuesta limpia en español) y la voz
+  responden, y a 375 px no hay desborde **[MEDIDO]**.
 - Subir una foto o PDF **real** con la IA (solo se probó el reporte de ejemplo) y el modo Conversar con micrófono real.
 - El tope de preguntas por hora es por cada copia del servidor, no global de verdad: por eso el
   paso 1 (tope en el proveedor) no es opcional.
