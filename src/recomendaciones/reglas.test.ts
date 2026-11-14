@@ -66,10 +66,28 @@ describe("recomendar", () => {
     expect(r?.porQue).toBe("Tienes una deuda con 12 días de atraso.");
   });
 
-  it("un día de atraso va en singular", () => {
+  it("un atraso corto que aún deja la calificación en Normal no basta para pedir un depósito", () => {
     const { datos, analisis } = rosaHolgada();
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 1 } : d));
-    expect(recomendar(datos, analisis)[0].porQue).toBe("Tienes una deuda con 1 día de atraso.");
+    expect(ids(datos, analisis)).not.toContain("garantia-liquida");
+  });
+
+  it("con un faltante proyectado no propone productos que piden inmovilizar un depósito", () => {
+    const { datos } = rosaHolgada();
+    datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 40 } : d));
+    const holgado = sinDeficit(analisisDe(datos));
+    expect(ids(datos, holgado)).toContain("garantia-liquida");
+    const sinTarjeta = { ...datos, deudas: datos.deudas.filter(d => d.tipo !== "tarjeta") };
+    expect(ids(sinTarjeta, holgado)).toContain("tarjeta-start");
+    const conDeficit: Analisis = {
+      ...holgado,
+      proyeccion: {
+        ...holgado.proyeccion,
+        deficit: { fecha: "2026-11-20", faltante: 15050, faltanteMaximo: 15050, fechaFaltanteMaximo: "2026-11-20", causas: [], diasRestantes: 6 },
+      },
+    };
+    expect(ids(datos, conDeficit)).toEqual(["reprogramar"]);
+    expect(ids(sinTarjeta, conDeficit)).toEqual(["reprogramar"]);
   });
 
   it("una calificación no Normal en el último reporte SBS también la activa", () => {

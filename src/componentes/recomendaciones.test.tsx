@@ -17,8 +17,11 @@ describe("Recomendaciones", () => {
 
   it("con atraso muestra título, motivo, condición, fuente enlazada y la frase fija", () => {
     const datos = datosDeRosa();
+    // Con plata de sobra: a quien le falta para fin de mes no se le propone inmovilizar un depósito.
+    datos.cuentas = [{ id: "c", nombre: "Cuenta", saldo: 900_000_000 }];
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 12 } : d));
     const analisis = analizar(aPerfil(datos));
+    analisis.proyeccion = { ...analisis.proyeccion, deficit: null };
     // `unido` pone un espacio sin salto entre «S/» y el monto.
     const html = renderToStaticMarkup(<DatosDePrueba datos={datos}><Recomendaciones datos={datos} analisis={analisis} /></DatosDePrueba>).replace(/ /g, " ");
     expect(html).toContain("Opciones para ti en BBVA");
