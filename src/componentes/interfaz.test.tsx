@@ -10,6 +10,9 @@ import { Chat } from "@/componentes/chat";
 import { DatosDePrueba } from "@/componentes/datos";
 import { datosDeRosa } from "@/datos/semilla";
 import { Grafico } from "@/componentes/grafico";
+import { Dataset } from "@/componentes/dataset";
+import { Evaluacion } from "@/componentes/evaluacion";
+import resultados from "../../docs/evaluacion/resultados.json";
 const voz = { leer: () => undefined, detener: () => undefined, sonando: false };
 describe("Interfaz con perfiles sintéticos", () => {
   for (const perfil of PERFILES) {
@@ -84,5 +87,24 @@ describe("Cómo funciona", () => {
       expect(html).toContain(t);
     }
     expect(html).not.toMatch(/<input|NaN|undefined/);
+  });
+});
+
+describe("Datos de prueba", () => {
+  it("muestra a Rosa y a los seis clientes del dataset sin marcas ni valores rotos", () => {
+    const html = renderToStaticMarkup(<Dataset />);
+    for (const nombre of ["Rosa", "Ana", "Luis", "Carmen", "Jorge", "Marta", "Diego"]) expect(html).toContain(nombre);
+    expect(html).toContain("cli-0004");
+    expect(html).not.toMatch(/NaN|undefined|yape|plin/i);
+  });
+});
+describe("Evaluación", () => {
+  it("pinta las cifras del archivo de resultados, sin teclear ninguna", () => {
+    const html = renderToStaticMarkup(<Evaluacion />);
+    const { aviso } = resultados.pronostico.global.metodos.motor;
+    expect(html).toContain(`${(aviso.recall * 100).toFixed(1)} %`);
+    expect(html).toContain(`${(aviso.falsosPositivos * 100).toFixed(1)} %`);
+    expect(html).toContain("No avisa nunca");
+    expect(html).not.toMatch(/NaN|undefined|null/);
   });
 });

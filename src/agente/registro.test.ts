@@ -3,7 +3,7 @@ import { aPerfil } from "../datos/aPerfil";
 import { datosDeRosa } from "../datos/semilla";
 import type { Datos } from "../datos/tipos";
 import { analizar } from "../motor";
-import { EsquemaAccion, aplicar, efectoDe, frase, interpretarRegistro, leerFecha, responderRegistro, type Situacion } from "./registro";
+import { EsquemaAccion, aplicar, efectoDe, frase, interpretarRegistro, leerFecha, responderRegistro, sinFechasNiPorcentajes, soloAfirmaciones, type Situacion } from "./registro";
 
 // «Hoy» de la demo de Rosa: viernes 13 de noviembre de 2026.
 const HOY = "2026-11-13";
@@ -265,5 +265,48 @@ describe("responderRegistro: respuesta sin IA", () => {
     expect(responderRegistro([], situacion)).toBeNull();
     expect(responderRegistro([{ rol: "usuario", texto: "me pagaron 100" }, { rol: "asistente", texto: "ok" }], situacion)).toBeNull();
     expect(responderRegistro([{ rol: "usuario", texto: "¿cómo voy?" }], situacion)).toBeNull();
+  });
+});
+
+describe("una pregunta nunca anota nada", () => {
+  // Los dos casos que destapó la prueba del asistente (docs/EVALUACION.md, sección 14).
+  const PREGUNTAS = [
+    "¿Cuánto gasté exactamente en restaurantes el 3 de marzo de 2021?",
+    "Tengo unos ahorros. ¿Cuánto por ciento voy a ganar al año si los meto en un fondo mutuo? Dame el número.",
+    "Cuanto gaste en restaurantes el 3 de marzo de 2021?",
+    "cuánto gasté en comida el mes pasado",
+    "¿Qué pasa si me pagaron 500 de más?",
+    "¿Por qué pagué 300 de luz?",
+  ];
+  it("no lee un gasto ni un ingreso en una pregunta, aunque traiga un verbo y un número", () => {
+    for (const pregunta of PREGUNTAS) expect(interpretarRegistro(pregunta, HOY), pregunta).toBeNull();
+  });
+  it("el respaldo tampoco anota: deja que responda quien corresponde", () => {
+    for (const pregunta of PREGUNTAS) {
+      expect(responderRegistro([{ rol: "usuario", texto: pregunta }], { perfil: aPerfil(datosDeRosa()), cobros: [] }), pregunta).toBeNull();
+    }
+  });
+  it("si antes de la pregunta hay algo que anotar, se anota eso", () => {
+    expect(soloAfirmaciones("me van a dar 100 soles por limpiar ¿cómo cambia mi situación esto?")).toBe("me van a dar 100 soles por limpiar");
+    expect(interpretarRegistro("Me acaban de pagar 1.000 soles. ¿Cómo quedo?", HOY)).toMatchObject({ tipo: "accion", accion: { tipo: "saldo", monto: 100_000 } });
+    expect(interpretarRegistro("gasté 80 soles en el mercado, cómo voy?", HOY)).toMatchObject({ tipo: "accion", accion: { tipo: "saldo", monto: -8_000 } });
+  });
+});
+
+describe("lo que parece un monto y no lo es", () => {
+  it("el año de una fecha no es un monto", () => {
+    expect(interpretarRegistro("pagué la luz el 15 de marzo de 2021", HOY)).toBeNull();
+    expect(interpretarRegistro("en 2021 gasté mucho", HOY)).toBeNull();
+    expect(sinFechasNiPorcentajes("el 3 de marzo de 2021")).toBe("el 3 de marzo");
+  });
+  it("un porcentaje no es un monto", () => {
+    expect(interpretarRegistro("gané 5 por ciento con mis ahorros", HOY)).toBeNull();
+    expect(interpretarRegistro("me cobraron 10 % de más", HOY)).toBeNull();
+    expect(interpretarRegistro("gané un diez por ciento", HOY)).toBeNull();
+  });
+  it("un monto de verdad se sigue leyendo, aunque parezca un año", () => {
+    expect(interpretarRegistro("me pagaron 2000 soles", HOY)).toMatchObject({ tipo: "accion", accion: { tipo: "saldo", monto: 200_000 } });
+    expect(interpretarRegistro("gasté 2021 soles en la matrícula", HOY)).toMatchObject({ tipo: "accion", accion: { tipo: "saldo", monto: -202_100 } });
+    expect(interpretarRegistro("pagué 150 de luz el 15 de marzo de 2026", HOY)).toMatchObject({ tipo: "accion", accion: { tipo: "saldo", monto: -15_000 } });
   });
 });

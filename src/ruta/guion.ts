@@ -76,6 +76,7 @@ const COBROS_DEPENDIENTE: Opcion[] = [
 ];
 /** Por su cuenta, la plata entra a otro ritmo, a veces sin fecha fija. */
 const COBROS_INDEPENDIENTE: Opcion[] = [
+  { valor: "diario", texto: "Todos los días (vendo o cobro al día)" },
   { valor: "semanal", texto: "Cada semana" },
   { valor: "quincena", texto: "Cada quincena" },
   { valor: "fin_de_mes", texto: "Una vez al mes" },

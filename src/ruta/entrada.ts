@@ -4,11 +4,12 @@
  * Las fechas son aproximadas a propósito (la entrada pregunta «cuándo te entra la plata», no el día exacto);
  * después se corrigen en Mi dinero y en Deudas.
  */
-import { formatoSoles, type Centimos, type FechaISO } from "../motor";
+import { formatoSoles, type Centimos, type FechaISO, type Movimiento } from "../motor";
+import { sumarDias } from "../motor/fechas";
 import { datosVacios } from "../datos/semilla";
 import type { Datos, DeudaGuardada, Fijo, TipoDeudaDebo } from "../datos/tipos";
 
-export type Cobro = "fin_de_mes" | "quincena" | "semanal" | "variable";
+export type Cobro = "fin_de_mes" | "quincena" | "semanal" | "variable" | "diario";
 /** Cómo trabaja: en planilla con sueldo (dependiente) o por su cuenta (independiente). */
 export type Trabajo = "dependiente" | "independiente";
 export type Atraso = "al_dia" | "menos_de_un_mes" | "uno_a_dos_meses" | "mas_de_dos_meses";
@@ -59,15 +60,17 @@ export interface Respuestas {
 /** Días aproximados de atraso según la opción elegida. Son el punto medio del tramo, no una medida. */
 export const DIAS_DE_ATRASO: Record<Atraso, number> = { al_dia: 0, menos_de_un_mes: 20, uno_a_dos_meses: 45, mas_de_dos_meses: 90 };
 
-const DIAS_DE_COBRO: Record<Cobro, number[]> = { fin_de_mes: [30], quincena: [15, 30], semanal: [7, 14, 21, 28], variable: [7, 14, 21, 28] };
+const DIAS_DE_COBRO: Record<Cobro, number[]> = { fin_de_mes: [30], quincena: [15, 30], semanal: [7, 14, 21, 28], variable: [7, 14, 21, 28], diario: [] };
 const NOMBRES_DE_INGRESO: Record<Cobro, string[]> = {
   fin_de_mes: ["Ingreso del mes"],
   quincena: ["Ingreso de la primera quincena", "Ingreso de la segunda quincena"],
   semanal: ["Ingreso de la primera semana", "Ingreso de la segunda semana", "Ingreso de la tercera semana", "Ingreso de la cuarta semana"],
   variable: ["Ingreso de trabajos, primera semana", "Ingreso de trabajos, segunda semana", "Ingreso de trabajos, tercera semana", "Ingreso de trabajos, cuarta semana"],
+  diario: [],
 };
 const TEXTO_DE_COBRO: Record<Cobro, string> = {
   fin_de_mes: "cobra a fin de mes", quincena: "cobra por quincenas", semanal: "cobra cada semana", variable: "cobra cuando termina un trabajo",
+  diario: "le entra plata todos los días",
 };
 
 // Los nombres se distinguen por letras, no por números: el motor ignora los dígitos al agrupar cobros que se repiten.
@@ -105,7 +108,7 @@ function deudaGuardada(d: RespuestaDeuda): DeudaGuardada {
 }
 
 export function trabajoSegun(r: Respuestas): Trabajo {
-  return r.trabajo ?? (r.cobro === "semanal" || r.cobro === "variable" ? "independiente" : "dependiente");
+  return r.trabajo ?? (r.cobro === "semanal" || r.cobro === "variable" || r.cobro === "diario" ? "independiente" : "dependiente");
 }
 
 /** Días del mes en que entra la plata. Un dependiente que cobra a fin de mes puede decir su día exacto. */
@@ -144,6 +147,39 @@ function descripcion(r: Respuestas): string {
   return partes.join(" ");
 }
 
+/** Semanas de historia que se arman para quien cobra al día: las que mira el motor. */
+export const SEMANAS_DE_HISTORIA = 12;
+/**
+ * Supuesto declarado: una de cada cuatro semanas es floja (3 de 12). Con eso el estimado prudente del motor
+ * (el percentil 25 de las semanas) cae en la semana floja y el típico (la mediana) en la normal.
+ * La semana 0 es la más reciente.
+ */
+const SEMANAS_FLOJAS = new Set([1, 5, 9]);
+
+/** Lo que entra en una semana si en un mes entra `mensual` (52 semanas, 12 meses), en céntimos enteros. */
+export function semanalDe(mensual: Centimos): Centimos {
+  return Math.round((mensual * 12) / 52);
+}
+
+/**
+ * Historia de ingresos de quien vende o cobra al día: 12 semanas, un ingreso por día, armadas solo con las dos cifras
+ * que dio (mes normal y mes flojo). No es su historia real: es la forma de llevar al motor un ingreso que entra
+ * todos los días y que a veces baja. Con ella el motor proyecta el ingreso día por día, con la semana floja.
+ */
+export function historiaDiaria(r: Respuestas): Movimiento[] {
+  const normal = semanalDe(r.ingresoMensual);
+  const flojo = semanalDe(Math.min(r.ingresoFlojo ?? r.ingresoMensual, r.ingresoMensual));
+  const movimientos: Movimiento[] = [];
+  for (let semana = 0; semana < SEMANAS_DE_HISTORIA; semana++) {
+    repartir(SEMANAS_FLOJAS.has(semana) ? flojo : normal, 7).forEach((monto, dia) => {
+      if (monto <= 0) return;
+      const fecha = sumarDias(r.hoy, -(semana * 7 + dia));
+      movimientos.push({ id: `ingreso-diario-${fecha}`, fecha, monto, descripcion: "Ventas del día", categoria: "ingreso_variable", canal: "cuenta" });
+    });
+  }
+  return movimientos.sort((a, b) => a.fecha.localeCompare(b.fecha));
+}
+
 /** El caso completo, listo para cargar en el repositorio. */
 export function armarCaso(r: Respuestas): Datos {
   const dias = diasDeCobro(r);
@@ -156,7 +192,9 @@ export function armarCaso(r: Respuestas): Datos {
   });
   datos.perfil.descripcion = descripcion(r);
   datos.perfil.diasCobro = dias;
-  datos.ingresosFijos = fijos("ingreso", NOMBRES_DE_INGRESO[r.cobro], dias, ingresoProyectado(r), "sueldo");
+  // Quien cobra al día no tiene un ingreso fijo con fecha: va como historia diaria y el motor lo estima con prudencia.
+  datos.ingresosFijos = r.cobro === "diario" ? [] : fijos("ingreso", NOMBRES_DE_INGRESO[r.cobro], dias, ingresoProyectado(r), "sueldo");
+  datos.movimientos = r.cobro === "diario" ? historiaDiaria(r) : [];
   datos.gastosFijos = [
     ...fijos("gasto-alquiler", ["Alquiler y servicios"], [5], r.fijosMensual, "alquiler"),
     ...fijos("gasto-dia", NOMBRES_DE_GASTO, DIAS_DE_GASTO, r.diaADiaMensual, "comida"),

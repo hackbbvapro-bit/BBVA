@@ -11,7 +11,7 @@ import {
   type Proyeccion,
   type CobroPendiente,
 } from "@/motor";
-import { avisos, mejorJugada, proximosPagos, resumenHablado } from "@/explica/explica";
+import { avisos, mejorJugada, proximosPagos, resumenHablado, CAUSA_DIA_A_DIA } from "@/explica/explica";
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Cifras, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
@@ -119,7 +119,7 @@ export function Hoy({
                   <span className="whitespace-nowrap text-coral-fuerte tabular-nums">{unido(formatoSoles(d.faltante))}</span>
                 </p>
                 <p className="mt-0.5 text-[13px] leading-snug text-tinta/80 md:text-sm">
-                  Se juntan {pulso(analisis)?.causa}. Quedan {d.diasRestantes} días: estás a tiempo.
+                  {d.causas.length === 0 ? `Para ese día ${CAUSA_DIA_A_DIA}` : `${d.causas.length > 1 ? "Se juntan" : "Sale"} ${pulso(analisis)?.causa}`}. Quedan {d.diasRestantes} días: estás a tiempo.
                 </p>
               </>
             ) : (
