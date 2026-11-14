@@ -126,3 +126,72 @@ export function buscarMonto(frase: string): { monto: Centimos; resto: string } |
   }
   return null;
 }
+
+/** Un monto aproximado: un número solo (min = max) o un rango («entre 1500 y 3000»). */
+export interface Aproximado {
+  min: Centimos;
+  max: Centimos;
+}
+
+/** Palabras que pueden ir entre los dos extremos de un rango: «de 1500 a 2500», «a veces 1000 a veces 3000». */
+const ENTRE_EXTREMOS = new Set(["a", "hasta", "o", "u", "y", "entre", "veces", "de", "al", "mas", "menos"]);
+/** Respuestas que significan cero en una pregunta de soles: «no», «nada», «no pago». */
+const CERO = /^(no|nada|ninguno|ninguna|cero|nunca|no tengo|no pago|no gasto|no apoyo|no estudio|no aplica|no,? nada|nada por ahora|por ahora no|no por ahora)$/;
+
+/**
+ * Lee lo que escribe alguien cuyo ingreso o gasto cambia mes a mes: «2500 pero es variable», «más o menos 2 mil»,
+ * «entre 1500 y 3000», «de 1500 a 2500», «2000-3000», «entre dos mil y tres mil». Devuelve null si no hay
+ * monto o si hay dos montos que no forman un rango («2000 y en diciembre 4000»): nunca suma ni adivina.
+ */
+export function leerAproximado(texto: string): Aproximado | null {
+  const limpio = texto.trim();
+  if (!limpio) return null;
+  const tokens = separar(limpio.replace(/(\d)\s*[-–—]\s*(\d)/g, "$1 a $2"));
+  const montos: { aprox: Aproximado; desde: number; hasta: number }[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i];
+    if (!ES_PARTE(t) || t === "y" || t === "con" || MONEDA.has(t) || CENTIMOS.has(t)) continue;
+    const previo = tokens[i - 1];
+    if (/^\d{1,2}$/.test(t) && (previo === "el" || previo === "dia" || previo === "los" || (tokens[i + 1] === "de" && MESES.has(tokens[i + 2] ?? "")))) continue;
+    if ((t === "un" || t === "una" || t === "uno") && (!ES_PARTE(tokens[i + 1] ?? "") || tokens[i + 1] === "y" || tokens[i + 1] === "con")) continue;
+    let j = i;
+    while (j < tokens.length && ES_PARTE(tokens[j])) j++;
+    let fin = j;
+    while (fin > i && (tokens[fin - 1] === "y" || tokens[fin - 1] === "con")) fin--;
+    const tramo = tokens.slice(i, fin);
+    const aprox = leerTramo(tramo);
+    if (aprox === null) return null;
+    montos.push({ aprox, desde: i, hasta: fin });
+    i = fin - 1;
+  }
+  if (montos.length === 0) return CERO.test(sinTildes(limpio).replace(/[.!¡¿?]/g, "").trim()) ? { min: 0, max: 0 } : null;
+  if (montos.length === 1) return montos[0].aprox;
+  if (montos.length > 2) return null;
+  const [a, b] = montos;
+  const enMedio = tokens.slice(a.desde < b.desde ? a.hasta : b.hasta, b.desde);
+  if (a.aprox.min !== a.aprox.max || b.aprox.min !== b.aprox.max) return null;
+  if (!enMedio.every(t => ENTRE_EXTREMOS.has(t))) return null;
+  return { min: Math.min(a.aprox.min, b.aprox.min), max: Math.max(a.aprox.min, b.aprox.min) };
+}
+
+/**
+ * Un tramo seguido de palabras de monto. Si tiene una «y» que separa dos montos de menor a mayor, es un rango
+ * («dos mil y tres mil»); si no, es un solo monto («treinta y cinco», «dos mil y quinientos»).
+ */
+function leerTramo(tramo: string[]): Aproximado | null {
+  // Dos cifras seguidas («1500 2000») no se pueden leer sin adivinar.
+  const cifras = tramo.filter(t => !MONEDA.has(t));
+  for (let k = 1; k < cifras.length; k++) if (/^\d/.test(cifras[k - 1]) && /^\d/.test(cifras[k])) return null;
+  for (let k = tramo.length - 1; k > 0; k--) {
+    if (tramo[k] !== "y") continue;
+    const izquierda = leerTokens(tramo.slice(0, k));
+    const derecha = leerTokens(tramo.slice(k + 1));
+    if (izquierda === null || derecha === null) continue;
+    if (izquierda < derecha) return { min: izquierda, max: derecha };
+    // «3000 y 1500» en cifras nunca es una suma: es un rango dicho al revés.
+    const soloCifras = (lado: string[]) => lado.filter(t => !MONEDA.has(t)).every(t => /^\d/.test(t));
+    if (soloCifras(tramo.slice(0, k)) && soloCifras(tramo.slice(k + 1))) return { min: derecha, max: izquierda };
+  }
+  const monto = leerTokens(tramo);
+  return monto === null ? null : { min: monto, max: monto };
+}

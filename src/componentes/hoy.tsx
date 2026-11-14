@@ -14,16 +14,18 @@ import {
 import { avisos, mejorJugada, proximosPagos, resumenHablado } from "@/explica/explica";
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
-import { Cifras, Encabezado, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
+import { Cifras, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
 import { cifras, pulso } from "@/componentes/tablero";
 
 /** A dónde puede mandar el Inicio (lo resuelve el armazón). */
-import { SiguientePaso } from "@/componentes/tu-ruta";
-import type { Avance, Ruta } from "@/ruta/ruta";
-
 export type IrDesdeInicio = "agregar-deuda" | "ruta" | "dinero" | "deudas" | "asistente";
 
 const ICONOS_KPI: NombreIcono[] = ["dinero", "deudas", "calendario", "tendencia"];
+const TONO_ALERTA = {
+  urgente: "border-coral-fuerte/20 bg-coral-suave/70 [&>div>span:first-child]:text-coral-fuerte",
+  atencion: "border-ambar-fuerte/20 bg-ambar-suave/70 [&>div>span:first-child]:text-ambar-fuerte",
+  bien: "border-verde-fuerte/20 bg-verde-suave/70 [&>div>span:first-child]:text-verde-fuerte",
+};
 
 export function Hoy({
   perfil,
@@ -35,8 +37,6 @@ export function Hoy({
   ir,
   demo = true,
   externo = demo,
-  ruta,
-  avance,
   pasos,
 }: {
   cobros?: CobroPendiente[];
@@ -50,9 +50,6 @@ export function Hoy({
   demo?: boolean;
   /** Hay permiso para IA y voz: siempre en el ejemplo; en un caso propio, solo si la persona lo aceptó. */
   externo?: boolean;
-  /** Ruta trazada por el motor y cuánto lleva; si llegan, se pinta la tarjeta corta «Tu ruta» (el detalle está en «Mi ruta»). */
-  ruta?: Ruta;
-  avance?: Avance;
   /** Solo en el caso propio: qué pasos de la guía ya hizo. La guía se muestra hasta completar los dos. */
   pasos?: { deudas: boolean; fijos: boolean };
 }) {
@@ -67,11 +64,25 @@ export function Hoy({
 
   return (
     <div className="space-y-3 md:space-y-6">
-      <Encabezado
-        titulo={`Hola, ${perfil.nombre}`}
-        bajada={demo ? `Caso de ejemplo (datos sintéticos) al ${formatoLargo(analisis.hoy)}` : `Tu caso (simulación) al ${formatoLargo(analisis.hoy)}`}
-        acciones={externo ? (
-          <button className={botonSecundario} onClick={alternarVoz} aria-pressed={sonando}>
+      {/* Cabecera compacta: saludo, fecha y, si hay permiso, el resumen hablado. */}
+      <header className="aparecer flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold leading-tight tracking-[-0.02em] text-noche md:text-2xl">Hola, {perfil.nombre}</h1>
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] leading-tight text-gris md:text-sm">
+            <span>Tu mes al {formatoLargo(analisis.hoy)}</span>
+            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-gris ring-1 ring-linea">
+              {demo ? "Caso de ejemplo" : "Simulación"}
+            </span>
+          </p>
+        </div>
+        {externo && (
+          <button
+            onClick={alternarVoz}
+            aria-pressed={sonando}
+            aria-label={sonando ? "Detener" : "Escuchar resumen"}
+            title={sonando ? "Detener" : "Escuchar resumen"}
+            className="inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-full border border-linea bg-white text-electrico transition-[transform,background-color] duration-150 hover:bg-agua-suave active:scale-[.97] md:w-auto md:rounded-xl md:px-4 [&_svg]:size-5"
+          >
             {sonando ? (
               <span className="flex items-center gap-[3px]" aria-hidden="true">
                 {[0, 1, 2, 3].map(i => (
@@ -81,51 +92,56 @@ export function Hoy({
             ) : (
               <Icono nombre="voz" />
             )}
-            {sonando ? "Detener" : "Escuchar resumen"}
+            <span aria-hidden="true" className="hidden text-sm font-semibold text-noche md:inline">
+              {sonando ? "Detener" : "Escuchar resumen"}
+            </span>
           </button>
-        ) : undefined}
-      />
+        )}
+      </header>
 
       {pasos && !(pasos.deudas && pasos.fijos) && <Empezar ir={ir} hechos={pasos} />}
 
-      {/* Alerta principal: compacta, blanca, con un filo de color según la urgencia. */}
+      {/* Alerta principal: una franja corta con el día, el monto y la causa. */}
       <section
         aria-label="Alerta principal"
-        className={`aparecer rounded-2xl border border-linea border-l-4 bg-white p-4 md:p-6 ${principal.nivel === "urgente" ? "border-l-coral-fuerte" : principal.nivel === "bien" ? "border-l-verde-fuerte" : "border-l-ambar-fuerte"}`}
+        className={`aparecer flex flex-col gap-2 rounded-2xl border px-3.5 py-3 md:flex-row md:items-center md:gap-5 md:px-5 md:py-4 ${TONO_ALERTA[principal.nivel === "urgente" ? "urgente" : principal.nivel === "bien" ? "bien" : "atencion"]}`}
       >
-        <p
-          className={`flex items-center gap-2 text-xs font-semibold uppercase md:text-[13px] tracking-[0.06em] ${principal.nivel === "urgente" ? "text-coral-fuerte" : principal.nivel === "bien" ? "text-verde-fuerte" : "text-ambar-fuerte"}`}
-        >
-          <span className="size-2 rounded-full bg-current" aria-hidden="true" />
-          {principal.nivel === "urgente" ? "Anticípate" : principal.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
-        </p>
-        {d ? (
-          <div className="mt-2 flex flex-col gap-3 md:mt-3 md:gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0">
-              <p className="text-sm text-gris md:text-[15px]">El {formatoLargo(d.fecha)} te faltarán</p>
-              <p className="mt-1 text-[1.75rem] font-semibold leading-none tracking-[-0.03em] text-noche tabular-nums md:text-[2.25rem]">
-                {unido(formatoSoles(d.faltante))}
-              </p>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-tinta md:mt-3 md:text-[15px]">
-                Ese día se juntan {pulso(analisis)?.causa}. Quedan {d.diasRestantes} días: todavía estás a tiempo.
-              </p>
-            </div>
-            {analisis.jugadas.length > 0 && (
-              <button className={`${botonPrincipal} w-full sm:w-auto sm:self-start lg:shrink-0`} onClick={() => desplazar(document.getElementById("como-evitarlo"))}>
-                <Icono nombre="rumbo" />
-                Ver cómo evitarlo
-              </button>
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-[0_1px_2px_rgb(0_0_0/0.06)] [&_svg]:size-[18px]" aria-hidden="true">
+            <Icono nombre={principal.nivel === "bien" ? "check" : "campana"} />
+          </span>
+          <div className="min-w-0">
+            <p className="sr-only">{principal.nivel === "urgente" ? "Anticípate" : principal.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}</p>
+            {d ? (
+              <>
+                <p className="text-[15px] font-semibold leading-snug text-noche md:text-base">
+                  El {formatoLargo(d.fecha)} te faltarán{" "}
+                  <span className="whitespace-nowrap text-coral-fuerte tabular-nums">{unido(formatoSoles(d.faltante))}</span>
+                </p>
+                <p className="mt-0.5 text-[13px] leading-snug text-tinta/80 md:text-sm">
+                  Se juntan {pulso(analisis)?.causa}. Quedan {d.diasRestantes} días: estás a tiempo.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[15px] font-semibold leading-snug text-noche text-balance md:text-base">{unido(principal.titulo)}</p>
+                <p className="mt-0.5 text-[13px] leading-snug text-tinta/80 md:text-sm">{unido(principal.cuerpo)}</p>
+              </>
             )}
           </div>
-        ) : (
-          <>
-            <h2 className="mt-2 text-lg font-semibold leading-snug text-noche text-balance md:text-xl">{unido(principal.titulo)}</h2>
-            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-tinta md:mt-2 md:text-[15px]">{unido(principal.cuerpo)}</p>
-          </>
+        </div>
+        {d && analisis.jugadas.length > 0 && (
+          <button
+            className="ml-12 inline-flex min-h-9 items-center gap-1.5 self-start rounded-lg bg-white px-3 text-sm font-semibold text-electrico ring-1 ring-linea transition-colors duration-150 hover:bg-agua-suave md:ml-0 md:min-h-10 md:shrink-0 md:self-center md:px-4 [&_svg]:size-4"
+            onClick={() => desplazar(document.getElementById("como-evitarlo"), "start")}
+          >
+            Ver cómo evitarlo
+            <span aria-hidden="true" className="-rotate-90">
+              <Icono nombre="abajo" />
+            </span>
+          </button>
         )}
       </section>
-
-      {ruta && avance && ir && <SiguientePaso ruta={ruta} avance={avance} alAbrir={() => ir("ruta")} />}
 
       {/* Cifras de un vistazo: una franja compacta. */}
       <Cifras
@@ -147,14 +163,14 @@ export function Hoy({
               <h2 className="text-base font-semibold tracking-tight text-noche md:text-lg">Tus próximos 30 días</h2>
               <p className="mt-0.5 text-xs text-gris md:text-sm">{jugada ? "Así cambia con la jugada que elegiste" : "Así se movería tu saldo"}</p>
             </div>
-            <div className="flex shrink-0 flex-col items-end gap-1.5 pt-1 text-xs font-semibold">
+            <div className="flex shrink-0 flex-col items-end gap-1.5 pt-1 text-xs font-semibold" aria-label="Leyenda">
               <span className="flex items-center gap-1.5 text-gris">
-                <span className="h-0.5 w-4 rounded-full bg-tinta" />
+                <span aria-hidden="true" className={`h-0.5 w-4 rounded-full ${jugada ? "bg-tinta/35" : "bg-tinta"}`} />
                 Como vas
               </span>
               {jugada && (
-                <span className="aparecer flex items-center gap-1.5 text-agua-fuerte">
-                  <span className="h-1 w-4 rounded-full bg-agua" />
+                <span className="aparecer flex items-center gap-1.5 text-electrico">
+                  <span aria-hidden="true" className="h-1 w-4 rounded-full bg-electrico" />
                   Con esta jugada
                 </span>
               )}
@@ -174,9 +190,15 @@ export function Hoy({
 
       {analisis.jugadas.length > 0 && (
         <section id="como-evitarlo" aria-labelledby="titulo-evitar" className="scroll-mt-24 space-y-3 md:space-y-4">
-          <div>
-            <h2 id="titulo-evitar" className="text-lg font-semibold tracking-[-0.015em] text-noche md:text-xl">Cómo evitarlo</h2>
-            <p className="mt-0.5 text-sm text-gris md:mt-1 md:text-[15px]">Cada opción con su costo en soles. Prueba una y mira cómo queda tu mes.</p>
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-agua-fuerte">Opciones calculadas</p>
+              <h2 id="titulo-evitar" className="mt-0.5 text-lg font-semibold tracking-[-0.015em] text-noche md:text-xl">Cómo evitarlo</h2>
+              <p className="mt-0.5 text-sm text-gris md:text-[15px]">Cada opción con su costo en soles. Simula una y mira cómo queda tu mes.</p>
+            </div>
+            <span className="hidden shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-gris ring-1 ring-linea tabular-nums sm:inline">
+              {analisis.jugadas.length} {analisis.jugadas.length === 1 ? "opción" : "opciones"}
+            </span>
           </div>
           <div className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
             {analisis.jugadas.map((j, i) => (
@@ -273,33 +295,47 @@ function TarjetaJugada({
 }) {
   return (
     <article
-      className={`aparecer flex flex-col rounded-2xl border bg-white p-4 transition-shadow md:p-5 duration-200 ${activa ? "border-electrico ring-1 ring-electrico" : "border-linea"}`}
+      className={`aparecer relative flex flex-col overflow-hidden rounded-2xl border bg-white transition-[box-shadow,border-color] duration-200 ${activa ? "border-electrico shadow-[0_0_0_1px_#001391,0_14px_30px_-18px_rgb(0_19_145/0.45)]" : barata ? "border-electrico/35 shadow-[0_10px_26px_-20px_rgb(0_19_145/0.5)]" : "border-linea hover:border-linea-fuerte"}`}
       style={{ animationDelay: `${orden * 0.04}s` }}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold md:px-2.5 md:py-1 md:text-xs ${j.resuelve ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}>
-          {j.resuelve ? "Resuelve el problema" : "Sola no alcanza"}
-        </span>
-        {barata && <span className="rounded-full bg-agua-suave px-2 py-0.5 text-[11px] font-semibold text-electrico md:px-2.5 md:py-1 md:text-xs">La más barata</span>}
-      </div>
-      <h3 className="mt-2 text-[15px] font-semibold leading-snug text-noche md:mt-3 md:text-base">{j.titulo}</h3>
-      <p className="mt-0.5 text-[13px] leading-relaxed text-gris md:mt-1 md:text-sm">{j.detalle}</p>
-      <dl className="mt-3 grid grid-cols-2 gap-2 md:mt-4">
-        <div className="rounded-xl bg-agua-suave/60 px-3 py-2 md:p-3">
-          <dt className="text-xs font-medium text-agua-fuerte">Te libera</dt>
-          <dd className="mt-0.5 font-semibold tabular-nums text-noche">{unido(formatoSoles(j.libera))}</dd>
+      {(barata || activa) && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-electrico" />}
+      <div className="flex flex-1 flex-col p-4 md:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gris tabular-nums">Opción {orden + 1}</span>
+          <div className="flex flex-wrap gap-1.5">
+            {barata && <span className="rounded-full bg-agua-suave px-2 py-0.5 text-[11px] font-semibold text-electrico">La más barata</span>}
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${j.resuelve ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
+            >
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+              {j.resuelve ? "Resuelve el problema" : "Sola no alcanza"}
+            </span>
+          </div>
         </div>
-        <div className="rounded-xl bg-papel px-3 py-2 md:p-3">
-          <dt className="text-xs font-medium text-gris">Te cuesta</dt>
-          <dd className="mt-0.5 font-semibold tabular-nums text-noche">{j.costo === 0 ? "No cuesta dinero" : unido(formatoSoles(j.costo))}</dd>
+        <h3 className="mt-2.5 text-base font-semibold leading-snug text-noche text-balance md:text-[17px]">{j.titulo}</h3>
+        <p className="mt-1 text-[13px] leading-relaxed text-gris md:text-sm">{unido(j.detalle)}</p>
+        <dl className="mt-4 grid grid-cols-2 divide-x divide-linea rounded-xl border border-linea">
+          <div className="min-w-0 px-3 py-2.5">
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-verde-fuerte">Te libera</dt>
+            <dd className="mt-1 text-lg font-semibold leading-tight tracking-[-0.01em] text-noche tabular-nums">{unido(formatoSoles(j.libera))}</dd>
+          </div>
+          <div className="min-w-0 px-3 py-2.5">
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">Te cuesta</dt>
+            <dd className={`mt-1 text-lg font-semibold leading-tight tracking-[-0.01em] tabular-nums ${j.costo === 0 ? "text-verde-fuerte" : "text-noche"}`}>
+              {j.costo === 0 ? "Sin costo" : unido(formatoSoles(j.costo))}
+            </dd>
+          </div>
+        </dl>
+        <p className="mt-2.5 text-xs leading-relaxed text-gris md:text-[13px]">
+          {unido(j.costoDetalle)}
+          {j.costoDetalle.includes("TCEA") && " (TCEA: lo que te cuesta al año)."}
+        </p>
+        <div className="mt-auto pt-4">
+          <button aria-pressed={activa} onClick={elegir} className={`${activa ? botonSecundario : botonPrincipal} w-full`}>
+            <Icono nombre={activa ? "cerrar" : "tendencia"} />
+            {activa ? "Quitar de la proyección" : "Simular en mi proyección"}
+          </button>
         </div>
-      </dl>
-      <p className="mt-2 text-xs leading-relaxed text-gris md:mt-3 md:text-[13px]">{unido(j.costoDetalle)}</p>
-      {j.costoDetalle.includes("TCEA") && <p className="text-xs text-gris md:text-[13px]">TCEA: lo que te cuesta al año.</p>}
-      <div className="mt-auto pt-3 md:pt-4">
-        <button aria-pressed={activa} onClick={elegir} className={`${activa ? botonSecundario : botonPrincipal} w-full`}>
-          {activa ? "Quitar comparación" : "Probar esta jugada"}
-        </button>
       </div>
     </article>
   );
