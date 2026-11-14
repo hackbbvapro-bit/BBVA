@@ -8,10 +8,10 @@ desmontable; solo se montó lo que el puesto necesita para atender, no un local 
 | Pieza | Para qué | Estado |
 |---|---|---|
 | GitHub (`hackbbvapro-bit/BBVA`, público) | Repositorio del equipo para la final | Listo. Código subido a `main` el 14-nov-2026 [MEDIDO]. El repositorio anterior ya no se usa |
-| Vercel (cuenta del equipo, proyecto `copiloto-anticipador-hack`) | Publicar la app con dirección `https` (obligatoria para micrófono y notificaciones) | **Publicada** en `https://copiloto-anticipador-hack.vercel.app`; cada cambio en `main` se publica solo [MEDIDO]. Pública, sin contraseña. Hoy `/api/estado` da `ia:false`, `voz:false`, `push:false` hasta que se carguen las claves y se haga Redeploy |
+| Vercel (cuenta del equipo, proyecto `copiloto-anticipador-hack`) | Publicar la app con dirección `https` (obligatoria para micrófono y notificaciones) | **Publicada** en `https://copiloto-anticipador-hack.vercel.app`; cada cambio en `main` se publica solo [MEDIDO]. Pública, sin contraseña. Hoy `/api/estado` da `ia:false`, `voz:false`, `push:true` [MEDIDO]: faltan las claves de IA y voz, y luego un Redeploy |
 | API de Anthropic | El agente que conversa y explica | Código listo. **Falta la clave** |
 | Fish Audio | La voz del agente (y transcribir audio como respaldo) | Código listo. **Faltan la clave y el id de la voz** |
-| Notificaciones web (VAPID) | Avisos en el celular | Claves generadas en `.env.local`. **Falta cargarlas en el Vercel del equipo.** Sin probar en un celular real |
+| Notificaciones web (VAPID) | Avisos en el celular | Claves cargadas en el Vercel del equipo (producción y vista previa) el 14-nov; la clave pública publicada coincide con la local [MEDIDO]. **Sin probar en un celular real** |
 | Supabase (cuenta del equipo) | Base de datos, si el equipo la necesita | Proyecto creado y enlazado al repositorio. **El código no lo usa** (ver abajo) |
 
 ## Qué NO se conectó y por qué
@@ -39,7 +39,7 @@ en un chat.**
 | `FISH_API_KEY` | Para la voz de Fish Audio | El dueño de la cuenta (fish.audio) |
 | `FISH_VOICE_ID` | Para la voz de Fish Audio | Id de una voz en español elegida en fish.audio |
 | `FISH_MODEL` | No (por defecto `s2.1-pro`) | — |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Para notificaciones | Ya generadas en `.env.local`; falta cargarlas en el Vercel del equipo |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Para notificaciones | Ya generadas en `.env.local` y cargadas en el Vercel del equipo |
 
 Para cargar una variable en Vercel desde la terminal (pide el valor sin mostrarlo en pantalla):
 
