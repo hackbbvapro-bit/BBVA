@@ -4,7 +4,7 @@ import type { Soporte } from "@/cliente/manos-libres";
 import { Icono } from "@/componentes/ui";
 
 export const SIN_SOPORTE =
-  "Este navegador no permite hablar con el copiloto. Puedes escribir tu pregunta aquí abajo.";
+  "Este navegador no permite conversar por voz. Puedes escribir tu pregunta aquí abajo.";
 
 /** Controles de la conversación por voz «manos libres». Solo presenta; la lógica vive en useManosLibres. */
 export function ConversacionVoz({
@@ -41,10 +41,10 @@ export function ConversacionVoz({
           type="button"
           disabled={!activa && (bloqueado || soporte === "desconocido")}
           onClick={activa ? alTerminar : alActivar}
-          className={`flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-full border-2 px-6 text-base font-semibold disabled:opacity-40 ${activa ? "border-coral-fuerte bg-white text-coral-fuerte" : "border-electrico bg-agua-suave text-electrico"}`}
+          className={`flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-full border-2 px-5 text-[15px] font-semibold disabled:opacity-40 ${activa ? "border-coral-fuerte bg-white text-coral-fuerte" : "border-electrico bg-agua-suave text-electrico"}`}
         >
           <Icono nombre="micro" />
-          {activa ? "Terminar conversación" : "Hablar con el copiloto"}
+          {activa ? "Terminar conversación" : "Conversar por voz"}
         </button>
         {estado.fase === "hablando" && (
           <button

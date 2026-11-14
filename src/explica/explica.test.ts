@@ -51,6 +51,14 @@ describe("avisos", () => {
     expect(avisos(lucia, a.lucia).find(x => x.id === "deuda")!.titulo).toBe("No te quedes en el mínimo de Tarjeta Azul");
   });
 
+  it("si la deuda más cara no tiene TCEA anotada, pide la tasa en vez de afirmar un costo de 0 %", () => {
+    const sinTasa = { ...lucia, deudas: lucia.deudas.map(d => ({ ...d, tceaBp: 0 })) };
+    const deuda = avisos(sinTasa, analizar(sinTasa)).find(x => x.id === "deuda")!;
+    expect(deuda.titulo).toContain("Anota la TCEA de");
+    expect(deuda.cuerpo).not.toContain("0.00 %");
+    expect(deuda.cuerpo).not.toContain("te ahorras");
+  });
+
   it("si el plan de mínimos no termina, lo dice sin inventar un ahorro", () => {
     const sinFin = { ...a.lucia, deudas: { ...a.lucia.deudas!, ahorroVsMinimos: 0,
       minimos: { ...a.lucia.deudas!.minimos, noTermina: true } } };
