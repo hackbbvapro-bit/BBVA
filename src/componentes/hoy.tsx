@@ -14,6 +14,7 @@ import { avisos, mejorJugada, proximosPagos, resumenHablado, type Aviso } from "
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { Grafico } from "@/componentes/grafico";
 import { boton, tarjeta, Icono, desplazar, unido } from "@/componentes/ui";
+import { TableroA, TableroB, type Direccion } from "@/componentes/tablero";
 
 export function Hoy({
   perfil,
@@ -21,12 +22,14 @@ export function Hoy({
   sonando,
   leer,
   detener,
+  direccion = "a",
 }: {
   perfil: Perfil;
   analisis: Analisis;
   sonando: boolean;
   leer: (texto: string) => void;
   detener: () => void;
+  direccion?: Direccion;
 }) {
   const [jugada, seleccionar] = useState<Jugada>();
   const grafico = useRef<HTMLElement>(null);
@@ -35,8 +38,23 @@ export function Hoy({
     [perfil, jugada],
   );
   const principal = avisos(perfil, analisis)[0];
+  const Tablero = direccion === "b" ? TableroB : TableroA;
+  const alternarVoz = () => (sonando ? detener() : leer(resumenHablado(perfil, analisis)));
   return (
-    <div className="space-y-6">
+    <>
+    <div className="hidden lg:block">
+      <Tablero
+        perfil={perfil}
+        analisis={analisis}
+        aviso={principal}
+        jugada={jugada}
+        despues={despues}
+        elegir={j => seleccionar(jugada?.id === j.id ? undefined : j)}
+        sonando={sonando}
+        alternarVoz={alternarVoz}
+      />
+    </div>
+    <div className="space-y-6 lg:hidden">
       <Cabina perfil={perfil} analisis={analisis} despues={despues} aviso={principal} />
       <section ref={grafico} className={`${tarjeta} aparecer scroll-mt-36`} style={{ animationDelay: ".15s" }}>
         <div className="flex items-start justify-between gap-3">
@@ -92,7 +110,7 @@ export function Hoy({
       )}
       <button
         className={`${boton} flex w-full items-center justify-center gap-3 bg-tinta py-4 text-white shadow-[0_14px_30px_-14px_rgb(11_22_38/.6)]`}
-        onClick={() => (sonando ? detener() : leer(resumenHablado(perfil, analisis)))}
+        onClick={alternarVoz}
       >
         <span className={`flex items-center gap-[3px] ${sonando ? "" : "hidden"}`} aria-hidden="true">
           {[0, 1, 2, 3].map(i => (
@@ -108,6 +126,7 @@ export function Hoy({
       </button>
       <Pie />
     </div>
+    </>
   );
 }
 
@@ -127,7 +146,7 @@ function Cabina({
   return (
     <section
       data-alerta={alerta ? "si" : "no"}
-      className="cabina relative -mx-4 -mt-[calc(9rem+env(safe-area-inset-top))] overflow-hidden rounded-b-[2.5rem] px-5 pb-6 pt-[calc(10.5rem+env(safe-area-inset-top))] text-white"
+      className="cabina relative -mx-4 -mt-[calc(5.25rem+env(safe-area-inset-top))] overflow-hidden rounded-b-[2.5rem] px-5 pb-6 pt-[calc(6.75rem+env(safe-area-inset-top))] text-white"
     >
       <div
         className="aurora"
