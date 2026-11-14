@@ -11,21 +11,25 @@ const GRUPOS: readonly { id: GrupoPago; titulo: string; ayuda: string; chip: str
 ];
 
 function Decision({ d, n }: { d: DecisionPago; n: number }) {
+  const conAtraso = d.calificacion !== "normal";
   return (
-    <li className="flex items-start gap-3 border-t border-linea py-2.5 first:border-t-0 md:py-3">
-      <span aria-hidden="true" className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-niebla text-xs font-semibold text-noche md:size-7 md:text-sm">
+    <li className="flex items-start gap-3 border-t border-linea py-3 first:border-t-0">
+      <span aria-label={`Paso ${n}`} className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-noche text-xs font-semibold text-white md:size-7 md:text-sm">
         {n}
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-3">
           <p className="min-w-0 truncate font-semibold text-noche">{d.nombre}</p>
-          <p className="shrink-0 font-semibold text-noche tabular-nums">{d.grupo === "negociar" ? "—" : unido(formatoSoles(d.monto))}</p>
+          <p className="shrink-0 font-semibold text-noche tabular-nums">{d.grupo === "negociar" ? "Negociar" : unido(formatoSoles(d.monto))}</p>
         </div>
-        <p className="text-xs text-gris">
-          {d.entidad} · {ETIQUETA_CALIFICACION[d.calificacion]}
-          {d.proximoPago ? ` · vence ${formatoCorto(d.proximoPago)}` : ""}
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-gris">
+          <span>{d.entidad}</span>
+          {d.proximoPago && <span>· vence {formatoCorto(d.proximoPago)}</span>}
+          {conAtraso && (
+            <span className="rounded-full bg-coral-suave px-2 py-0.5 font-semibold text-coral-fuerte">{ETIQUETA_CALIFICACION[d.calificacion]}</span>
+          )}
         </p>
-        <p className="mt-1 text-[13px] leading-relaxed text-tinta md:text-sm">{unido(d.motivo)}</p>
+        <p className="mt-1 text-[13px] leading-snug text-gris">{unido(d.motivo)}</p>
       </div>
     </li>
   );
