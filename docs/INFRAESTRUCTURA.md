@@ -7,11 +7,11 @@ desmontable; solo se montó lo que el puesto necesita para atender, no un local 
 
 | Pieza | Para qué | Estado |
 |---|---|---|
-| GitHub (repositorio privado) | Guardar el código y trabajar en equipo | Listo. Los commits de esta noche están **solo en local** hasta que se apruebe subirlos |
-| Vercel (proyecto `copiloto-anticipador`) | Publicar la app con dirección `https` (obligatoria para micrófono y notificaciones) | Proyecto creado y conectado al repositorio. **Sin desplegar todavía** |
+| GitHub (repositorio privado) | Guardar el código y trabajar en equipo | Listo. Rama `base-motor` subida y pull request 1 abierto. **Sin fusionar a `main`** |
+| Vercel (proyecto `copiloto-anticipador`) | Publicar la app con dirección `https` (obligatoria para micrófono y notificaciones) | Proyecto creado y conectado al repositorio. **Producción sin publicar**: se publica al fusionar el pull request [ASUMIDO] |
 | API de Anthropic | El agente que conversa y explica | Código listo. **Falta la clave** |
 | Fish Audio | La voz del agente (y transcribir audio como respaldo) | Código listo. **Faltan la clave y el id de la voz** |
-| Notificaciones web (VAPID) | Avisos en el celular | Claves generadas en `.env.local`. Falta cargarlas en Vercel |
+| Notificaciones web (VAPID) | Avisos en el celular | Claves generadas en `.env.local` y cargadas en Vercel (Production y Preview). **Sin probar en un celular real** |
 
 ## Qué NO se montó y por qué
 
@@ -38,7 +38,7 @@ en un chat.**
 | `FISH_API_KEY` | Para la voz de Fish Audio | El dueño de la cuenta (fish.audio) |
 | `FISH_VOICE_ID` | Para la voz de Fish Audio | Id de una voz en español elegida en fish.audio |
 | `FISH_MODEL` | No (por defecto `s2.1-pro`) | — |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Para notificaciones | Ya generadas en `.env.local` |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Para notificaciones | Ya generadas en `.env.local` y cargadas en Vercel |
 
 Para cargar una variable en Vercel desde la terminal (pide el valor sin mostrarlo en pantalla):
 
@@ -57,10 +57,19 @@ Cada pieza externa tiene un respaldo, para que la demo no dependa del wifi del e
 | El reconocimiento de voz del navegador | Graba el audio y lo transcribe con Fish Audio; si tampoco, se escribe |
 | Las notificaciones | Los avisos siguen en la campanita dentro de la app |
 
-`GET /api/estado` dice qué piezas están activas (sin mostrar ninguna clave).
+`GET /api/estado` dice qué piezas están activas (sin mostrar ninguna clave): devuelve `ia`, `voz`
+y `push` en `true` o `false`.
 
 ## Límites que conviene saber
 
+- **Gasto de las claves:** las rutas que gastan (agente, voz y transcripción) tienen un límite por
+  minuto y un tope por hora, pero ambos viven en la memoria de cada copia del servidor: no son un
+  tope global de verdad. El freno real es el **límite de gasto en los paneles de Anthropic y Fish
+  Audio**, que debe poner el dueño de la cuenta antes de cargar las claves (paso 1 de
+  `docs/GUIA-FINAL.md`).
+- **Sin internet no hay recarga:** la app se puede instalar en el celular, pero no guarda copia
+  para funcionar sin red. Con la app ya abierta, Hoy y Deudas siguen calculando; el chat con IA,
+  la voz de Fish y las notificaciones necesitan red.
 - **iPhone:** las notificaciones solo funcionan si la app se instaló con «Compartir → Añadir a
   pantalla de inicio» y el permiso se pide con un toque. Hay que probarlo en un iPhone real.
 - **Vercel gratuito con repositorio privado:** puede bloquear el despliegue de commits hechos por
