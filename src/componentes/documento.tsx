@@ -132,7 +132,7 @@ export function Adjuntar({ alGuardar }: { alGuardar: () => void }) {
               Usar reporte SBS de ejemplo
             </button>
           </div>
-          <p className="mt-3 text-sm text-gris">JPG, PNG, WebP o PDF de hasta 4 MB. No guardo el archivo, solo los datos que tú confirmes.</p>
+          <p className="mt-3 text-sm text-gris">JPG, PNG, WebP o PDF de hasta 3 MB. No guardo el archivo, solo los datos que tú confirmes.</p>
           <p className="mt-2 text-sm text-gris">
             Al elegir un archivo aceptas que se envíe a la IA (Anthropic) solo para leerlo. Es una demo: sube únicamente documentos inventados, no tus datos reales.
           </p>

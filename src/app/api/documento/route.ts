@@ -28,7 +28,7 @@ function fallo(error: string, mensaje: string, estado: number): Response {
 type Cuerpo = { ok: true; datos: unknown } | { ok: false; respuesta: Response };
 
 async function leerCuerpo(req: Request): Promise<Cuerpo> {
-  const demasiado = fallo("archivo_muy_grande", "El archivo es demasiado grande. Sube uno de menos de 4 MB.", 413);
+  const demasiado = fallo("archivo_muy_grande", "El archivo es demasiado grande. Sube uno de menos de 3 MB.", 413);
   const declarado = Number(req.headers.get("content-length") ?? "0");
   if (Number.isFinite(declarado) && declarado > MAXIMO_CUERPO_BYTES) return { ok: false, respuesta: demasiado };
   try {

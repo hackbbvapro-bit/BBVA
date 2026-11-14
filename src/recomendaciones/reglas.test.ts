@@ -29,8 +29,8 @@ describe("catálogo", () => {
         expect(e.condicion).not.toMatch(/S\/|\d/);
       }
     }
-    expect(CATALOGO.find(e => e.id === "garantia-liquida")?.condicion).toBe("Depósito desde S/ 700 como garantía");
-    expect(CATALOGO.find(e => e.id === "tarjeta-start")?.condicion).toBe("Depósito desde S/ 500");
+    expect(CATALOGO.find(e => e.id === "garantia-liquida")?.condicion).toBe("Depósito mínimo S/ 500 como garantía");
+    expect(CATALOGO.find(e => e.id === "tarjeta-start")?.condicion).toBe("Depósito de respaldo de S/ 500 a S/ 15,000, igual a tu línea");
     expect(CATALOGO.find(e => e.id === "reprogramar")?.fuente).toBeNull();
   });
 });

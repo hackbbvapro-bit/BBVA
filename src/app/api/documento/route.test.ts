@@ -66,13 +66,13 @@ describe("POST /api/documento: validación del archivo", () => {
     expect((await r.json()).mensaje).toMatch(/JPG|PDF/);
   });
 
-  it("413 si el archivo pasa de 4 MB", async () => {
-    const grande = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), Buffer.alloc(4 * 1024 * 1024)]);
+  it("413 si el archivo pasa de 3 MB", async () => {
+    const grande = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47]), Buffer.alloc(3 * 1024 * 1024 + 1)]);
     expect((await POST(peticion(conArchivo("image/png", grande.toString("base64"))))).status).toBe(413);
   });
 
   it("413 si el cuerpo declarado pasa del tope", async () => {
-    const r = await POST(peticion(conArchivo(), { "content-length": "7000000" }));
+    const r = await POST(peticion(conArchivo(), { "content-length": "5000000" }));
     expect(r.status).toBe(413);
   });
 

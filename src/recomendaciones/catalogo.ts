@@ -27,7 +27,7 @@ export const CATALOGO: readonly EntradaCatalogo[] = [
     id: "garantia-liquida",
     titulo: "Tarjeta de crédito con garantía líquida BBVA",
     paraQuien: "Para quien necesita volver a tener una tarjeta y un buen historial, aunque hoy su calificación no sea la mejor.",
-    condicion: "Depósito desde S/ 700 como garantía",
+    condicion: "Depósito mínimo S/ 500 como garantía",
     fuente: {
       url: "https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-de-credito-garantia-liquida.html",
       consultadoEl: CONSULTADO_EL,
@@ -37,7 +37,7 @@ export const CATALOGO: readonly EntradaCatalogo[] = [
     id: "tarjeta-start",
     titulo: "Tarjeta para construir historial (Tarjeta Start)",
     paraQuien: "Para quien aún no tiene una tarjeta de crédito y quiere empezar a construir su historial crediticio.",
-    condicion: "Depósito desde S/ 500",
+    condicion: "Depósito de respaldo de S/ 500 a S/ 15,000, igual a tu línea",
     fuente: {
       url: "https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-credito-historial-crediticio.html",
       consultadoEl: CONSULTADO_EL,

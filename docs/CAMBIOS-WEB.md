@@ -21,7 +21,7 @@ Rama `atlas/copiloto-pro`. Marcas: **[MEDIDO]** salió de ejecutar algo y ver la
 - **Inicio:** cuánto tienes hoy, qué día te falta y por qué, jugadas con su precio, gráfico. Si tienes cobros pendientes dentro del periodo aparece «Ver si te pagan S/ X» (línea punteada; esos cobros no están en la proyección base).
 - **Mi dinero:** cuentas, ingresos fijos y gastos fijos. Agregar, editar o borrar recalcula Inicio al instante y sobrevive a recargar. No deja repetir el nombre de un fijo.
 - **Deudas:** «Debo» (entidad, saldo, TCEA, mínimo, día de pago, atraso), «Me deben» (quién, cuánto, fecha prometida; marcar «ya me pagó») y «Reporte SBS» (calificación por deuda, «Qué pagar primero» con grupos Pagar ya / Pagar este mes / Negociar, recomendaciones BBVA con fuente y fecha de consulta 14-nov-2026).
-- **Hablar:** chat y voz; panel «Súbeme un documento» (foto, captura o PDF ≤ 4 MB) → tarjeta «Esto encontré» editable → «Guardar lo marcado» solo guarda lo que confirmas. Sin clave de IA ofrece el reporte SBS de ejemplo (sintético, con marca de agua).
+- **Hablar:** chat y voz; panel «Súbeme un documento» (foto, captura o PDF ≤ 3 MB) → tarjeta «Esto encontré» editable → «Guardar lo marcado» solo guarda lo que confirmas. Sin clave de IA ofrece el reporte SBS de ejemplo (sintético, con marca de agua).
 - **Avisos:** campanita con contador; los avisos los genera código desde la base (déficit, deuda que vence en ≤ 3 días, atraso, cobro vencido, documento analizado).
 - **Cómo funciona:** desde el menú del avatar.
 - **Sin internet:** tras la primera visita la app abre y calcula sin red (el `sw.js` guarda los archivos de PGlite).
