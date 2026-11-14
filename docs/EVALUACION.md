@@ -4,6 +4,12 @@
 > Todas las cifras de este documento salen de ejecutar `npm run evaluar` y están en
 > [`docs/evaluacion/resultados.json`](evaluacion/resultados.json). Ninguna la escribió un modelo de lenguaje.
 > Los datos son 100 % sintéticos (ver [DATOS.md](DATOS.md)); no hay datos de personas reales.
+>
+> **Hay dos mediciones.** El resumen (sección 0) y la sección 13 usan la medición actual
+> (`resultados.json`), hecha después de corregir el motor con esta misma evidencia. Las tablas de
+> detalle de las secciones 2 a 9 son la **primera medición**, con el motor tal como estaba antes de
+> la corrección ([`resultados-antes.json`](evaluacion/resultados-antes.json)). Se dejan sin tocar a
+> propósito, para que se vea el antes.
 
 ## 0. Resumen en un minuto
 
@@ -11,16 +17,16 @@ Probamos el copiloto con 1 000 clientes sintéticos que nunca había visto. A ca
 90 días de movimientos, le pedimos proyectar los 30 días siguientes y comparamos con lo que «de verdad»
 pasó en esos 30 días.
 
-| Pregunta | Respuesta medida |
+| Pregunta | Respuesta medida (motor actual) |
 |---|---|
-| ¿Avisa cuando viene un déficit? | Sí: detecta **88,6 %** de los déficits reales (186 de 210). La mejor alternativa simple detecta 70,5 %. |
-| ¿A qué costo? | Da **falsa alarma al 22,9 %** de quienes no iban a tener déficit (la alternativa simple, 11,1 %). De cada dos avisos, uno se cumple (precisión 50,7 %). |
-| ¿Acierta el saldo? | A 7 días, sí (error medio S/ 518, el menor de los cuatro métodos). **A 14 y 30 días pierde contra alternativas simples** y es pesimista: a 30 días prevé de media S/ 1 261 menos de lo que hubo. |
-| ¿Por qué se equivoca? | Porque **subestima el dinero que entra**: no reconoce el sueldo quincenal y usa un estimado muy prudente del ingreso variable. |
-| ¿Dice qué tan seguro está? | Sí. La probabilidad de déficit calibrada tiene mejor puntaje (Brier 0,117) que decir a todos la tasa media (0,166) y que el aviso sí/no (0,205). La banda del 80 % cubre el 81,4 % de los casos a 30 días. |
-| ¿La recomendación mejora la decisión? | Sí, pero poco: si la persona sigue la primera jugada, el déficit se evita en el **15 %** de los avisos acertados y el faltante baja de S/ 795 a S/ 628 de media. Con todas las jugadas, 25 % y S/ 502. |
-| ¿Hace daño cuando se equivoca? | No lo encontramos: en 181 falsas alarmas, seguir la jugada **no creó ningún déficit** y su costo medio fue de 1 céntimo. |
-| ¿Trata peor a algún grupo? | El aviso funciona parecido por tramo de ingreso. El error de saldo es mayor en dependientes y en ingreso irregular. |
+| ¿Avisa cuando viene un déficit? | Sí: detecta **84,8 %** de los déficits reales (178 de 210). La mejor alternativa simple detecta 70,5 %. Antes de la corrección detectaba 88,6 %: la sección 13 explica qué se ganó y qué se perdió. |
+| ¿A qué costo? | Da **falsa alarma al 19,4 %** de quienes no iban a tener déficit (la alternativa simple, 11,1 %). De cada dos avisos, uno se cumple (precisión 53,8 %). |
+| ¿Acierta el saldo? | A 7 y 14 días tiene el menor error medio de los cuatro métodos (S/ 481 y S/ 790). **A 30 días sigue siendo el peor de los cuatro** (S/ 1 360) y es pesimista: prevé de media S/ 1 019 menos de lo que hubo. |
+| ¿Por qué se equivoca? | Porque **subestima el dinero que entra**. Una causa ya está corregida (no reconocía el sueldo quincenal). La otra se mantiene a propósito: usa un estimado muy prudente del ingreso variable. |
+| ¿Dice qué tan seguro está? | Sí. La probabilidad de déficit calibrada tiene mejor puntaje (Brier 0,114) que decir a todos la tasa media (0,166) y que el aviso sí/no (0,185). La banda del 80 % cubre el 79,8 % de los casos a 30 días. |
+| ¿La recomendación mejora la decisión? | Sí, pero poco: si la persona sigue la primera jugada, el déficit se evita en el **14,6 %** de los avisos acertados y el faltante baja de S/ 793 a S/ 625 de media. Con todas las jugadas, 24,7 % y S/ 502. |
+| ¿Hace daño cuando se equivoca? | No lo encontramos: en 153 falsas alarmas, seguir la jugada **no creó ningún déficit** y su costo medio fue de 2 céntimos. |
+| ¿Trata peor a algún grupo? | Por tramo de ingreso el aviso funciona parecido (detecta entre 83 % y 88 %). Por tipo de perfil no: tras la corrección detecta **72,7 %** de los déficits de dependientes frente a 90,8 % en independientes y 93,5 % en mixtos. |
 
 Lo que **no** se puede concluir de aquí: que el copiloto acierte con personas reales. El generador de
 datos y el motor los escribió el mismo equipo, y las proporciones del generador son supuestos de diseño,
@@ -38,6 +44,9 @@ ajustar, y otro de examen, que solo se abre para poner la nota.
   exactamente lo mismo: la historia visible y el saldo del día de corte.
 - El motor se evalúa tal como está en la app (`proyectar`), sin ajustes para esta prueba.
 - La corrida es determinista: las mismas semillas dan el mismo archivo de resultados, byte a byte.
+- **Para decidir un cambio en el motor** hay una corrida aparte que pone la nota sobre la población de
+  práctica A (`AJUSTE=nombre npm run evaluar`; calibra con una tercera semilla, `20261113`). Así se
+  elige mirando solo el cuaderno de práctica, y el de examen se abre una vez, al final (sección 13).
 
 **Contra qué se compara.** Tres alternativas simples que cualquiera podría programar en una tarde:
 
@@ -336,16 +345,20 @@ El error se duplica con ingreso irregular y con datos incompletos. Las falsas al
    pendiente.
 6. **30 días, una vez.** No medimos qué pasa si la persona usa el copiloto mes tras mes.
 
-## 11. Qué haríamos con esta evidencia
+## 11. Qué hicimos y qué haríamos con esta evidencia
 
 En orden de impacto esperado, ajustando siempre en A y reportando en B con el antes y el después:
 
-1. **Reconocer el sueldo quincenal.** Hoy se detecta 0 de 602; es la causa principal del pesimismo en
-   dependientes.
-2. **Revisar el estimado del ingreso variable.** En independientes, el percentil 25 prevé el 60 % de lo que entra. Probar
-   la mediana para el saldo esperado y dejar el percentil 25 solo para el escenario prudente.
-3. **Tolerar huecos** al detectar pagos fijos (hoy el recall cae de 82 % a 51 %).
-4. **Mostrar la probabilidad calibrada y la banda** en lugar de un aviso sí/no.
+1. **Reconocer el sueldo quincenal. HECHO** (sección 13): de 0 a 496 de 602 cobros detectados.
+2. **Revisar el estimado del ingreso variable. PROBADO Y DESCARTADO** (sección 13): la mediana y el
+   promedio bajan el error del saldo, pero dejan sin avisar muchos más déficits. Proponerlo aquí fue
+   un error nuestro: un solo número no puede ser a la vez el saldo más probable y el escenario
+   prudente. El camino es mostrar **dos números** (saldo esperado y escenario prudente) o avisar con
+   la probabilidad calibrada de la sección 5. No está hecho.
+3. **Prever el pago de la tarjeta.** En dos de los tres déficits sin aviso que revisamos a mano, lo que
+   faltó prever fue un «Pago Tarjeta» (sección 13). Sigue sin detectarse en 424 movimientos.
+4. **Tolerar huecos** al detectar pagos fijos (el recall cae de 85 % a 53 % con historia incompleta) y
+   tolerar el sueldo que llega con retraso.
 5. **Bajar el tono de «resuelve»** en las jugadas y quitar prioridad a «mover un pago».
 
 ## 12. Cómo reproducirlo
@@ -353,9 +366,117 @@ En orden de impacto esperado, ajustando siempre en A y reportando en B con el an
 ```bash
 npm install
 npm test          # pruebas unitarias, incluidas las de la evaluación
-npm run evaluar   # unos 15 segundos; reescribe docs/evaluacion/resultados.json y datos/sinteticos/
+npm run evaluar   # unos 30 segundos; reescribe docs/evaluacion/resultados.json y datos/sinteticos/
 ```
 
 Código en `src/evaluacion/`: `poblacion.ts` (generador), `pronostico.ts` (los cuatro métodos),
 `metricas.ts`, `decision.ts`, `detectores.ts`, `evaluar.ts` (arma el informe) y
-`corrida.evaluacion.ts` (semillas y tamaño de la corrida oficial).
+`corrida.evaluacion.ts` (semillas y tamaño de la corrida oficial), `ajuste.evaluacion.ts` (corrida de
+práctica) y `diagnostico.evaluacion.ts` (revisión caso por caso de la sección 13).
+
+## 13. Corrección hecha con esta evidencia: antes y después
+
+**Analogía.** Un detector de humo muy sensible avisa de casi todos los incendios, pero también suena
+cada vez que alguien fríe un huevo. Al calibrarlo suena menos en falso… y puede callar en algún
+incendio pequeño. Eso es lo que pasó aquí, y lo contamos con las dos cifras.
+
+### 13.1 Qué se cambió
+
+El motor ahora reconoce el **sueldo quincenal** (`src/motor/recurrentes.ts`). Regla: si una misma
+descripción aparece dos veces al mes, en al menos dos meses, nunca más de dos veces en un mes y con
+10 días o más entre un cobro y otro, se parte en dos series mensuales (por ejemplo «día 15» y «fin de
+mes»). Solo cuenta si **las dos mitades** son regulares por separado. Las fechas siguen la regla de
+siempre: el día 31 pasa al último día del mes. Tiene 5 pruebas nuevas (febrero bisiesto y no bisiesto,
+cruce de año, historia corta, y que no invente quincenas donde no las hay).
+
+No se tocó el generador de datos ni ninguna otra parte del motor.
+
+### 13.2 Antes y después, en la población de examen
+
+| Medida | Antes | Después |
+|---|---:|---:|
+| Cobros quincenales reconocidos | 0 de 602 | **496 de 602 (82,4 %)** |
+| Pagos e ingresos fijos reconocidos (global) | 78,0 % | 80,3 % |
+| Error del saldo a 7 días | S/ 518,48 | S/ 480,64 |
+| Error del saldo a 14 días | S/ 860,21 | S/ 790,09 |
+| Error del saldo a 30 días | S/ 1 553,68 | **S/ 1 359,66** |
+| Pesimismo a 30 días (sesgo) | −S/ 1 260,57 | −S/ 1 019,06 |
+| Falsas alarmas | 22,9 % (181) | **19,4 % (153)** |
+| Avisos que se cumplen (precisión) | 50,7 % | 53,8 % |
+| **Déficits detectados (recall)** | **88,6 % (186 de 210)** | **84,8 % (178 de 210)** |
+| Déficits sin avisar | 24 | **32** |
+| F1 | 0,645 | 0,658 |
+| Brier del aviso sí/no | 0,205 | 0,185 |
+
+Con la corrección el motor pasa a ser el mejor de los cuatro métodos también a 14 días (antes ganaba
+`repetir_30` con S/ 822,07). **A 30 días sigue siendo el peor**: `saldo_plano` tiene S/ 872,41.
+
+Todo el cambio está en los **dependientes**; independientes y mixtos dan exactamente lo mismo que antes.
+
+| Dependientes (395) | Antes | Después |
+|---|---:|---:|
+| Error del saldo a 30 días | S/ 2 021,18 | S/ 1 529,99 |
+| Sueldo que el motor deja de prever (media) | S/ 1 369,51 | S/ 758,09 |
+| Falsas alarmas | 23,6 % (75) | 14,8 % (47) |
+| Precisión | 46,0 % | 54,4 % |
+| Déficits detectados (recall) | 83,1 % (64 de 77) | **72,7 % (56 de 77)** |
+
+### 13.3 El costo, sin adornos
+
+- Se dejan de avisar **8 déficits** que antes se avisaban, todos de dependientes. No son pequeños: el
+  faltante medio de los déficits sin aviso sube de S/ 389,96 (24 casos) a S/ 505,80 (32 casos), lo que
+  implica unos S/ 853 de media en los 8 nuevos (cifra calculada a partir de las dos medias, suponiendo
+  que los 24 anteriores siguen sin aviso).
+- A cambio hay **28 falsas alarmas menos** y el saldo previsto se acerca más al real.
+- En el conjunto de los 1 000 clientes, la tasa de déficit si se siguen todas las jugadas pasa de
+  16,3 % a 16,6 % (sin copiloto, 21,0 %). Es decir: **el beneficio total para el usuario baja un
+  poco**, porque a quien no se avisa no se le puede ayudar.
+
+**¿Por qué se pierden?** Revisamos uno por uno, en la población de práctica, los déficits sin aviso de
+los clientes con quincena (97 clientes: 15 avisos acertados, 9 falsas alarmas, 3 sin aviso;
+[`ajuste/sin-aviso-quincena.txt`](evaluacion/ajuste/sin-aviso-quincena.txt)). En los tres el sueldo
+está proyectado en su fecha y con su monto; lo que no se previó fue otra cosa:
+
+| Caso | Qué pasó de verdad |
+|---|---|
+| `cli-0347` | El sueldo del 15 llegó el 24, nueve días tarde, y hubo un pago de tarjeta de S/ 168,30 no previsto. |
+| `cli-0399` | Una matrícula de S/ 490 (gasto atípico) y una cuota de colegio nueva de S/ 140. |
+| `cli-0926` | Un pago de tarjeta de S/ 754,60 al día siguiente del corte, no previsto. |
+
+Conclusión: antes esos avisos se acertaban **por pesimismo** —el motor creía que casi no entraba
+sueldo, así que avisaba a casi cualquiera— y no por entender al cliente. La corrección no tiene un
+fallo que arreglar; deja a la vista dos huecos que ya existían: el pago de tarjeta y el sueldo que se
+atrasa. Son tres casos revisados a mano, no una estadística.
+
+**Límites de la regla nueva.** No reconoce el 17,6 % de los cobros quincenales (106 de 602), sobre todo
+cuando el sueldo se atrasa o la historia tiene huecos. En la población de práctica creó 5 series
+falsas, todas de «Taxi por aplicación».
+
+### 13.4 Lo que probamos y no cambiamos: el ingreso variable
+
+La primera versión de este documento proponía cambiar el percentil 25 por la mediana. Antes de mirar los resultados fijamos
+el criterio: **el recall del aviso no puede bajar más de un error estándar** (2,8 puntos con 215
+déficits en la población de práctica, es decir, no menos de 76,3 %); entre las variantes que cumplan,
+gana la de menor error a 30 días.
+
+Población de práctica (no es la nota; sirve solo para elegir):
+
+| Ingreso variable estimado con… | Error a 30 días | Recall | Falsas alarmas | Déficits sin aviso | ¿Cumple? |
+|---|---:|---:|---:|---:|---|
+| **Percentil 25 (se queda)** | S/ 1 261,01 | **79,1 %** | 20,4 % | 45 | — |
+| Percentil 33 | S/ 1 173,86 | 76,3 % | 16,8 % | 51 | Justo en el límite |
+| Percentil 40 | S/ 1 118,40 | 71,6 % | 14,3 % | 61 | No |
+| Punto medio entre p25 y mediana | S/ 1 113,41 | 74,4 % | 14,7 % | 55 | No |
+| Mediana | S/ 1 049,12 | 64,2 % | 11,2 % | 77 | No |
+| Promedio | S/ 945,57 | 56,7 % | 5,0 % | 93 | No |
+
+La mediana baja el error un 17 %, pero deja sin avisar 77 déficits en vez de 45. El percentil 33
+queda justo en el límite del criterio (51 déficits sin aviso, el máximo admitido), pero lo probamos **después** de ver fallar a las otras (elegirlo
+sería ajustar a posteriori), cambia 6 avisos acertados por 28 falsas alarmas menos y empeora la fecha
+del aviso (a tiempo: de 70,6 % a 63,4 %). Como una falsa alarma casi no cuesta (sección 8) y un
+déficit sin avisar cuesta cientos de soles, **se mantiene el percentil 25**.
+
+Cada fila tiene su archivo en [`docs/evaluacion/ajuste/`](evaluacion/ajuste/) (`quincena2` es el motor
+actual; `base`, el de antes; `quincena`, un primer intento que creaba series falsas). Las variantes `iv-*` se obtuvieron cambiando una sola línea de
+`src/motor/proyeccion.ts` (el percentil del ingreso variable) y ejecutando `AJUSTE=nombre npm run evaluar`;
+ese cambio no quedó en el código.

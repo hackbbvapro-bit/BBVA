@@ -1,0 +1,33 @@
+Población de práctica, semilla 20261114. Clientes con sueldo quincenal: 97.
+Avisos acertados 15, falsas alarmas 9, déficits sin aviso 3, silencios correctos 70.
+Montos en céntimos.
+
+== cli-0347 dependiente [ingreso_irregular, gasto_atipico] corte 2026-03-27, saldo 40520 céntimos
+real: primer déficit el día 22, mínimo -20300 el día 27
+previsto: mínimo 90 (2026-04-14), final 21870
+sueldo previsto: 2026-03-31=73500 2026-04-15=73500
+sueldo real:     2026-03-31=73500 2026-04-24=73500
+pagos fijos previstos -67400, reales -83650
+pagos fijos reales que el motor no previó: 2026-04-18 Pago Tarjeta Compras -16830
+gasto del día a día previsto -98250, real -60450
+mayores gastos reales no fijos: 2026-04-17 Kiosco Central -4480 | 2026-04-11 Electro Hogar Luz -3230 | 2026-04-04 Bodega La Esquina -1910
+
+== cli-0399 dependiente [cambio_patron, gasto_atipico] corte 2025-12-20, saldo 42300 céntimos
+real: primer déficit el día 23, mínimo -68900 el día 25
+previsto: mínimo 5600 (2025-12-30), final 42130
+sueldo previsto: 2025-12-31=60000 2026-01-15=60000
+sueldo real:     2025-12-31=60000 2026-01-15=60000
+pagos fijos previstos -34040, reales -47430
+pagos fijos reales que el motor no previó: 2026-01-12 Cuota de colegio -14000
+gasto del día a día previsto -86130, real -142040
+mayores gastos reales no fijos: 2026-01-12 Matrícula -49000 (atípico) | 2026-01-04 Bazar Colores -5820 | 2026-01-07 Electro Hogar Luz -5780
+
+== cli-0926 dependiente [gasto_atipico] corte 2025-12-25, saldo 199900 céntimos
+real: primer déficit el día 3, mínimo -45070 el día 5
+previsto: mínimo 5880 (2025-12-30), final 167190
+sueldo previsto: 2025-12-31=228000 2026-01-15=228000
+sueldo real:     2025-12-31=228000 2026-01-15=228000
+pagos fijos previstos -170590, reales -328440
+pagos fijos reales que el motor no previó: 2025-12-26 Pago Tarjeta Compras -75460 | 2026-01-24 Pago Tarjeta Compras -82900
+gasto del día a día previsto -318120, real -248400
+mayores gastos reales no fijos: 2026-01-05 Farmacia Salud -42970 | 2026-01-05 Menú Doña Flor -9480 | 2025-12-27 Panadería El Trigal -7350
