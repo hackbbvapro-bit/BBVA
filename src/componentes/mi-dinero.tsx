@@ -1,43 +1,243 @@
 "use client";
-import type { ReactNode } from "react";
-import { formatoSoles, type Analisis, type Perfil, type Recurrente } from "@/motor";
-import { Portada, tarjeta, unido } from "@/componentes/ui";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { formatoSoles, sumar, type Analisis, type Categoria } from "@/motor";
+import { Icono, Portada, tarjeta, unido } from "@/componentes/ui";
+import { Acciones, mensajeDeError, Seleccion, Texto } from "@/componentes/formularios";
+import { useDatos } from "@/componentes/datos";
+import { nuevoId } from "@/datos/repositorio";
+import { leerDia, leerSoles, solesParaEditar } from "@/datos/formulario";
+import { nombreFijoRepetido } from "@/datos/nombres";
+import { ErrorDatos } from "@/datos/validar";
+import type { Cuenta, Fijo, Sentido } from "@/datos/tipos";
 
-function Lista({ titulo, vacio, items }: { titulo: string; vacio: ReactNode; items: Recurrente[] }) {
+const TIPOS_GASTO: readonly (readonly [Categoria, string])[] = [
+  ["alquiler", "Alquiler o vivienda"],
+  ["servicios", "Servicios (luz, agua, internet)"],
+  ["suscripciones", "Suscripción"],
+  ["educacion", "Educación"],
+  ["salud", "Salud"],
+  ["transporte", "Transporte"],
+  ["familia", "Familia"],
+  ["otros", "Otro"],
+];
+
+interface Fila {
+  id: string;
+  principal: string;
+  secundario?: string;
+  monto: string;
+}
+
+/** Lista con filetes; tocar una fila abre su formulario en el mismo lugar, y el botón del pie agrega una nueva. */
+function ListaEditable({
+  titulo,
+  items,
+  vacio,
+  nota,
+  textoAgregar,
+  prefijo,
+  formulario,
+  avisar,
+}: {
+  titulo?: string;
+  items: Fila[];
+  vacio: ReactNode;
+  nota?: ReactNode;
+  textoAgregar: string;
+  prefijo: string;
+  formulario: (id: string | null, cerrar: (guardado: boolean) => void) => ReactNode;
+  avisar: (texto: string) => void;
+}) {
+  const [abierto, setAbierto] = useState<string | null>(null);
+  const [volverA, setVolverA] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (abierto === null && volverA) (document.getElementById(volverA) ?? document.getElementById(`${prefijo}-agregar`))?.focus();
+  }, [abierto, volverA, prefijo]);
+
+  function cerrar(guardado: boolean) {
+    setVolverA(abierto === "nuevo" ? `${prefijo}-agregar` : `${prefijo}-${abierto}`);
+    setAbierto(null);
+    if (guardado) avisar("Guardado. Tus cifras ya están al día.");
+  }
+
   return (
-    <section className={`${tarjeta} aparecer`}>
-      <h2 className="text-lg font-semibold text-noche">{titulo}</h2>
-      {items.length ? (
-        <ul className="mt-3">
-          {items.map(r => (
-            <li
-              key={r.id}
-              className="flex items-baseline justify-between gap-4 border-t border-linea py-3.5 first:border-t-0"
-            >
-              <span className="min-w-0">
-                <span className="block font-medium text-noche">{r.descripcion}</span>
-                <span className="text-sm text-gris">
-                  {r.frecuencia === "mensual" ? `Cada mes, el día ${r.diaDelMes}` : "Cada semana"}
+    <div>
+      {titulo && <h2 className="text-lg font-semibold text-noche">{titulo}</h2>}
+      {items.length === 0 && abierto !== "nuevo" && <p className="mt-3 leading-relaxed text-gris">{vacio}</p>}
+      <ul className={titulo ? "mt-3" : ""}>
+        {items.map(f => (
+          <li key={f.id} className="border-t border-linea first:border-t-0">
+            {abierto === f.id ? (
+              <div className="py-4">{formulario(f.id, cerrar)}</div>
+            ) : (
+              <button
+                id={`${prefijo}-${f.id}`}
+                onClick={() => setAbierto(f.id)}
+                aria-label={`Editar ${f.principal}, ${f.monto}`}
+                className="-mx-2 flex min-h-14 w-[calc(100%+1rem)] items-center justify-between gap-4 rounded-xl px-2 py-3 text-left transition-colors hover:bg-niebla"
+              >
+                <span className="min-w-0">
+                  <span className="block font-medium text-noche">{f.principal}</span>
+                  {f.secundario && <span className="text-sm text-gris">{f.secundario}</span>}
                 </span>
-              </span>
-              <span className="shrink-0 font-semibold text-noche tabular-nums">
-                {unido(formatoSoles(Math.abs(r.monto)))}
-              </span>
-            </li>
-          ))}
-        </ul>
+                <span className="flex shrink-0 items-center gap-3">
+                  <span className="font-semibold text-noche tabular-nums">{unido(f.monto)}</span>
+                  <span className="text-gris">
+                    <Icono nombre="lapiz" />
+                  </span>
+                </span>
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      {abierto === "nuevo" ? (
+        <div className={`py-4 ${items.length ? "border-t border-linea" : ""}`}>{formulario(null, cerrar)}</div>
       ) : (
-        <p className="mt-3 leading-relaxed text-gris">{vacio}</p>
+        <button
+          id={`${prefijo}-agregar`}
+          onClick={() => setAbierto("nuevo")}
+          className={`flex min-h-11 items-center gap-2 rounded-xl text-[15px] font-semibold text-electrico transition-colors hover:text-marino ${items.length ? "mt-2" : "mt-4"}`}
+        >
+          <Icono nombre="mas" />
+          {textoAgregar}
+        </button>
       )}
-    </section>
+      {nota && <p className="mt-4 text-sm leading-relaxed text-gris">{nota}</p>}
+    </div>
   );
 }
 
-/** Lo que tienes y lo que entra y sale fijo cada mes. Todo sale del motor (`analizar`). */
-export function MiDinero({ perfil, analisis }: { perfil: Perfil; analisis: Analisis }) {
-  const ingresos = analisis.recurrentes.filter(r => r.monto > 0);
-  const gastos = analisis.recurrentes.filter(r => r.monto < 0);
+/** Corre el guardado una sola vez por envío, muestra el error en español y deja el formulario abierto si algo falla. */
+function useEnvio(alTerminar: (guardado: boolean) => void) {
+  const [error, setError] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+  async function correr(trabajo: () => Promise<void>) {
+    if (guardando) return;
+    setError(null);
+    setGuardando(true);
+    try {
+      await trabajo();
+      alTerminar(true);
+    } catch (e) {
+      setError(mensajeDeError(e));
+      setGuardando(false);
+    }
+  }
+  return { error, guardando, confirmando, setConfirmando, correr, alTerminar };
+}
+
+function FormularioCuenta({ id, cerrar }: { id: string | null; cerrar: (guardado: boolean) => void }) {
+  const { datos, cambiar } = useDatos();
+  const inicial = datos.cuentas.find(c => c.id === id);
+  const [nombre, setNombre] = useState(inicial?.nombre ?? "");
+  const [saldo, setSaldo] = useState(inicial ? solesParaEditar(inicial.saldo) : "");
+  const envio = useEnvio(cerrar);
+  function enviar(e: FormEvent) {
+    e.preventDefault();
+    void envio.correr(async () => {
+      const cuenta: Cuenta = { id: inicial?.id ?? nuevoId("cuenta"), nombre, saldo: leerSoles(saldo, "el saldo") };
+      await cambiar(r => r.guardarCuenta(cuenta));
+    });
+  }
+  return (
+    <form onSubmit={enviar} noValidate aria-label={inicial ? `Editar ${inicial.nombre}` : "Agregar una cuenta"}>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Texto etiqueta="Nombre de la cuenta" valor={nombre} cambiar={setNombre} enfocar marcador="Cuenta sueldo" />
+        <Texto etiqueta="Saldo de hoy (S/)" valor={saldo} cambiar={setSaldo} modo="decimal" marcador="461.40" />
+      </div>
+      <Acciones
+        error={envio.error}
+        guardando={envio.guardando}
+        confirmandoBorrar={envio.confirmando}
+        puedeBorrar={!!inicial}
+        nombreBorrar={inicial?.nombre ?? ""}
+        alCancelar={() => cerrar(false)}
+        alPedirBorrar={() => envio.setConfirmando(true)}
+        alDesistirBorrar={() => envio.setConfirmando(false)}
+        alBorrar={() => inicial && void envio.correr(() => cambiar(r => r.borrarCuenta(inicial.id)))}
+      />
+    </form>
+  );
+}
+
+function FormularioFijo({ sentido, id, cerrar }: { sentido: Sentido; id: string | null; cerrar: (guardado: boolean) => void }) {
+  const { datos, cambiar } = useDatos();
+  const inicial = (sentido === "ingreso" ? datos.ingresosFijos : datos.gastosFijos).find(f => f.id === id);
+  const [nombre, setNombre] = useState(inicial?.descripcion ?? "");
+  const [monto, setMonto] = useState(inicial ? solesParaEditar(inicial.monto) : "");
+  const [dia, setDia] = useState(inicial ? String(inicial.dia) : "");
+  const [categoria, setCategoria] = useState<Categoria>(inicial?.categoria ?? (sentido === "ingreso" ? "sueldo" : "otros"));
+  const envio = useEnvio(cerrar);
+  const opciones: readonly (readonly [string, string])[] = TIPOS_GASTO.some(([c]) => c === categoria)
+    ? TIPOS_GASTO
+    : [...TIPOS_GASTO, [categoria, categoria]];
+  function enviar(e: FormEvent) {
+    e.preventDefault();
+    void envio.correr(async () => {
+      if (nombreFijoRepetido(datos, sentido, nombre, inicial?.id)) {
+        throw new ErrorDatos(
+          `Ya tienes ${sentido === "ingreso" ? "un ingreso" : "un gasto"} llamado así. Edítalo o ponle otro nombre: si no, el copiloto los contaría como uno solo.`,
+        );
+      }
+      const fijo: Fijo = {
+        id: inicial?.id ?? nuevoId("fijo"),
+        descripcion: nombre,
+        monto: leerSoles(monto, "el monto"),
+        dia: leerDia(dia, "el día"),
+        categoria,
+      };
+      await cambiar(r => r.guardarFijo(sentido, fijo));
+    });
+  }
+  const que = sentido === "ingreso" ? "ingreso fijo" : "gasto fijo";
+  return (
+    <form onSubmit={enviar} noValidate aria-label={inicial ? `Editar ${inicial.descripcion}` : `Agregar un ${que}`}>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2">
+          <Texto etiqueta="Nombre" valor={nombre} cambiar={setNombre} enfocar marcador={sentido === "ingreso" ? "Clases particulares" : "Gimnasio"} />
+        </div>
+        <Texto etiqueta="Monto (S/)" valor={monto} cambiar={setMonto} modo="decimal" marcador="180" />
+        <Texto etiqueta="Día del mes" ayuda="Del 1 al 31" valor={dia} cambiar={setDia} modo="numeric" marcador="15" />
+      </div>
+      {sentido === "gasto" && (
+        <div className="mt-4 md:max-w-sm">
+          <Seleccion etiqueta="Tipo de gasto" valor={categoria} cambiar={v => setCategoria(v as Categoria)} opciones={opciones} />
+        </div>
+      )}
+      <Acciones
+        error={envio.error}
+        guardando={envio.guardando}
+        confirmandoBorrar={envio.confirmando}
+        puedeBorrar={!!inicial}
+        nombreBorrar={inicial?.descripcion ?? ""}
+        alCancelar={() => cerrar(false)}
+        alPedirBorrar={() => envio.setConfirmando(true)}
+        alDesistirBorrar={() => envio.setConfirmando(false)}
+        alBorrar={() => inicial && void envio.correr(() => cambiar(r => r.borrarFijo(inicial.id)))}
+      />
+    </form>
+  );
+}
+
+const filaFijo = (f: Fijo): Fila => ({
+  id: f.id,
+  principal: f.descripcion,
+  secundario: `Cada mes, el día ${f.dia}`,
+  monto: formatoSoles(f.monto),
+});
+
+/** Lo que tienes y lo que entra y sale fijo cada mes, con altas, cambios y bajas. Todo recalcula Inicio al instante. */
+export function MiDinero({ analisis }: { analisis: Analisis }) {
+  const { datos, perfil } = useDatos();
+  const [aviso, setAviso] = useState("");
   const variable = analisis.ingresoVariable;
+  const entran = sumar(datos.ingresosFijos.map(f => f.monto));
+  const salen = sumar(datos.gastosFijos.map(f => f.monto));
+  const n = datos.cuentas.length;
+
   return (
     <>
       <Portada>
@@ -46,34 +246,65 @@ export function MiDinero({ perfil, analisis }: { perfil: Perfil; analisis: Anali
         <h1 className="mt-1 text-[3rem] font-semibold leading-none tracking-[-0.045em] text-noche tabular-nums md:text-[4rem]">
           {unido(formatoSoles(perfil.saldoActual))}
         </h1>
-        <p className="mt-4 text-gris">En tu cuenta principal, al cierre del día.</p>
+        <p className="mt-4 text-gris">
+          {n === 0 ? "Aún no has agregado ninguna cuenta." : n === 1 ? "En tu cuenta, al cierre del día." : `Sumando tus ${n} cuentas, al cierre del día.`}
+        </p>
+        <div className="mt-6 border-t border-linea pt-2">
+          <ListaEditable
+            items={datos.cuentas.map(c => ({ id: c.id, principal: c.nombre, monto: formatoSoles(c.saldo) }))}
+            vacio="Agrega una cuenta con su saldo de hoy para que el copiloto pueda calcular."
+            textoAgregar="Agregar una cuenta"
+            prefijo="cuenta"
+            formulario={(id, cerrar) => <FormularioCuenta id={id} cerrar={cerrar} />}
+            avisar={setAviso}
+          />
+        </div>
       </Portada>
       <div className="grid items-start gap-6 lg:grid-cols-2">
-        <Lista
-          titulo="Lo que te entra"
-          vacio={
-            variable.semanasObservadas > 0 ? (
-              <>
-                Tus ingresos varían. En una semana normal te entran{" "}
-                <span className="font-semibold text-noche tabular-nums">
-                  {unido(formatoSoles(variable.semanalTipico))}
-                </span>
-                ; para no llevarte sorpresas, el copiloto cuenta con{" "}
-                <span className="font-semibold text-noche tabular-nums">
-                  {unido(formatoSoles(variable.semanalPrudente))}
-                </span>
-                .
-              </>
-            ) : (
-              "Aún no hay ingresos fijos."
-            )
-          }
-          items={ingresos}
-        />
-        <Lista titulo="Lo que te sale fijo" vacio="Aún no hay gastos fijos." items={gastos} />
+        <section className={`${tarjeta} aparecer`}>
+          <ListaEditable
+            titulo="Lo que te entra"
+            items={datos.ingresosFijos.map(filaFijo)}
+            vacio={
+              variable.semanasObservadas > 0
+                ? "Aún no tienes ingresos fijos. Agrégalos si cobras el mismo monto el mismo día cada mes."
+                : "Aún no hay ingresos fijos."
+            }
+            nota={
+              variable.semanasObservadas > 0 && (
+                <>
+                  Además, tus ingresos varían: en una semana normal te entran{" "}
+                  <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(variable.semanalTipico))}</span>; para no llevarte
+                  sorpresas, el copiloto cuenta con{" "}
+                  <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(variable.semanalPrudente))}</span>.
+                </>
+              )
+            }
+            textoAgregar="Agregar un ingreso fijo"
+            prefijo="ingreso"
+            formulario={(id, cerrar) => <FormularioFijo sentido="ingreso" id={id} cerrar={cerrar} />}
+            avisar={setAviso}
+          />
+        </section>
+        <section className={`${tarjeta} aparecer`}>
+          <ListaEditable
+            titulo="Lo que te sale fijo"
+            items={datos.gastosFijos.map(filaFijo)}
+            vacio="Aún no hay gastos fijos."
+            textoAgregar="Agregar un gasto fijo"
+            prefijo="gasto"
+            formulario={(id, cerrar) => <FormularioFijo sentido="gasto" id={id} cerrar={cerrar} />}
+            avisar={setAviso}
+          />
+        </section>
       </div>
-      <p className="mt-6 px-1 text-sm text-gris">
-        Los fijos se reconocen solos cuando un pago se repite tres meses el mismo día.
+      <p className="mt-6 px-1 text-sm leading-relaxed text-gris">
+        {entran > 0 && <>Cada mes entran {unido(formatoSoles(entran))} fijos y salen </>}
+        {entran === 0 && <>Cada mes salen </>}
+        {unido(formatoSoles(salen))} fijos, sin contar tus pagos de deudas. Lo que cambies aquí actualiza Inicio, Deudas y los avisos al instante.
+      </p>
+      <p role="status" className="sr-only">
+        {aviso}
       </p>
     </>
   );

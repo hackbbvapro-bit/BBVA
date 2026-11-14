@@ -141,7 +141,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
         )}
         {pestana === "dinero" && (
           <div className="md:mx-auto md:max-w-4xl md:px-8 md:py-10">
-            <MiDinero perfil={perfil} analisis={analisis} />
+            <MiDinero analisis={analisis} />
           </div>
         )}
         {pestana === "deudas" && (

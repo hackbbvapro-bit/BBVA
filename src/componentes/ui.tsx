@@ -23,6 +23,8 @@ const trazos = {
   perfil: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0",
   salir: "M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h10",
   abajo: "m6 9 6 6 6-6",
+  lapiz: "M4 20h4L19 9l-4-4L4 16v4ZM13 7l4 4",
+  mas: "M12 5v14M5 12h14",
 };
 export function Icono({ nombre }: { nombre: keyof typeof trazos }) {
   return (
