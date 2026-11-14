@@ -13,7 +13,16 @@ describe("leerSoles", () => {
   it("rechaza vacío y basura con un mensaje en español", () => {
     expect(() => leerSoles("  ", "el monto")).toThrow(ErrorDatos);
     expect(() => leerSoles("abc", "el monto")).toThrow(/soles/);
-    expect(() => leerSoles("12.345", "el monto")).toThrow(ErrorDatos);
+    expect(() => leerSoles("1e3", "el monto")).toThrow(ErrorDatos);
+    expect(() => leerSoles("doscientos gatos", "el monto")).toThrow(ErrorDatos);
+  });
+  it("entiende montos en letras y con puntos de miles (en soles no hay tres decimales)", () => {
+    expect(leerSoles("doscientos cincuenta", "lo que pagas al mes")).toBe(25000);
+    expect(leerSoles("Doscientos cincuenta soles", "x")).toBe(25000);
+    expect(leerSoles("mil quinientos", "x")).toBe(150000);
+    expect(leerSoles("12.345", "x")).toBe(1234500);
+    expect(leerSoles("1.000", "x")).toBe(100000);
+    expect(leerSoles("2 mil", "x")).toBe(200000);
     expect(() => leerSoles("1e3", "el monto")).toThrow(ErrorDatos);
   });
 });

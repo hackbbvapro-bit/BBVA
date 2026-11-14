@@ -21,7 +21,7 @@ function recorrer(respuestas: Partial<Record<Paso, string>>): { borrador: Borrad
   throw new Error("el guion no termina");
 }
 
-const comunes = { nombre: "Lucho", cobro: "fin_de_mes", ingreso: "2500", saldo: "600", fijos: "900", diaADia: "800" };
+const comunes = { nombre: "Lucho", trabajo: "dependiente", cobro: "fin_de_mes", diaPago: "30", ingreso: "2500", gratificacion: "si", saldo: "600", fijos: "900", diaADia: "800" };
 const rutaDe = (b: Borrador) => {
   const r = aRespuestas(b, "2026-11-14");
   const datos = armarCaso(r);
@@ -32,15 +32,15 @@ const rutaDe = (b: Borrador) => {
 describe("orden de las preguntas", () => {
   it("sin deudas pregunta si alguna vez tuvo crédito y termina en el permiso", () => {
     const { orden } = recorrer({ ...comunes, deudas: "no", tuvoCredito: "no" });
-    expect(orden).toEqual(["nombre", "cobro", "ingreso", "saldo", "fijos", "diaADia", "deudas", "tuvoCredito", "permiso"]);
+    expect(orden).toEqual(["nombre", "trabajo", "cobro", "diaPago", "ingreso", "gratificacion", "saldo", "fijos", "diaADia", "deudas", "tuvoCredito", "permiso"]);
   });
   it("con una tarjeta al día no pregunta el atraso ni si tuvo crédito", () => {
     const { orden } = recorrer({ ...comunes, deudas: "al_dia", tipoDeuda: "tarjeta", saldoDeuda: "3000", cuotaDeuda: "250" });
-    expect(orden).toEqual(["nombre", "cobro", "ingreso", "saldo", "fijos", "diaADia", "deudas", "tipoDeuda", "saldoDeuda", "cuotaDeuda", "permiso"]);
+    expect(orden).toEqual(["nombre", "trabajo", "cobro", "diaPago", "ingreso", "gratificacion", "saldo", "fijos", "diaADia", "deudas", "tipoDeuda", "saldoDeuda", "cuotaDeuda", "permiso"]);
   });
   it("con una deuda personal atrasada pregunta el atraso y si tuvo crédito", () => {
     const { orden } = recorrer({ ...comunes, deudas: "atraso", tipoDeuda: "personal", saldoDeuda: "500", cuotaDeuda: "100", atraso: "uno_a_dos_meses", tuvoCredito: "no" });
-    expect(orden).toEqual(["nombre", "cobro", "ingreso", "saldo", "fijos", "diaADia", "deudas", "tipoDeuda", "saldoDeuda", "cuotaDeuda", "atraso", "tuvoCredito", "permiso"]);
+    expect(orden).toEqual(["nombre", "trabajo", "cobro", "diaPago", "ingreso", "gratificacion", "saldo", "fijos", "diaADia", "deudas", "tipoDeuda", "saldoDeuda", "cuotaDeuda", "atraso", "tuvoCredito", "permiso"]);
   });
   it("la pregunta que toca siempre está entre las previstas, y el avance no se pasa del total", () => {
     let b: Borrador = {};
@@ -60,7 +60,7 @@ describe("orden de las preguntas", () => {
 
 describe("preguntas", () => {
   it("cada paso tiene texto, y las de opciones traen opciones", () => {
-    const pasos: Paso[] = ["nombre", "cobro", "ingreso", "saldo", "fijos", "diaADia", "deudas", "tipoDeuda", "saldoDeuda", "cuotaDeuda", "atraso", "tuvoCredito", "permiso"];
+    const pasos: Paso[] = ["nombre", "trabajo", "cobro", "diaPago", "ingreso", "flojo", "gratificacion", "saldo", "fijos", "diaADia", "deudas", "tipoDeuda", "saldoDeuda", "cuotaDeuda", "atraso", "tuvoCredito", "permiso"];
     for (const paso of pasos) {
       const p = pregunta(paso, { nombre: "Lucho" });
       expect(p.texto.length).toBeGreaterThan(10);
@@ -69,7 +69,7 @@ describe("preguntas", () => {
     }
   });
   it("saluda por el apodo y el permiso avisa que el caso sale a servicios externos", () => {
-    expect(pregunta("cobro", { nombre: "Lucho" }).texto).toContain("Lucho");
+    expect(pregunta("trabajo", { nombre: "Lucho" }).texto).toContain("Lucho");
     const permiso = pregunta("permiso", {});
     expect(permiso.ayuda).toMatch(/servicios externos de IA y de voz/);
     expect(permiso.ayuda).toMatch(/No pongas datos reales/);
@@ -125,7 +125,7 @@ describe("del guion al caso y a la ruta", () => {
   it("arma las respuestas con los montos en céntimos", () => {
     const { borrador } = recorrer({ ...comunes, deudas: "atraso", tipoDeuda: "tarjeta", saldoDeuda: "3000", cuotaDeuda: "250", atraso: "menos_de_un_mes" });
     expect(aRespuestas(borrador, "2026-11-14")).toEqual({
-      nombre: "Lucho", cobro: "fin_de_mes", ingresoMensual: soles(2500), saldo: soles(600), fijosMensual: soles(900), diaADiaMensual: soles(800),
+      nombre: "Lucho", trabajo: "dependiente", cobro: "fin_de_mes", diaPago: 30, ingresoMensual: soles(2500), gratificacion: true, saldo: soles(600), fijosMensual: soles(900), diaADiaMensual: soles(800),
       deuda: { tipo: "tarjeta", saldo: soles(3000), cuota: soles(250), atraso: "menos_de_un_mes" }, tuvoCredito: true, hoy: "2026-11-14",
     });
   });
@@ -139,5 +139,73 @@ describe("del guion al caso y a la ruta", () => {
     expect(rutaDe(recorrer({ ...comunes, deudas: "atraso", tipoDeuda: "tarjeta", saldoDeuda: "3000", cuotaDeuda: "250", atraso: "uno_a_dos_meses" }).borrador)).toBe("estar_en_verde");
     expect(rutaDe(recorrer({ ...comunes, deudas: "no", tuvoCredito: "no" }).borrador)).toBe("construir_historial");
     expect(rutaDe(recorrer({ ...comunes, saldo: "20000", deudas: "no", tuvoCredito: "si" }).borrador)).toBe("hacer_crecer");
+  });
+});
+
+describe("dependiente o independiente: cada uno con sus preguntas", () => {
+  const cola = { saldo: "600", fijos: "900", diaADia: "800", deudas: "no", tuvoCredito: "no" };
+  it("la segunda pregunta es cómo trabaja, justo después del apodo", () => {
+    expect(proximoPaso({ nombre: "Lucho" })).toBe("trabajo");
+  });
+  it("dependiente a fin de mes: día de depósito, sueldo y gratificación; nunca el mes flojo", () => {
+    const { orden } = recorrer({ nombre: "Ana", trabajo: "dependiente", cobro: "fin_de_mes", diaPago: "15", ingreso: "3000", gratificacion: "no", ...cola });
+    expect(orden).toEqual(["nombre", "trabajo", "cobro", "diaPago", "ingreso", "gratificacion", "saldo", "fijos", "diaADia", "deudas", "tuvoCredito", "permiso"]);
+  });
+  it("dependiente por quincenas: no pregunta el día, porque ya son el 15 y el fin de mes", () => {
+    const { orden } = recorrer({ nombre: "Ana", trabajo: "dependiente", cobro: "quincena", ingreso: "3000", gratificacion: "si", ...cola });
+    expect(orden).toEqual(["nombre", "trabajo", "cobro", "ingreso", "gratificacion", "saldo", "fijos", "diaADia", "deudas", "tuvoCredito", "permiso"]);
+  });
+  it("independiente: mes normal y mes flojo; nunca el día de depósito ni la gratificación", () => {
+    const { orden } = recorrer({ nombre: "Beto", trabajo: "independiente", cobro: "variable", ingreso: "2500", flojo: "1200", ...cola });
+    expect(orden).toEqual(["nombre", "trabajo", "cobro", "ingreso", "flojo", "saldo", "fijos", "diaADia", "deudas", "tuvoCredito", "permiso"]);
+  });
+  it("las opciones de cobro cambian según cómo trabaja", () => {
+    const dep = pregunta("cobro", { trabajo: "dependiente" }).opciones!.map(o => o.valor);
+    const ind = pregunta("cobro", { trabajo: "independiente" }).opciones!.map(o => o.valor);
+    expect(dep).toEqual(["fin_de_mes", "quincena"]);
+    expect(ind).toEqual(["semanal", "quincena", "fin_de_mes", "variable"]);
+    expect(() => responder({ trabajo: "dependiente" }, "cobro", "variable")).toThrow(ErrorDatos);
+    expect(() => responder({ trabajo: "dependiente" }, "cobro", "semanal")).toThrow(ErrorDatos);
+    expect(responder({ trabajo: "independiente" }, "cobro", "variable").borrador.cobro).toBe("variable");
+  });
+  it("el día de depósito es un entero del 1 al 31", () => {
+    for (const malo of ["0", "32", "", "15.5", "quince", "-3", "100"]) {
+      expect(() => responder({ trabajo: "dependiente", cobro: "fin_de_mes" }, "diaPago", malo)).toThrow(ErrorDatos);
+    }
+    expect(responder({}, "diaPago", " 31 ").borrador.diaPago).toBe(31);
+    expect(responder({}, "diaPago", "1").borrador.diaPago).toBe(1);
+  });
+  it("el mes flojo puede ser cero, pero no más que un mes normal", () => {
+    const b: Borrador = { trabajo: "independiente", ingreso: soles(2500) };
+    expect(responder(b, "flojo", "0").borrador.flojo).toBe(0);
+    expect(responder(b, "flojo", "2500").borrador.flojo).toBe(soles(2500));
+    expect(() => responder(b, "flojo", "2500.01")).toThrow(ErrorDatos);
+    expect(() => responder(b, "flojo", "-1")).toThrow(ErrorDatos);
+  });
+  it("independiente: el caso proyecta con el mes flojo, en céntimos exactos", () => {
+    const { borrador } = recorrer({ nombre: "Beto", trabajo: "independiente", cobro: "semanal", ingreso: "2500", flojo: "1200.40", ...cola });
+    const r = aRespuestas(borrador, "2026-11-14");
+    expect(r).toMatchObject({ trabajo: "independiente", ingresoMensual: soles(2500), ingresoFlojo: 120_040 });
+    expect(r.diaPago).toBeUndefined();
+    expect(r.gratificacion).toBeUndefined();
+    const caso = armarCaso(r);
+    expect(caso.ingresosFijos.reduce((suma, i) => suma + i.monto, 0)).toBe(120_040);
+    expect(caso.perfil.tipo).toBe("independiente");
+    expect(caso.perfil.descripcion).toMatch(/mes flojo/);
+  });
+  it("dependiente: el sueldo cae el día que dijo, y el 31 se ajusta en meses cortos", () => {
+    const { borrador } = recorrer({ nombre: "Ana", trabajo: "dependiente", cobro: "fin_de_mes", diaPago: "31", ingreso: "3000", gratificacion: "si", ...cola });
+    const r = aRespuestas(borrador, "2026-11-14");
+    expect(r).toMatchObject({ trabajo: "dependiente", diaPago: 31, gratificacion: true });
+    expect(r.ingresoFlojo).toBeUndefined();
+    const caso = armarCaso(r);
+    expect(caso.perfil.tipo).toBe("dependiente");
+    expect(caso.perfil.diasCobro).toEqual([31]);
+    expect(caso.ingresosFijos.map(i => i.dia)).toEqual([31]);
+    expect(caso.ingresosFijos.reduce((suma, i) => suma + i.monto, 0)).toBe(soles(3000));
+    const fechas = aPerfil(caso).movimientos.filter(m => m.monto > 0).map(m => m.fecha);
+    // Septiembre tiene 30 días: el depósito del «31» cae el 30, sin correrse a octubre.
+    expect(fechas).toContain("2026-09-30");
+    expect(fechas).toContain("2026-10-31");
   });
 });

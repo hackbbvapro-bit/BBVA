@@ -18,6 +18,14 @@ export function modeloAnthropic(): string {
   return leer("ANTHROPIC_MODEL") ?? MODELO_IA_POR_DEFECTO;
 }
 
+/** Modelo para las preguntas que piden un análisis (un plan, comparar escenarios): el más capaz. */
+export const MODELO_IA_PROFUNDO_POR_DEFECTO = "claude-fable-5-2";
+
+/** Ponerle el mismo valor que ANTHROPIC_MODEL apaga el cambio de modelo. */
+export function modeloProfundo(): string {
+  return leer("ANTHROPIC_MODEL_PROFUNDO") ?? MODELO_IA_PROFUNDO_POR_DEFECTO;
+}
+
 /** Clave de Fish Audio; basta para transcribir. */
 export function claveFish(): string | undefined {
   return leer("FISH_API_KEY");

@@ -38,7 +38,7 @@ export function cifras(perfil: Perfil, analisis: Analisis): [string, string][] {
   return [
     ["Hoy tienes", formatoSoles(perfil.saldoActual)],
     ["Debes en total", formatoSoles(debes)],
-    ["Cuotas mínimas del mes", formatoSoles(cuotas)],
+    ["Cuotas del mes", formatoSoles(cuotas)],
     p.deficit && barata
       ? ["La salida más barata", barata.costo === 0 ? "S/ 0.00" : formatoSoles(barata.costo)]
       : ["Al final del mes", formatoSoles(p.saldoFinal)],

@@ -49,3 +49,16 @@ export const EsquemaPerfil = z.object({
   movimientos: z.array(Movimiento).max(1500),
   deudas: z.array(Deuda).max(60),
 });
+
+/** Pagos que le deben a la persona (lo que el asistente puede contar como «si te pagan lo pendiente»). */
+export const EsquemaCobros = z
+  .array(
+    z.object({
+      id: texto(60),
+      quien: texto(80),
+      monto: z.number().int().min(1).max(100_000_000_000),
+      fechaPrometida: fecha,
+      cobrado: z.boolean(),
+    }),
+  )
+  .max(50);
