@@ -36,6 +36,12 @@ describe("TCEA, atraso y fecha", () => {
     expect(leerTasa("  ", "la TCEA")).toBeNull();
     expect(() => leerTasa("abc", "la TCEA")).toThrow(/porcentaje/);
   });
+  it("tolera % repetidos al final pero no uno en medio", () => {
+    expect(leerTasa("55%%", "la TCEA")).toBe(5500);
+    expect(leerTasa("55 %% ", "la TCEA")).toBe(5500);
+    expect(() => leerTasa("5%5", "la TCEA")).toThrow(/porcentaje/);
+    expect(() => leerTasa("%%", "la TCEA")).toThrow(/porcentaje/);
+  });
   it("ida y vuelta del porcentaje", () => {
     for (const bp of [0, 5500, 8999, 10000]) expect(leerTasa(tasaParaEditar(bp), "x")).toBe(bp);
     expect(tasaParaEditar(null)).toBe("");
