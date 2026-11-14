@@ -14,8 +14,8 @@ Marcas: **[MEDIDO]** salió de ejecutar algo · **[ASUMIDO]** no se comprobó to
 | Código en GitHub | En `main` de `github.com/hackbbvapro-bit/BBVA` (repositorio del equipo) desde el 14-nov-2026 **[MEDIDO]** |
 | Dirección pública (producción) | **Publicada** en `https://copiloto-anticipador-hack.vercel.app`. Cada cambio en `main` la vuelve a publicar sola **[MEDIDO]**. Es pública, sin contraseña |
 | Claves de notificaciones | Cargadas en el Vercel del equipo (producción y vista previa); `/api/estado` da `"push":true` [MEDIDO el 14-nov] |
-| Agente de IA (Anthropic) | Código listo. **Falta la clave. Nunca se probó con una clave real** |
-| Voz (Fish Audio) | Código listo. **Faltan la clave y el id de la voz. Nunca se probó con una clave real** |
+| Agente de IA (Anthropic) | Clave cargada en local y en Vercel (producción y vista previa). En local respondió «¿Cómo llego a fin de mes?» con IA y sus cifras coinciden con el motor (S/ 200.00, S/ 4.64, S/ 35.44, S/ 677.20) [MEDIDO 14-nov] |
+| Voz (Fish Audio) | Voz elegida: «Mayordomo Digital» (`9386123a44af4d43abf10de6e2eea923`). Clave cargada en local y en Vercel; producción devuelve audio con esa voz (tono comparado con la voz de referencia) [MEDIDO 14-nov]. La transcripción con Fish no se probó |
 | Micrófono y notificaciones en un celular real | **Sin probar** |
 
 Sin claves la app igual funciona completa: el chat responde con textos del motor (mismos números)
@@ -67,14 +67,15 @@ Abre `http://localhost:3000` y comprueba, en este orden:
    Si el agente dice un número que no está en pantalla, **apaga el agente** (quita la clave) y
    presenta con el plan B: la regla de oro vale más que el efecto.
 
-## Paso 4 · Publicar (ya hecho; solo falta el Redeploy con tus claves)
+## Paso 4 · Publicar (hecho el 14-nov)
 
-La app ya está publicada en `https://copiloto-anticipador-hack.vercel.app` **[MEDIDO el 14-nov]**: la
-pantalla carga con Rosa y el chat responde con el motor («Respuesta del motor, sin IA»). Ahí
-`/api/estado` devuelve hoy `"ia":false`, `"voz":false` y `"push":true`: las notificaciones ya
-están cargadas; faltan tus claves de Anthropic y Fish Audio.
+La app está publicada en `https://copiloto-anticipador-hack.vercel.app` con las claves de
+Anthropic y Fish Audio cargadas y republicada: `/api/estado` devuelve `"ia":true`, `"voz":true` y
+`"push":true` **[MEDIDO el 14-nov, 00:55]**.
 
-1. Cuando cargues las claves en Vercel: Deployments → el último → **Redeploy**. Una variable nueva
+Si algún día cambias una clave:
+
+1. Cárgala en Vercel y luego: Deployments → el último → **Redeploy**. Una variable nueva
    solo vale desde la siguiente publicación.
 2. Abre `https://copiloto-anticipador-hack.vercel.app/api/estado` y comprueba `"ia":true`, `"voz":true`
    y `"push":true`.
@@ -177,8 +178,8 @@ chatbots), ni la cuota de mercado de BBVA (sin verificar).
 
 ## Lo que NO está verificado (para que no te sorprenda)
 
-- El agente con una clave real de Anthropic, y cuánto tarda en contestar.
-- La voz y la transcripción con una clave real de Fish Audio.
+- Cuánto tarda el agente en contestar con el wifi del evento.
+- La transcripción de audio con Fish Audio (la voz sí está probada).
 - El micrófono en un celular real.
 - Las notificaciones en un celular real, sobre todo en iPhone.
 - Que la publicación en Vercel salga bien a la primera.
