@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatoSoles, type Perfil, type Analisis, type PlanDeudas } from "@/motor";
 import { avisos } from "@/explica/explica";
-import { tarjeta, TarjetaAviso, Portada, unido } from "@/componentes/ui";
+import { tarjeta, TarjetaAviso, Portada, unido, Encabezado, Icono, botonPrincipal, botonSecundario, desplazar } from "@/componentes/ui";
+import { Adjuntar } from "@/componentes/documento";
 import { useDatos } from "@/componentes/datos";
 import { OrdenDePago } from "@/componentes/orden-pago";
 import { ReporteSbs } from "@/componentes/reporte-sbs";
@@ -69,24 +70,48 @@ function Pestanas({ actual, cambiar, debo, medeben }: { actual: Pestana; cambiar
       aria-selected={actual === id}
       aria-controls="panel-deudas"
       onClick={() => cambiar(id)}
-      className={`min-h-11 min-w-0 flex-1 whitespace-nowrap rounded-full px-2 text-sm font-semibold transition-colors sm:px-4 sm:text-[15px] ${actual === id ? "bg-electrico text-white" : "text-gris hover:text-noche"}`}
+      className={`min-h-11 shrink-0 whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors sm:flex-auto xl:text-[15px] ${actual === id ? "bg-electrico text-white" : "text-gris hover:text-noche"}`}
     >
       {texto} {n !== undefined && <span className="tabular-nums opacity-80">({n})</span>}
     </button>
   );
   return (
-    <div role="tablist" aria-label="Deudas" className="flex gap-1 rounded-full bg-niebla p-1">
+    <div role="tablist" aria-label="Deudas" className="-mx-1 flex gap-1 overflow-x-auto rounded-full bg-niebla p-1 [scrollbar-width:none]">
       {una("debo", "Debo", debo)}
       {una("medeben", "Me deben", medeben)}
-      {una("sbs", "Reporte SBS")}
+      {una("sbs", "Reporte de deudas (SBS)")}
     </div>
   );
 }
 
-export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: Perfil; analisis: Analisis; pestanaInicial?: PestanaDeudas }) {
+export type AbrirDeudas = "agregar" | "escanear";
+
+export function Deudas({
+  perfil,
+  analisis,
+  pestanaInicial = "debo",
+  abrirAlEntrar,
+}: {
+  perfil: Perfil;
+  analisis: Analisis;
+  pestanaInicial?: PestanaDeudas;
+  /** Abre al entrar el formulario de nueva deuda o el escáner (desde Inicio o el botón «Agregar» del celular). */
+  abrirAlEntrar?: AbrirDeudas;
+}) {
   const { datos } = useDatos();
-  const [pestana, setPestana] = useState<Pestana>(pestanaInicial);
+  const [pestana, setPestana] = useState<Pestana>(abrirAlEntrar === "agregar" ? "debo" : pestanaInicial);
   const [aviso, setAviso] = useState("");
+  const [abrirNuevo, setAbrirNuevo] = useState(abrirAlEntrar === "agregar" ? 1 : 0);
+  const [escaner, setEscaner] = useState(abrirAlEntrar === "escanear");
+  const refEscaner = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (escaner) desplazar(refEscaner.current);
+  }, [escaner]);
+  function agregar() {
+    setEscaner(false);
+    setPestana("debo");
+    setAbrirNuevo(n => n + 1);
+  }
   const comparacion = analisis.deudas;
   const debo = totalDebo(datos.deudas);
   const meDeben = totalMeDeben(datos.cobros);
@@ -98,23 +123,23 @@ export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: 
       {!comparacion ? (
         <>
           <p className="text-[15px] text-gris">Tus deudas</p>
-          <h1 className="mt-1 text-[2rem] font-semibold tracking-[-0.025em] text-noche text-balance">Nada pendiente</h1>
+          <h2 className="mt-1 text-[1.5rem] font-semibold tracking-[-0.02em] text-noche text-balance">Nada pendiente</h2>
           <p className="mt-3 text-gris">Tu mes depende solo de tus ingresos y tus gastos. Si debes algo, agrégalo y el copiloto arma tu plan.</p>
         </>
       ) : (
         <>
           <p className="text-[15px] text-gris">Que tus deudas bajen</p>
           {comparacion.avalancha.noTermina ? (
-            <h1 className="mt-1 text-[1.75rem] font-semibold leading-tight tracking-[-0.025em] text-noche text-balance">
+            <h2 className="mt-1 text-[1.375rem] font-semibold leading-tight tracking-[-0.02em] text-noche text-balance">
               Con lo que pagas hoy, tus deudas no bajan
-            </h1>
+            </h2>
           ) : (
             <>
-              <p className="mt-1 text-lg text-noche">Pagando en orden, quedas libre en</p>
-              <h1 className="mt-1 text-[3.5rem] font-semibold leading-none tracking-[-0.045em] text-noche tabular-nums md:text-[4rem]">
+              <p className="mt-1 text-[15px] text-noche">Pagando en orden, quedas libre en</p>
+              <p className="mt-1 text-[2.25rem] font-semibold leading-none tracking-[-0.03em] text-noche tabular-nums">
                 {comparacion.avalancha.meses}
-                <span className="ml-2 text-2xl font-medium tracking-normal text-gris">meses</span>
-              </h1>
+                <span className="ml-2 text-lg font-medium tracking-normal text-gris">meses</span>
+              </p>
             </>
           )}
           <div className="mt-7 hidden space-y-4 border-t border-linea pt-6 md:block">
@@ -122,7 +147,7 @@ export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: 
             <Carrera nombre="Pagando solo el mínimo" plan={comparacion.minimos} tope={tope} />
           </div>
           {comparacion.ahorroVsMinimos > 0 && (
-            <p className="mt-6 inline-flex flex-wrap items-center gap-2 rounded-full bg-verde-suave px-4 py-2 font-semibold text-verde-fuerte">
+            <p className="mt-6 inline-flex flex-wrap items-center gap-2 rounded-full bg-verde-suave px-4 py-2 text-[15px] font-semibold text-verde-fuerte">
               Te ahorras {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses
             </p>
           )}
@@ -146,7 +171,7 @@ export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: 
             : <>Te deben <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(meDeben.total))}</span> en {meDeben.n} {meDeben.n === 1 ? "cobro" : "cobros"}.</>}
       </p>
       <div id="panel-deudas" role="tabpanel" aria-labelledby={`pestana-${pestana}`} className="mt-2">
-        {pestana === "debo" ? <ListaDebo primeraId={comparacion?.primera?.id ?? null} avisar={setAviso} /> : pestana === "medeben" ? <ListaMeDeben avisar={setAviso} /> : <ReporteSbs analisis={analisis} />}
+        {pestana === "debo" ? <ListaDebo primeraId={comparacion?.primera?.id ?? null} avisar={setAviso} abrirNuevo={abrirNuevo} /> : pestana === "medeben" ? <ListaMeDeben avisar={setAviso} /> : <ReporteSbs analisis={analisis} />}
       </div>
     </section>
   );
@@ -169,6 +194,39 @@ export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: 
   // en celular y iPad vertical, un solo flujo: resumen, lista con «Agregar», orden de pago, aviso y plan.
   return (
     <>
+      <Encabezado
+        titulo="Deudas"
+        bajada="Lo que debes, lo que te deben y cómo te ve el sistema financiero. Agrégalas a mano o sube una captura de tu banco."
+        acciones={
+          <>
+            <button onClick={agregar} className={botonPrincipal}>
+              <Icono nombre="mas" />
+              Agregar deuda
+            </button>
+            <button onClick={() => setEscaner(e => !e)} aria-expanded={escaner} aria-controls="escaner" className={botonSecundario}>
+              <Icono nombre="camara" />
+              Escanear captura o PDF
+            </button>
+          </>
+        }
+      />
+      {escaner && (
+        <div id="escaner" ref={refEscaner} className="relative mb-6 scroll-mt-6">
+          <button
+            onClick={() => setEscaner(false)}
+            aria-label="Cerrar el escáner"
+            className="absolute right-3 top-3 z-10 flex size-10 items-center justify-center rounded-full text-gris transition-colors hover:bg-niebla hover:text-noche"
+          >
+            <Icono nombre="cerrar" />
+          </button>
+          <Adjuntar
+            alGuardar={() => {
+              setEscaner(false);
+              setPestana("debo");
+            }}
+          />
+        </div>
+      )}
       <div className="flex flex-col xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8">
         <div className="contents xl:col-span-7 xl:col-start-1 xl:block">
           <div className="order-2 mb-6">{lista}</div>

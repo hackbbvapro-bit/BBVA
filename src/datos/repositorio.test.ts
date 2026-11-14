@@ -3,7 +3,9 @@ import { PGlite } from "@electric-sql/pglite";
 import { crearRepositorioPGlite } from "./pglite";
 import { crearRepositorioMemoria, type Repositorio } from "./repositorio";
 import { MIGRACIONES, VERSION_ACTUAL, migrar } from "./esquema";
-import { datosDeRosa } from "./semilla";
+import { ID_PROPIO, datosDeRosa, datosVacios, hoyEnLima } from "./semilla";
+import { aPerfil } from "./aPerfil";
+import { analizar } from "../motor";
 import { ErrorDatos } from "./validar";
 import type { DeudaGuardada } from "./tipos";
 
@@ -172,5 +174,44 @@ describe("PGlite · esquema versionado y persistencia", () => {
     await crearRepositorioPGlite(db);
     await expect(db.query("INSERT INTO cobros VALUES ('z','x',0,'2026-11-20','',false)")).rejects.toThrow();
     await db.close();
+  });
+});
+
+describe.each(fabricas)("empezar con datos propios (%s)", (_n, crear) => {
+  const ana = () => datosVacios({ nombre: "  Ana  ", tipo: "dependiente", saldo: 85050, ingresoAprox: 250000, hoy: "2026-11-14" });
+
+  it("cargar reemplaza todo: queda una cuenta con su saldo y nada de Rosa", async () => {
+    const repo = await crear();
+    await repo.cargar(ana());
+    const d = await repo.leerTodo();
+    expect(d.perfil).toMatchObject({ id: ID_PROPIO, nombre: "Ana", tipo: "dependiente", ingresoAprox: 250000, hoy: "2026-11-14" });
+    expect(d.cuentas).toEqual([{ id: "cuenta-principal", nombre: "Cuenta principal", saldo: 85050 }]);
+    expect([d.deudas, d.ingresosFijos, d.gastosFijos, d.movimientos, d.cobros]).toEqual([[], [], [], [], []]);
+  });
+
+  it("cargar rechaza un perfil inválido y no toca lo guardado", async () => {
+    const repo = await crear();
+    const antes = await repo.leerTodo();
+    await expect(repo.cargar({ ...ana(), perfil: { ...ana().perfil, nombre: "" } })).rejects.toBeInstanceOf(ErrorDatos);
+    expect(await repo.leerTodo()).toEqual(antes);
+  });
+
+  it("restablecer vuelve a la demo de Rosa", async () => {
+    const repo = await crear();
+    await repo.cargar(ana());
+    await repo.restablecer();
+    expect((await repo.leerTodo()).perfil.nombre).toBe(datosDeRosa().perfil.nombre);
+  });
+
+  it("el motor analiza una cuenta recién creada sin historia", () => {
+    const a = analizar(aPerfil(ana()));
+    expect(a.hoy).toBe("2026-11-14");
+  });
+});
+
+describe("hoy en Lima", () => {
+  it("a las 03:00 UTC todavía es el día anterior en Lima", () => {
+    expect(hoyEnLima(new Date("2026-11-15T03:00:00Z"))).toBe("2026-11-14");
+    expect(hoyEnLima(new Date("2026-11-15T05:00:00Z"))).toBe("2026-11-15");
   });
 });

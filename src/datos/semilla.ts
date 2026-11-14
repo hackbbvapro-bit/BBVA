@@ -1,7 +1,36 @@
 import { detectarRecurrentes, estimarIngresoVariable, idsRecurrentes } from "../motor/recurrentes";
 import { partes } from "../motor/fechas";
 import { generarPerfil } from "./perfiles";
+import type { TipoPerfil } from "../motor/tipos";
 import type { Datos, DeudaGuardada, Fijo } from "./tipos";
+
+/** Id del perfil cuando la persona usa sus propios datos (no la demo). */
+export const ID_PROPIO = "propio";
+
+export interface Arranque {
+  nombre: string;
+  tipo: TipoPerfil;
+  /** Lo que tiene hoy en su cuenta, en céntimos. */
+  saldo: number;
+  /** Lo que gana al mes, aproximado, en céntimos. */
+  ingresoAprox: number;
+  /** Fecha de hoy (AAAA-MM-DD). */
+  hoy: string;
+}
+
+/** Datos de arranque para una persona real: una cuenta con su saldo y nada más. El resto lo agrega ella. */
+export function datosVacios(a: Arranque): Datos {
+  return {
+    perfil: { id: ID_PROPIO, nombre: a.nombre.trim(), tipo: a.tipo, descripcion: "", ingresoAprox: a.ingresoAprox, diasCobro: [], hoy: a.hoy },
+    cuentas: [{ id: "cuenta-principal", nombre: "Cuenta principal", saldo: a.saldo }],
+    ingresosFijos: [], gastosFijos: [], movimientos: [], deudas: [], cobros: [], documentos: [], avisosLeidos: [],
+  };
+}
+
+/** Hoy en Lima (AAAA-MM-DD), sin depender de la zona horaria del equipo. */
+export function hoyEnLima(ahora: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima", year: "numeric", month: "2-digit", day: "2-digit" }).format(ahora);
+}
 
 /**
  * Datos de arranque: Rosa, la persona sintética de la demo. Se parte de `generarPerfil` para que

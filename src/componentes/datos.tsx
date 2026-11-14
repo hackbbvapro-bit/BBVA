@@ -4,6 +4,7 @@ import { abrirAlmacen } from "@/datos/abrir";
 import { aPerfil } from "@/datos/aPerfil";
 import { prepararSinConexion } from "@/cliente/sinConexion";
 import type { Repositorio } from "@/datos/repositorio";
+import { ID_PROPIO, hoyEnLima } from "@/datos/semilla";
 import type { Datos } from "@/datos/tipos";
 import type { Perfil } from "@/motor";
 
@@ -74,13 +75,13 @@ export function ProveedorDatos({ children }: { children: ReactNode }) {
     [repo],
   );
 
-  const valor = useMemo<ValorDatos | null>(
-    () =>
-      estado.fase === "lista"
-        ? { datos: estado.datos, perfil: aPerfil(estado.datos), persistente: estado.persistente, aviso: estado.aviso, cambiar }
-        : null,
-    [estado, cambiar],
-  );
+  const valor = useMemo<ValorDatos | null>(() => {
+    if (estado.fase !== "lista") return null;
+    // Con datos propios, «hoy» es el día real en Lima (la demo conserva su fecha fija para que las cifras no cambien).
+    const datos =
+      estado.datos.perfil.id === ID_PROPIO ? { ...estado.datos, perfil: { ...estado.datos.perfil, hoy: hoyEnLima() } } : estado.datos;
+    return { datos, perfil: aPerfil(datos), persistente: estado.persistente, aviso: estado.aviso, cambiar };
+  }, [estado, cambiar]);
 
   if (estado.fase === "error") {
     return (

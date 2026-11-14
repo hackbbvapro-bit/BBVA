@@ -162,7 +162,7 @@ export function totalDebo(deudas: DeudaGuardada[]) {
   return { n: abiertas.length, total: sumar(abiertas.map(d => d.saldo)) };
 }
 
-export function ListaDebo({ primeraId, avisar }: { primeraId: string | null; avisar: (t: string) => void }) {
+export function ListaDebo({ primeraId, avisar, abrirNuevo }: { primeraId: string | null; avisar: (t: string) => void; abrirNuevo?: number }) {
   const { datos } = useDatos();
   const activas = datos.deudas.filter(d => !d.pagada && d.saldo > 0).sort((a, b) => (b.tceaBp ?? 0) - (a.tceaBp ?? 0) || b.saldo - a.saldo);
   const cerradas = datos.deudas.filter(d => d.pagada || d.saldo <= 0);
@@ -197,6 +197,7 @@ export function ListaDebo({ primeraId, avisar }: { primeraId: string | null; avi
       prefijo="deuda"
       formulario={(id, cerrar) => <FormularioDeuda id={id} cerrar={cerrar} />}
       avisar={avisar}
+      abrirNuevo={abrirNuevo}
     />
   );
 }

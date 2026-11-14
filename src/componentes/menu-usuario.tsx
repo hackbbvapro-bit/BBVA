@@ -11,11 +11,14 @@ export function MenuUsuario({
   variante,
   alPerfil,
   alComoFunciona,
+  demo = true,
 }: {
   nombre: string;
   variante: "lateral" | "cabecera";
   alPerfil: () => void;
   alComoFunciona: () => void;
+  /** false cuando la persona usa sus propios datos. */
+  demo?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
   const raiz = useRef<HTMLDivElement>(null);
@@ -57,7 +60,7 @@ export function MenuUsuario({
           {inicial}
           <span className="min-w-0 flex-1 text-sm leading-tight text-noche">
             {nombre}
-            <span className="block text-gris">Cuenta demo</span>
+            <span className="block text-gris">{demo ? "Cuenta demo" : "Tus datos"}</span>
           </span>
           <Icono nombre="abajo" />
         </button>

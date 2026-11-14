@@ -7,7 +7,7 @@ import { escuchar, puedeEscuchar, type Escucha, type ErrorEscucha } from "@/clie
 import { estaActiva, type Fase } from "@/cliente/conversacion";
 import { useManosLibres, type ResultadoEnvio } from "@/cliente/manos-libres";
 import { ConversacionVoz } from "@/componentes/conversacion-voz";
-import { boton, Icono, desplazar, Portada, unido } from "@/componentes/ui";
+import { boton, Icono, desplazar, unido } from "@/componentes/ui";
 type Burbuja = MensajeChat & { respaldo?: boolean };
 const preguntas = [
   "¿Cómo llego a fin de mes?",
@@ -151,19 +151,25 @@ export function Chat({
   return (
     <section className="pb-44 xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8 xl:pb-0">
       <div className="xl:col-span-7 xl:flex xl:min-h-[calc(100dvh-5rem)] xl:flex-col">
-      <Portada>
-        <div className="flex items-start justify-between gap-3">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-agua-suave text-electrico">
+      <header className="aparecer mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-electrico text-white">
             <span className={`flex items-end gap-1 ${sonando ? "" : "opacity-90"}`} aria-hidden="true">
               {[0, 1, 2, 3].map(i => (
                 <span
                   key={i}
-                  className={`w-1 rounded-full bg-electrico ${sonando || ocupado || escuchando ? "onda" : ""}`}
+                  className={`w-1 rounded-full bg-white ${sonando || ocupado || escuchando ? "onda" : ""}`}
                   style={{ height: `${[10, 20, 14, 18][i]}px`, animationDelay: `${i * 120}ms` }}
                 />
               ))}
             </span>
           </span>
+          <div className="min-w-0">
+            <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.02em] text-noche md:text-[1.875rem]">Asistente</h1>
+            <p className="mt-1 text-[15px] leading-relaxed text-gris">Pregunta por escrito o por voz. Las cifras las calcula el copiloto; la IA solo las explica.</p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
           <button
             role="switch"
             aria-checked={voz}
@@ -181,13 +187,14 @@ export function Chat({
             Voz {voz ? "sí" : "no"}
           </button>
         </div>
-        <h1 className="mt-5 text-[1.75rem] font-semibold tracking-[-0.025em] text-noche text-balance md:text-[2rem]">Hablemos de tu plata</h1>
-        <p className="mt-2 text-gris">
-          Pregunta con confianza. Las cifras las calcula el copiloto; la IA solo te las explica.
-        </p>
-      </Portada>
-      <div className="aparecer rounded-3xl rounded-tl-md border border-linea bg-white p-5 leading-relaxed">
-        Hola, {perfil.nombre}. Te ayudo a entender tu plata y a decidir con tiempo. ¿Qué quieres saber?
+      </header>
+      <div className="aparecer flex items-start gap-3">
+        <span className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl bg-agua-suave text-electrico [&_svg]:size-5" aria-hidden="true">
+          <Icono nombre="asistente" />
+        </span>
+        <div className="rounded-2xl rounded-tl-md border border-linea bg-white p-4 leading-relaxed">
+          Hola, {perfil.nombre}. Te ayudo a entender tu plata y a decidir con tiempo. ¿Qué quieres saber?
+        </div>
       </div>
       {!mensajes.length && (
         <div className="my-5 flex flex-wrap gap-2">
@@ -276,7 +283,7 @@ export function Chat({
           {micro && (
             <button
               type="button"
-              aria-label={escuchando ? "Terminar de escuchar" : "Hablar con el micrófono"}
+              aria-label={escuchando ? "Terminar de escuchar" : "Dictar una pregunta"}
               aria-pressed={escuchando}
               disabled={ocupado || conversando}
               onClick={dictar}

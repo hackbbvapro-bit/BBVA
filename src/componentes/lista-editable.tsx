@@ -43,6 +43,7 @@ export function ListaEditable({
   formulario,
   avisar,
   ocultarAgregar,
+  abrirNuevo,
 }: {
   titulo?: string;
   items: Fila[];
@@ -54,9 +55,17 @@ export function ListaEditable({
   avisar: (texto: string) => void;
   /** Para listas de una sola fila editable (Perfil). */
   ocultarAgregar?: boolean;
+  /** Cada vez que este número sube, se abre el formulario de «agregar» (botón externo de la página). */
+  abrirNuevo?: number;
 }) {
-  const [abierto, setAbierto] = useState<string | null>(null);
+  const [abierto, setAbierto] = useState<string | null>(abrirNuevo ? "nuevo" : null);
   const [volverA, setVolverA] = useState<string | null>(null);
+  // Si el botón externo vuelve a pedir «agregar», se abre el formulario (ajuste durante el render, sin efecto).
+  const [pedidoVisto, setPedidoVisto] = useState(abrirNuevo);
+  if (abrirNuevo !== pedidoVisto) {
+    setPedidoVisto(abrirNuevo);
+    if (abrirNuevo) setAbierto("nuevo");
+  }
 
   useEffect(() => {
     if (abierto === null && volverA) (document.getElementById(volverA) ?? document.getElementById(`${prefijo}-agregar`))?.focus();
