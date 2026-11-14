@@ -16,3 +16,9 @@ export function nombreFijoRepetido(datos: Datos, sentido: Sentido, nombre: strin
   if (lista.some(f => f.id !== idActual && claveDeNombre(f.descripcion) === clave)) return true;
   return sentido === "gasto" && datos.deudas.some(d => !d.pagada && d.saldo > 0 && claveDeNombre(`Pago ${d.nombre}`) === clave);
 }
+
+/** ¿Hay un gasto fijo que se llama como el pago de esta deuda («Pago <deuda>»)? Guardarla los fundiría en el motor. */
+export function hayGastoLlamadoComoPagoDe(datos: Datos, nombreDeuda: string): boolean {
+  const clave = claveDeNombre(`Pago ${nombreDeuda}`);
+  return clave !== "" && datos.gastosFijos.some(f => claveDeNombre(f.descripcion) === clave);
+}

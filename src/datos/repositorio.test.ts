@@ -61,6 +61,18 @@ describe.each(fabricas)("repositorio %s (mismo contrato)", (_, crear) => {
     expect((await repo.leerTodo()).ingresosFijos).toHaveLength(0);
   });
 
+  it("bloquea nombres de fijo repetidos y gastos que se llaman como el pago de una deuda", async () => {
+    const repo = await crear();
+    const base = { monto: 5000, dia: 12, categoria: "suscripciones" as const };
+    await expect(repo.guardarFijo("gasto", { id: "otro", descripcion: "  ALQUILER ", ...base })).rejects.toBeInstanceOf(ErrorDatos);
+    await expect(repo.guardarFijo("gasto", { id: "otro", descripcion: "Pago Préstamo Caja", ...base })).resolves.toBeUndefined();
+    await expect(repo.guardarDeuda(deuda())).rejects.toBeInstanceOf(ErrorDatos);
+    await repo.guardarFijo("ingreso", { id: "i1", descripcion: "Alquiler", ...base });
+    const alquiler = (await repo.leerTodo()).gastosFijos.find(f => f.descripcion === "Alquiler")!;
+    await expect(repo.guardarFijo("gasto", { ...alquiler, monto: 99900 })).resolves.toBeUndefined();
+    expect((await repo.leerTodo()).deudas.some(d => d.id === "d-1")).toBe(false);
+  });
+
   it("deudas: tcea desconocida, marcar pagada y borrar", async () => {
     const repo = await crear();
     await repo.guardarDeuda(deuda({ tceaBp: null }));
