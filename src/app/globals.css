@@ -1,32 +1,37 @@
 @import "tailwindcss";
 
-/* Paleta BBVA Perú (medida en bbva.pe, 14-nov-2026), sin logo ni tipografía propietaria.
-   «agua» es el acento: celeste #85c8ff sobre marino, azul medio #1464a5 sobre claro.
-   «verde» es solo para lo que sale bien (resuelve, sin rojo). */
+/* Tema único CLARO con la paleta de bbva.pe (medida el 14-nov-2026), sin logo ni tipografía propietaria.
+   Contrastes WCAG medidos (texto/fondo): tinta/blanco 18.10 · gris/blanco 5.87 · gris/papel 5.51 ·
+   blanco/electrico 13.98 · electrico/agua-suave 12.55 · coral-fuerte/blanco 5.95 · coral-fuerte/coral-suave 5.21 ·
+   verde-fuerte/blanco 5.42 · ambar-fuerte/ambar-suave 5.75 · tinta/agua 10.09.
+   «agua» y «celeste» solo como relleno; «coral» solo decorativo (gráfico); el texto rojo va en «coral-fuerte». */
 @theme {
   --color-tinta: #070e46;
-  --color-tinta-suave: #0a2a5c;
   --color-noche: #072146;
-  --color-noche-honda: #051a38;
-  --color-papel: #f3f5f7;
+  --color-blanco: #ffffff;
+  --color-papel: #f7f8f8;
+  --color-niebla: #f3f5f7;
   --color-linea: #dfe9f0;
-  --color-gris: #4f5f75;
+  --color-linea-fuerte: #bbc9d5;
+  --color-gris: #5b6670;
+  --color-electrico: #001391;
+  --color-marino: #004481;
+  --color-azul: #1464a5;
   --color-agua: #85c8ff;
   --color-agua-fuerte: #1464a5;
-  --color-agua-suave: #e6f2ff;
-  --color-azul: #1464a5;
+  --color-agua-suave: #e9f4ff;
   --color-celeste: #009ee5;
-  --color-verde: #5fe39a;
+  --color-verde: #2fb36b;
   --color-verde-fuerte: #0b7a40;
   --color-verde-suave: #e2f6ea;
   --color-ambar: #f5a524;
   --color-ambar-fuerte: #8a5300;
   --color-ambar-suave: #fef3dc;
-  --color-coral: #ff5a5f;
-  --color-coral-fuerte: #b92d33;
-  --color-coral-suave: #fde8e9;
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-coral: #e5484d;
+  --color-coral-fuerte: #c21f2e;
+  --color-coral-suave: #fdecec;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", monospace;
 }
 
 :root {
@@ -35,9 +40,16 @@
 
 body {
   background: var(--color-papel);
+  font-feature-settings: "cv11", "ss01";
   color: var(--color-tinta);
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Una cifra nunca se parte en dos líneas («S/ 2,700.» / «00»). */
+.tabular-nums {
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 
 /* ---------- Cabina (parte superior oscura) ---------- */

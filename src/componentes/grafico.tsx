@@ -7,20 +7,21 @@ export function Grafico({
   despues,
   descripcion,
   ancho = 350,
-  oscuro = false,
+  fondo = "white",
 }: {
   base: Proyeccion;
   despues?: Proyeccion;
   descripcion: string;
   /** Ancho del lienzo SVG: en escritorio el gráfico se estira sin agrandar letras. */
   ancho?: number;
-  oscuro?: boolean;
+  /** Color del fondo donde se dibuja: borde del punto para que se despegue. */
+  fondo?: string;
 }) {
   const der = ancho - 22;
-  const trazo = oscuro ? "#ffffff" : "var(--color-tinta)",
-    suave = oscuro ? "rgb(255 255 255 / .62)" : "var(--color-gris)",
-    guia = oscuro ? "rgb(255 255 255 / .12)" : "var(--color-linea)",
-    borde = oscuro ? "var(--color-noche)" : "white";
+  const trazo = "var(--color-noche)",
+    suave = "var(--color-gris)",
+    guia = "var(--color-linea-fuerte)",
+    borde = fondo;
   const id = useId().replace(/:/g, "");
   const valores = [...base.dias, ...(despues?.dias ?? [])].map(d => d.saldo);
   const minimo = Math.min(...valores),
@@ -58,8 +59,8 @@ export function Grafico({
           <rect x="80" y="0" width={der - 80} height={y(0)} />
         </clipPath>
         <linearGradient id={`${id}-agua`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--color-azul)" stopOpacity={oscuro ? 0.75 : 0.32} />
-          <stop offset="100%" stopColor="var(--color-azul)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--color-agua)" stopOpacity={0.55} />
+          <stop offset="100%" stopColor="var(--color-agua)" stopOpacity="0.05" />
         </linearGradient>
         <linearGradient id={`${id}-coral`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="var(--color-coral)" stopOpacity="0.08" />
@@ -110,7 +111,7 @@ export function Grafico({
             pathLength={1}
             d={linea(despues)}
             fill="none"
-            stroke={oscuro ? "var(--color-agua)" : "var(--color-agua-fuerte)"}
+            stroke="var(--color-electrico)"
             strokeWidth="3.5"
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -132,14 +133,14 @@ export function Grafico({
               cx={x(indice)}
               cy={y(punto.saldo)}
               r="5"
-              fill={base.deficit ? "var(--color-coral)" : "var(--color-ambar)"}
+              fill={base.deficit ? "var(--color-coral-fuerte)" : "var(--color-ambar)"}
             />
           )}
           <circle
             cx={x(indice)}
             cy={y(punto.saldo)}
             r="5.5"
-            fill={base.deficit ? "var(--color-coral)" : "var(--color-ambar)"}
+            fill={base.deficit ? "var(--color-coral-fuerte)" : "var(--color-ambar)"}
             stroke={borde}
             strokeWidth="2.5"
           />
@@ -151,7 +152,7 @@ export function Grafico({
                 width={anchoRotulo}
                 height="24"
                 rx="12"
-                fill="var(--color-coral)"
+                fill="var(--color-coral-fuerte)"
               />
               <text
                 x={xRotulo}

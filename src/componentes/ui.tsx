@@ -4,7 +4,7 @@ import type { Aviso } from "@/explica/explica";
 export const boton =
   "min-h-11 rounded-2xl px-4 py-3 font-semibold transition-[transform,background-color,color] duration-200 active:scale-[.97] disabled:opacity-50 disabled:cursor-not-allowed";
 export const tarjeta =
-  "rounded-[1.75rem] bg-white p-5 ring-1 ring-linea/80 shadow-[0_1px_2px_rgb(11_22_38/.04),0_12px_32px_-16px_rgb(11_22_38/.18)]";
+  "rounded-[1.5rem] bg-white p-5 ring-1 ring-linea";
 /** Evita que «S/» quede en una línea y el monto en la siguiente. Solo cambia el espacio. */
 export function unido(texto: string) {
   return texto.replace(/S\/ /g, "S/ ");

@@ -14,7 +14,8 @@ import { avisos, mejorJugada, proximosPagos, resumenHablado, type Aviso } from "
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { Grafico } from "@/componentes/grafico";
 import { boton, tarjeta, Icono, desplazar, unido } from "@/componentes/ui";
-import { Tablero } from "@/componentes/tablero";
+import { Tablero, cifras, pulso } from "@/componentes/tablero";
+import type { Direccion } from "@/componentes/copiloto";
 
 export function Hoy({
   perfil,
@@ -22,12 +23,14 @@ export function Hoy({
   sonando,
   leer,
   detener,
+  direccion = "a",
 }: {
   perfil: Perfil;
   analisis: Analisis;
   sonando: boolean;
   leer: (texto: string) => void;
   detener: () => void;
+  direccion?: Direccion;
 }) {
   const [jugada, seleccionar] = useState<Jugada>();
   const grafico = useRef<HTMLElement>(null);
@@ -49,11 +52,20 @@ export function Hoy({
         elegir={j => seleccionar(jugada?.id === j.id ? undefined : j)}
         sonando={sonando}
         alternarVoz={alternarVoz}
+        direccion={direccion}
       />
     </div>
-    <div className="space-y-6 lg:hidden">
-      <Cabina perfil={perfil} analisis={analisis} despues={despues} aviso={principal} />
-      <section ref={grafico} className={`${tarjeta} aparecer scroll-mt-36`} style={{ animationDelay: ".15s" }}>
+    <div className="space-y-6 md:mx-auto md:max-w-xl md:px-6 md:py-10 lg:hidden">
+      {direccion === "b" ? (
+        <CabinaB perfil={perfil} analisis={analisis} aviso={principal} />
+      ) : (
+        <Cabina perfil={perfil} analisis={analisis} despues={despues} aviso={principal} />
+      )}
+      <section
+        ref={grafico}
+        className={`${direccion === "b" ? "-mx-4 bg-agua-suave px-5 py-6 md:mx-0 md:rounded-3xl" : tarjeta} aparecer scroll-mt-36`}
+        style={{ animationDelay: ".15s" }}
+      >
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold tracking-tight">Tus próximos 30 días</h2>
@@ -78,14 +90,14 @@ export function Hoy({
           base={analisis.proyeccion}
           despues={despues}
           descripcion={`${principal.titulo}. ${principal.cuerpo}`}
+          fondo={direccion === "b" ? "var(--color-agua-suave)" : "white"}
         />
         {jugada && despues && <Resultado key={jugada.id} jugada={jugada} despues={despues} />}
       </section>
       {analisis.jugadas.length > 0 ? (
         <section className="space-y-4">
           <div className="px-1">
-            <p className="text-xs font-bold uppercase tracking-widest text-agua-fuerte">Antes de que falte</p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight">Tus jugadas</h2>
+            <h2 className="text-2xl font-semibold tracking-[-0.025em] text-noche">Tus jugadas</h2>
             <p className="mt-1 text-gris">Toca una y mira cómo queda tu mes.</p>
           </div>
           {analisis.jugadas.map((j, i) => (
@@ -106,14 +118,14 @@ export function Hoy({
         <Pagos analisis={analisis} />
       )}
       <button
-        className={`${boton} flex w-full items-center justify-center gap-3 bg-tinta py-4 text-white shadow-[0_14px_30px_-14px_rgb(11_22_38/.6)]`}
+        className={`${boton} flex w-full items-center justify-center gap-3 rounded-full border border-linea-fuerte bg-white py-4 text-noche`}
         onClick={alternarVoz}
       >
         <span className={`flex items-center gap-[3px] ${sonando ? "" : "hidden"}`} aria-hidden="true">
           {[0, 1, 2, 3].map(i => (
             <span
               key={i}
-              className="onda h-4 w-[3px] rounded-full bg-agua"
+              className="onda h-4 w-[3px] rounded-full bg-electrico"
               style={{ animationDelay: `${i * 0.12}s` }}
             />
           ))}
@@ -127,7 +139,7 @@ export function Hoy({
   );
 }
 
-/* ---------- Cabina: saldo, el mes en barras y el aviso principal ---------- */
+/* ---------- Dirección A (celular): el aviso como única tarjeta azul ---------- */
 function Cabina({
   perfil,
   analisis,
@@ -139,33 +151,67 @@ function Cabina({
   despues?: Proyeccion;
   aviso: Aviso;
 }) {
-  const alerta = analisis.proyeccion.deficit !== null;
+  const d = analisis.proyeccion.deficit;
   return (
-    <section
-      data-alerta={alerta ? "si" : "no"}
-      className="cabina relative -mx-4 -mt-[calc(5.25rem+env(safe-area-inset-top))] overflow-hidden rounded-b-[2.5rem] px-5 pb-6 pt-[calc(6.75rem+env(safe-area-inset-top))] text-white"
-    >
-      <div
-        className="aurora"
-        style={{ background: alerta ? "rgb(255 90 95 / .55)" : "rgb(133 200 255 / .5)" }}
-        aria-hidden="true"
-      />
-      <div className="relative">
-        <p className="text-sm font-medium text-white/70">Hoy tienes</p>
+    <>
+      <section className="aparecer px-1">
+        <p className="text-[15px] text-gris">Hoy tienes</p>
         <Saldo key={perfil.id} monto={perfil.saldoActual} />
-        <p className="mt-1 text-xs text-white/55">Datos de demostración al {formatoLargo(analisis.hoy)}</p>
-        <Mes proyeccion={despues ?? analisis.proyeccion} />
-        {analisis.proyeccion.deficit && (
-          <p className="aparecer mt-6 text-lg font-medium leading-snug text-white/80" style={{ animationDelay: ".25s" }}>
-            El {formatoLargo(analisis.proyeccion.deficit.fecha)}, te faltarán
-            <span className="mt-1 block text-[3.25rem] leading-none tracking-[-0.045em] text-coral tabular-nums">
-              {unido(formatoSoles(analisis.proyeccion.deficit.faltante))}
-            </span>
-          </p>
+        <p className="mt-1.5 text-sm text-gris">Datos de demostración al {formatoLargo(analisis.hoy)}</p>
+      </section>
+      <section className="aparecer rounded-[28px] bg-electrico p-6 text-white" style={{ animationDelay: ".08s" }}>
+        <p className="flex w-fit items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-sm font-medium">
+          <span className="punto-vivo size-2 rounded-full bg-[#ffb3b8]" aria-hidden="true" />
+          {aviso.nivel === "urgente" ? "Anticípate" : aviso.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
+        </p>
+        {d ? (
+          <>
+            <p className="mt-5 text-lg font-medium leading-snug text-white/85">El {formatoLargo(d.fecha)}, te faltarán</p>
+            <p className="mt-1 text-[3.5rem] font-semibold leading-none tracking-[-0.045em] tabular-nums">{unido(formatoSoles(d.faltante))}</p>
+          </>
+        ) : (
+          <h2 className="mt-4 text-2xl font-semibold leading-snug text-balance">{unido(aviso.titulo)}</h2>
         )}
-        <AvisoCabina aviso={aviso} />
-        <p className="mt-4 text-sm leading-relaxed text-white/70">{perfil.descripcion}</p>
-      </div>
+        <p className="mt-4 leading-relaxed text-white/85">
+          {d ? `Ese día se juntan ${pulso(analisis)?.causa}. Quedan ${d.diasRestantes} días: todavía estás a tiempo.` : unido(aviso.cuerpo)}
+        </p>
+        <Mes proyeccion={despues ?? analisis.proyeccion} />
+      </section>
+    </>
+  );
+}
+
+/* ---------- Dirección B (celular): sin tarjeta, la cifra a tamaño de cartel ---------- */
+function CabinaB({ perfil, analisis, aviso }: { perfil: Perfil; analisis: Analisis; aviso: Aviso }) {
+  const d = analisis.proyeccion.deficit;
+  return (
+    <section className="aparecer -mx-4 -mt-6 bg-white px-5 pb-8 pt-8 md:mx-0 md:mt-0 md:rounded-3xl">
+      <p className="text-sm text-gris">
+        {perfil.nombre} · cuenta demo · al {formatoLargo(analisis.hoy)}
+      </p>
+      {d ? (
+        <>
+          <h1 className="mt-6 text-[1.625rem] font-medium leading-tight tracking-[-0.025em] text-noche">
+            El {formatoLargo(d.fecha)}, te faltarán
+          </h1>
+          <p className="-ml-[0.05em] mt-1 text-[clamp(3.5rem,19vw,6.5rem)] font-semibold leading-[0.88] tracking-[-0.06em] text-coral-fuerte tabular-nums">
+            {unido(formatoSoles(d.faltante))}
+          </p>
+        </>
+      ) : (
+        <h1 className="mt-6 text-[2.25rem] font-semibold leading-tight tracking-[-0.035em] text-noche">{unido(aviso.titulo)}</h1>
+      )}
+      <p className="mt-5 text-lg leading-relaxed text-noche">
+        {d ? `Ese día se juntan ${pulso(analisis)?.causa}. Quedan ${d.diasRestantes} días: todavía estás a tiempo.` : unido(aviso.cuerpo)}
+      </p>
+      <dl className="mt-7 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-linea pt-5">
+        {cifras(perfil, analisis).map(([titulo, valor]) => (
+          <div key={titulo}>
+            <dt className="text-sm leading-snug text-gris">{titulo}</dt>
+            <dd className="mt-1 text-[1.5rem] font-semibold leading-none tracking-[-0.03em] text-noche tabular-nums">{unido(valor)}</dd>
+          </div>
+        ))}
+      </dl>
     </section>
   );
 }
@@ -193,7 +239,7 @@ function Saldo({ monto }: { monto: number }) {
     };
   }, [monto]);
   return (
-    <h1 className="mt-1 text-[2.9rem] font-semibold leading-none tracking-tight tabular-nums">
+    <h1 className="mt-1 text-[2.75rem] font-semibold leading-none tracking-[-0.04em] text-noche tabular-nums">
       <span ref={cifra} aria-hidden="true">{unido(formatoSoles(monto))}</span>
       <span className="sr-only">{formatoSoles(monto)}</span>
     </h1>
@@ -217,7 +263,7 @@ function Mes({ proyeccion }: { proyeccion: Proyeccion }) {
           return (
             <div key={d.fecha} className="relative flex-1">
               <div
-                className={`barra absolute inset-x-0 rounded-full ${negativo ? "bg-coral" : d.fecha === rojo ? "bg-ambar" : "bg-agua/80"} ${d.fecha === rojo ? "shadow-[0_0_12px_rgb(255_90_95/.9)]" : ""}`}
+                className={`barra absolute inset-x-0 rounded-full ${negativo ? "bg-[#ffb3b8]" : d.fecha === rojo ? "bg-ambar" : "bg-agua"}`}
                 style={{
                   height: `${h}%`,
                   ...(negativo ? { top: `${cero}%`, transformOrigin: "top" } : { bottom: `${100 - cero}%`, transformOrigin: "bottom" }),
@@ -227,29 +273,14 @@ function Mes({ proyeccion }: { proyeccion: Proyeccion }) {
             </div>
           );
         })}
-        <div className="pointer-events-none absolute inset-x-0 border-t border-dashed border-white/30" style={{ top: `${cero}%` }} />
+        <div className="pointer-events-none absolute inset-x-0 border-t border-dashed border-white/40" style={{ top: `${cero}%` }} />
       </div>
-      <div className="mt-2 flex justify-between text-[11px] font-medium text-white/55">
+      <div className="mt-2 flex justify-between text-xs font-medium text-white/80">
         <span>{formatoCorto(proyeccion.dias[0]?.fecha ?? proyeccion.desde)}</span>
-        {rojo && <span className="font-bold text-coral">En rojo el {formatoCorto(rojo)}</span>}
+        {rojo && <span className="font-semibold text-white">En rojo el {formatoCorto(rojo)}</span>}
         <span>{formatoCorto(proyeccion.hasta)}</span>
       </div>
     </div>
-  );
-}
-
-const puntos = { urgente: "text-coral", atencion: "text-ambar", bien: "text-verde" };
-function AvisoCabina({ aviso }: { aviso: Aviso }) {
-  return (
-    <article className="vidrio aparecer mt-5 rounded-3xl p-4" style={{ animationDelay: ".35s" }}>
-      <p className={`flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest ${puntos[aviso.nivel]}`}>
-        <span className="punto-vivo size-2 rounded-full bg-current" aria-hidden="true" />
-        {aviso.nivel === "urgente" ? "Anticípate" : aviso.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
-      </p>
-      <h2 className="mt-2 text-lg font-bold leading-snug text-balance">{unido(aviso.titulo)}</h2>
-      <p className="mt-2 text-sm leading-relaxed text-white/80">{unido(aviso.cuerpo)}</p>
-      {aviso.cuerpo.includes("TCEA") && <p className="mt-2 text-xs text-white/60">TCEA: lo que te cuesta al año.</p>}
-    </article>
   );
 }
 
@@ -293,7 +324,7 @@ function TarjetaJugada({
 }) {
   return (
     <article
-      className={`${tarjeta} aparecer relative overflow-hidden transition-shadow duration-300 ${activa ? "ring-2 ring-agua shadow-[0_18px_40px_-18px_rgb(20_100_165/.55)]" : ""}`}
+      className={`${tarjeta} aparecer relative overflow-hidden transition-shadow duration-300 ${activa ? "ring-2 ring-electrico" : ""}`}
       style={{ animationDelay: `${0.2 + orden * 0.08}s` }}
     >
       <div className="flex flex-wrap items-center gap-2">
@@ -303,7 +334,7 @@ function TarjetaJugada({
           {j.resuelve ? "Resuelve el problema" : "Sola no alcanza"}
         </span>
         {barata && (
-          <span className="rounded-full bg-tinta px-2.5 py-1 text-xs font-bold text-white">La más barata</span>
+          <span className="rounded-full bg-agua-suave px-2.5 py-1 text-xs font-semibold text-electrico">La más barata</span>
         )}
       </div>
       <h3 className="mt-3 text-lg font-bold leading-snug tracking-tight">{j.titulo}</h3>
@@ -325,7 +356,7 @@ function TarjetaJugada({
       <button
         aria-pressed={activa}
         onClick={elegir}
-        className={`${boton} mt-4 flex w-full items-center justify-center gap-2 ${activa ? "bg-tinta text-white" : "bg-agua text-noche"}`}
+        className={`${boton} mt-4 flex w-full items-center justify-center gap-2 rounded-full ${activa ? "border border-electrico bg-white text-electrico" : "bg-electrico text-white"}`}
       >
         {activa ? "Quitar comparación" : "Probar esta jugada"}
       </button>
