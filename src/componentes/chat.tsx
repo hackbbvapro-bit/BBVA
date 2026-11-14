@@ -1,9 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Analisis, Perfil } from "@/motor";
 import { conversar, type MensajeChat } from "@/cliente/agente";
 import { desbloquearAudio } from "@/cliente/voz";
 import { escuchar, puedeEscuchar, type Escucha, type ErrorEscucha } from "@/cliente/escucha";
+import { estaActiva, type Fase } from "@/cliente/conversacion";
+import { useManosLibres, type ResultadoEnvio } from "@/cliente/manos-libres";
+import { ConversacionVoz } from "@/componentes/conversacion-voz";
 import { boton, Icono, desplazar, Portada, unido } from "@/componentes/ui";
 type Burbuja = MensajeChat & { respaldo?: boolean };
 const preguntas = [
@@ -24,12 +27,15 @@ export function Chat({
   leer,
   detener,
   sonando,
+  lateral,
 }: {
   perfil: Perfil;
   analisis: Analisis;
   leer: (t: string) => void;
   detener: () => void;
   sonando: boolean;
+  /** Panel de la derecha en pantallas anchas (≥1280 px). */
+  lateral?: ReactNode;
 }) {
   const [mensajes, setMensajes] = useState<Burbuja[]>([]),
     [texto, setTexto] = useState("");
@@ -43,6 +49,7 @@ export function Chat({
     bloqueo = useRef(false),
     controlador = useRef<AbortController | null>(null),
     escucha = useRef<Escucha | undefined>(undefined),
+    faseRef = useRef<Fase>("apagado"),
     fin = useRef<HTMLDivElement>(null);
   useEffect(() => {
     vivo.current = true;
@@ -59,9 +66,20 @@ export function Chat({
     // Al entrar solo está el saludo: no se desplaza, para que se vea el título y el interruptor de voz.
     if (mensajes.length > 1 || escuchando) desplazar(fin.current);
   }, [mensajes, escuchando]);
-  async function enviar(pregunta: string) {
+  const manos = useManosLibres({
+    enviar: t => enviar(t, true),
+    detener,
+    sonando,
+    hayVoz: () => vozRef.current,
+  });
+  const fase = manos.estado.fase;
+  useEffect(() => {
+    faseRef.current = fase;
+  }, [fase]);
+  const conversando = estaActiva(manos.estado);
+  async function enviar(pregunta: string, porVoz = false): Promise<ResultadoEnvio> {
     const limpio = pregunta.trim().slice(0, 300);
-    if (!limpio || bloqueo.current || !vivo.current) return;
+    if (!limpio || bloqueo.current || !vivo.current) return "omitido";
     desbloquearAudio();
     detener();
     bloqueo.current = true;
@@ -85,14 +103,17 @@ export function Chat({
           );
         },
       });
-      if (!vivo.current || abortador.signal.aborted) return;
+      if (!vivo.current || abortador.signal.aborted) return "omitido";
       setMensajes([
         ...historial,
         { rol: "asistente", texto: respuesta.texto, respaldo: respuesta.origen === "respaldo" },
       ]);
-      if (vozRef.current) leer(respuesta.texto);
+      // Si la conversación se cerró mientras pensaba, la respuesta queda escrita pero no se lee.
+      if (vozRef.current && (!porVoz || faseRef.current === "pensando")) leer(respuesta.texto);
+      return "ok";
     } catch {
       if (vivo.current && !abortador.signal.aborted) setError("No pude responder. Inténtalo otra vez.");
+      return "error";
     } finally {
       if (vivo.current) {
         bloqueo.current = false;
@@ -128,15 +149,16 @@ export function Chat({
     });
   }
   return (
-    <section className="pb-44">
+    <section className="pb-44 xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8 xl:pb-0">
+      <div className="xl:col-span-7 xl:flex xl:min-h-[calc(100dvh-5rem)] xl:flex-col">
       <Portada>
         <div className="flex items-start justify-between gap-3">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-agua to-[#3d7bff] text-noche shadow-[0_0_32px_rgb(20_200_180/.5)]">
+          <span className="flex size-14 items-center justify-center rounded-2xl bg-agua-suave text-electrico">
             <span className={`flex items-end gap-1 ${sonando ? "" : "opacity-90"}`} aria-hidden="true">
               {[0, 1, 2, 3].map(i => (
                 <span
                   key={i}
-                  className={`w-1 rounded-full bg-noche ${sonando || ocupado || escuchando ? "onda" : ""}`}
+                  className={`w-1 rounded-full bg-electrico ${sonando || ocupado || escuchando ? "onda" : ""}`}
                   style={{ height: `${[10, 20, 14, 18][i]}px`, animationDelay: `${i * 120}ms` }}
                 />
               ))}
@@ -145,7 +167,7 @@ export function Chat({
           <button
             role="switch"
             aria-checked={voz}
-            className={`${boton} vidrio flex items-center gap-2 rounded-full text-sm ${voz ? "text-white" : "text-white/60"}`}
+            className={`${boton} flex items-center gap-2 rounded-full border text-sm ${voz ? "border-electrico bg-agua-suave text-electrico" : "border-linea-fuerte bg-white text-gris"}`}
             onClick={() => {
               vozRef.current = !voz;
               setVoz(!voz);
@@ -154,17 +176,17 @@ export function Chat({
           >
             <span
               aria-hidden="true"
-              className={`size-2 rounded-full ${voz ? "punto-vivo bg-agua text-agua" : "bg-white/40"}`}
+              className={`size-2 rounded-full ${voz ? "bg-electrico" : "bg-linea-fuerte"}`}
             />
             Voz {voz ? "sí" : "no"}
           </button>
         </div>
-        <h1 className="mt-5 text-3xl font-bold tracking-tight text-balance">Hablemos de tu plata</h1>
-        <p className="mt-2 text-white/70">
+        <h1 className="mt-5 text-[1.75rem] font-semibold tracking-[-0.025em] text-noche text-balance md:text-[2rem]">Hablemos de tu plata</h1>
+        <p className="mt-2 text-gris">
           Pregunta con confianza. Las cifras las calcula el copiloto; la IA solo te las explica.
         </p>
       </Portada>
-      <div className="aparecer rounded-3xl rounded-tl-md bg-white p-5 leading-relaxed ring-1 ring-linea/80 shadow-[0_12px_32px_-16px_rgb(11_22_38/.18)]">
+      <div className="aparecer rounded-3xl rounded-tl-md border border-linea bg-white p-5 leading-relaxed">
         Hola, {perfil.nombre}. Te ayudo a entender tu plata y a decidir con tiempo. ¿Qué quieres saber?
       </div>
       {!mensajes.length && (
@@ -185,7 +207,7 @@ export function Chat({
         {mensajes.map((m, i) => (
           <div key={i} className={`max-w-[92%] ${m.rol === "usuario" ? "ml-auto" : "mr-auto"}`}>
             <p
-              className={`whitespace-pre-wrap break-words rounded-3xl aparecer p-4 leading-relaxed ${m.rol === "usuario" ? "rounded-tr-md bg-tinta text-white" : "rounded-tl-md bg-white ring-1 ring-linea/80 shadow-[0_12px_32px_-16px_rgb(11_22_38/.18)]"}`}
+              className={`whitespace-pre-wrap break-words rounded-3xl aparecer p-4 leading-relaxed ${m.rol === "usuario" ? "rounded-tr-md bg-agua-suave text-tinta" : "rounded-tl-md border border-linea bg-white"}`}
             >
               {m.texto || "Pensando…"}
             </p>
@@ -193,9 +215,23 @@ export function Chat({
           </div>
         ))}
       </div>
-      <div ref={fin} className="scroll-mb-72" />
-      <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md bg-linear-to-t from-papel via-papel/95 to-papel/0 px-4 pb-3 pt-6">
-        {sonando && (
+      <div ref={fin} className="scroll-mb-72 xl:scroll-mb-24" />
+      <div className="fixed inset-x-0 bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md border-t border-linea bg-papel px-4 pb-3 pt-3 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:border-t-0 xl:bg-linear-to-t xl:from-papel xl:via-papel/95 xl:to-papel/0 xl:px-0 xl:pt-6">
+        <ConversacionVoz
+          estado={manos.estado}
+          soporte={manos.soporte}
+          parcial={manos.parcial}
+          bloqueado={ocupado || escuchando}
+          alActivar={() => {
+            desbloquearAudio();
+            detener();
+            setError("");
+            manos.activar();
+          }}
+          alTerminar={manos.desactivar}
+          alInterrumpir={manos.interrumpir}
+        />
+        {sonando && !conversando && (
           <button className={`${boton} mb-2 bg-agua-suave text-agua-fuerte`} onClick={detener}>
             Detener voz
           </button>
@@ -226,14 +262,14 @@ export function Chat({
             value={texto}
             onChange={e => setTexto(e.target.value)}
             placeholder="Escribe tu pregunta…"
-            className="min-h-12 min-w-0 flex-1 rounded-full bg-white px-5 ring-1 ring-linea shadow-[0_8px_24px_-12px_rgb(11_22_38/.25)] focus:ring-2 focus:ring-agua"
+            className="min-h-12 min-w-0 flex-1 rounded-full bg-white px-5 ring-1 ring-linea-fuerte focus:ring-2 focus:ring-electrico"
             disabled={ocupado}
           />
           <button
             type="submit"
             aria-label="Enviar pregunta"
             disabled={ocupado || escuchando || !texto.trim()}
-            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-agua text-noche shadow-[0_0_20px_rgb(20_200_180/.45)] transition-transform active:scale-95 disabled:opacity-40 disabled:shadow-none"
+            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-electrico text-white transition-transform duration-100 active:scale-95 disabled:opacity-40"
           >
             <Icono nombre="enviar" />
           </button>
@@ -242,7 +278,7 @@ export function Chat({
               type="button"
               aria-label={escuchando ? "Terminar de escuchar" : "Hablar con el micrófono"}
               aria-pressed={escuchando}
-              disabled={ocupado}
+              disabled={ocupado || conversando}
               onClick={dictar}
               className={`flex size-14 shrink-0 items-center justify-center rounded-full disabled:opacity-40 ${escuchando ? "motion-safe:animate-pulse bg-coral-suave text-coral-fuerte" : "bg-agua-suave text-agua-fuerte"}`}
             >
@@ -251,6 +287,8 @@ export function Chat({
           )}
         </form>
       </div>
+      </div>
+      {lateral && <aside className="mt-6 xl:sticky xl:top-8 xl:col-span-5 xl:mt-0" aria-label="Lo que sabe el copiloto">{lateral}</aside>}
     </section>
   );
 }

@@ -6,10 +6,15 @@ function peticion(cabeceras: Record<string, string>, cuerpo?: string): Request {
 }
 
 describe("origen de la petición", () => {
-  it("acepta el mismo sitio y las llamadas sin cabecera Origin", () => {
+  it("acepta el mismo sitio, también sin Origin si el navegador dice same-origin", () => {
     expect(mismoOrigen(peticion({ host: "demo.test", origin: "https://demo.test" }))).toBe(true);
-    expect(mismoOrigen(peticion({ host: "demo.test" }))).toBe(true);
+    expect(mismoOrigen(peticion({ host: "demo.test", "sec-fetch-site": "same-origin" }))).toBe(true);
     expect(mismoOrigen(peticion({ host: "localhost:3000", origin: "http://localhost:3000" }))).toBe(true);
+  });
+
+  it("rechaza un POST sin Origin ni Sec-Fetch-Site de mismo sitio", () => {
+    expect(mismoOrigen(peticion({ host: "demo.test" }))).toBe(false);
+    expect(mismoOrigen(peticion({ host: "demo.test", "sec-fetch-site": "cross-site" }))).toBe(false);
   });
 
   it("rechaza otra web y un Origin ilegible", () => {
@@ -21,8 +26,15 @@ describe("origen de la petición", () => {
 describe("visitante", () => {
   it("usa la IP que fija la plataforma y, si no hay, un valor fijo", () => {
     expect(visitante(peticion({ "x-real-ip": "203.0.113.7" }))).toBe("203.0.113.7");
-    expect(visitante(peticion({ "x-forwarded-for": "203.0.113.9, 10.0.0.1" }))).toBe("203.0.113.9");
+    expect(visitante(peticion({ "x-vercel-forwarded-for": "203.0.113.5, 10.0.0.1" }))).toBe("203.0.113.5");
     expect(visitante(peticion({}))).toBe("local");
+  });
+
+  it("ignora x-forwarded-for: dos valores distintos comparten cupo y no se puede rotar la IP", () => {
+    const a = visitante(peticion({ "x-forwarded-for": "198.51.100.1" }));
+    const b = visitante(peticion({ "x-forwarded-for": "198.51.100.2" }));
+    expect(a).toBe("local");
+    expect(b).toBe(a);
   });
 });
 

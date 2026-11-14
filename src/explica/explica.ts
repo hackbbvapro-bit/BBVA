@@ -170,7 +170,12 @@ export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Anali
   if (jugada) return jugada;
   if (/deuda|tarjeta|primero|tcea|interes|prestamo/.test(texto)) {
     const deuda = avisos(perfil, analisis).find(a => a.id === "deuda");
-    return deuda ? `${deuda.titulo}. ${deuda.cuerpo}` : "No tienes deudas registradas.";
+    if (!deuda) return "No tienes deudas registradas.";
+    const deficit = analisis.proyeccion.deficit;
+    const ojo = deficit
+      ? ` Ojo: el ${formatoLargo(deficit.fecha)} te faltarán ${formatoSoles(deficit.faltante)}. Hasta cubrir eso, paga solo los mínimos y no adelantes pagos.`
+      : "";
+    return `${deuda.titulo}. ${deuda.cuerpo}${ojo}`;
   }
   return resumenHablado(perfil, analisis);
 }

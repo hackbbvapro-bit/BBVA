@@ -2,6 +2,7 @@ import { z } from "zod";
 import { configVoz } from "@/servidor/entorno";
 import { errorJson, leerJson, mismoOrigen, visitante } from "@/servidor/http";
 import { crearLimite } from "@/servidor/limite";
+import { haySesion, sinSesion } from "@/servidor/sesion";
 import { registrarFallo } from "@/servidor/registro";
 
 export const maxDuration = 30;
@@ -16,13 +17,15 @@ const Peticion = z.object({ texto: z.string().trim().min(1).max(800) });
 /** Convierte un texto en audio con Fish Audio. La clave nunca sale del servidor. */
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
-  if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
-    return errorJson("demasiadas_peticiones", 429);
+  if (!haySesion(req)) return sinSesion();
+  if (!limite.permite(visitante(req))) return errorJson("demasiadas_peticiones", 429);
   const datos = Peticion.safeParse(await leerJson(req));
   if (!datos.success) return errorJson("peticion_invalida", 400);
   const config = configVoz();
   if (!config) return errorJson("voz_no_disponible", 503);
 
+  // El tope común se gasta solo con peticiones válidas que de verdad llaman al proveedor.
+  if (!topeGlobal.permite("todos")) return errorJson("demasiadas_peticiones", 429);
   try {
     const respuesta = await fetch(FISH_TTS, {
       method: "POST",

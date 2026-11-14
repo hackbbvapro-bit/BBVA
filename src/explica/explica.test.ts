@@ -102,6 +102,18 @@ describe("resumen hablado y respuestas sin IA", () => {
     expect(responderSinIA("¿Qué deuda pago primero?", rosa, a.rosa)).toContain("Paga primero Tarjeta Azul");
   });
 
+  it("con un faltante proyectado, el consejo de deudas pide cubrirlo antes de pagar de más", () => {
+    const deficit = a.rosa.proyeccion.deficit!;
+    const texto = responderSinIA("¿Le adelanto plata a la tarjeta?", rosa, a.rosa);
+    expect(texto).toContain(`Ojo: el ${formatoLargo(deficit.fecha)} te faltarán S/ 200.00`);
+    expect(texto).toContain("paga solo los mínimos y no adelantes pagos");
+    for (const p of [carlos, lucia]) {
+      const an = p === carlos ? a.carlos : a.lucia;
+      if (an.proyeccion.deficit || !an.deudas?.primera) continue;
+      expect(responderSinIA("¿Qué deuda pago primero?", p, an)).not.toContain("Ojo:");
+    }
+  });
+
   it("«¿me alcanza para…?» responde con el simulador, no con el resumen", () => {
     expect(responderSinIA("¿Me alcanza para gastar 50 soles?", carlos, a.carlos)).toMatch(/^Sí te alcanza\. Si gastas S\/ 50\.00 mañana/);
     expect(responderSinIA("¿puedo comprar algo de S/ 5,000?", carlos, a.carlos)).toMatch(/^No sin apretarte: con S\/ 5,000\.00/);

@@ -7,6 +7,8 @@ import { avisos } from "@/explica/explica";
 import { Hoy } from "@/componentes/hoy";
 import { Deudas } from "@/componentes/deudas";
 import { Chat } from "@/componentes/chat";
+import { DatosDePrueba } from "@/componentes/datos";
+import { datosDeRosa } from "@/datos/semilla";
 import { Grafico } from "@/componentes/grafico";
 const voz = { leer: () => undefined, detener: () => undefined, sonando: false };
 describe("Interfaz con perfiles sintéticos", () => {
@@ -15,7 +17,7 @@ describe("Interfaz con perfiles sintéticos", () => {
       const analisis = analizar(perfil);
       for (const vista of [
         <Hoy key="hoy" perfil={perfil} analisis={analisis} {...voz} />,
-        <Deudas key="deudas" perfil={perfil} analisis={analisis} />,
+        <DatosDePrueba key="deudas" datos={datosDeRosa()}><Deudas perfil={perfil} analisis={analisis} /></DatosDePrueba>,
         <Chat key="chat" perfil={perfil} analisis={analisis} {...voz} />,
       ]) {
         const html = renderToStaticMarkup(vista);
@@ -55,10 +57,32 @@ describe("Interfaz con perfiles sintéticos", () => {
     const perfil = PERFILES[0],
       analisis = analizar(perfil);
     const antes = JSON.stringify(perfil.deudas);
-    renderToStaticMarkup(<Deudas perfil={perfil} analisis={analisis} />);
+    renderToStaticMarkup(<DatosDePrueba datos={datosDeRosa()}><Deudas perfil={perfil} analisis={analisis} /></DatosDePrueba>);
     expect(JSON.stringify(perfil.deudas)).toBe(antes);
     expect(
-      renderToStaticMarkup(<Deudas perfil={perfil} analisis={{ ...analisis, deudas: null }} />),
-    ).toContain("No tienes deudas registradas");
+      renderToStaticMarkup(<DatosDePrueba datos={{ ...datosDeRosa(), deudas: [] }}><Deudas perfil={perfil} analisis={{ ...analisis, deudas: null }} /></DatosDePrueba>),
+    ).toContain("No tienes deudas abiertas");
+  });
+});
+describe("Perfil y menú de usuario", () => {
+  it("el perfil muestra a Rosa y no pide datos sensibles", async () => {
+    const { Perfil } = await import("@/componentes/perfil");
+    const { MenuUsuario } = await import("@/componentes/menu-usuario");
+    const html = renderToStaticMarkup(<DatosDePrueba datos={datosDeRosa()}><Perfil /></DatosDePrueba>);
+    expect(html).toContain("Rosa");
+    expect(html).not.toMatch(/<input|NaN|undefined/);
+    const menu = renderToStaticMarkup(<MenuUsuario nombre="Rosa" variante="lateral" alPerfil={() => undefined} alComoFunciona={() => undefined} />);
+    expect(menu).toContain("Cuenta demo");
+  });
+});
+describe("Cómo funciona", () => {
+  it("trae el recorrido de 5 pasos, el glosario completo y la nota de privacidad", async () => {
+    const { ComoFunciona } = await import("@/componentes/como-funciona");
+    const html = renderToStaticMarkup(<ComoFunciona />);
+    expect(html.match(/<li class="relative/g)).toHaveLength(5);
+    for (const t of ["TCEA", "Faltante (déficit)", "Calificación SBS", "Jugada", "Saldo proyectado", "Tu privacidad", "Los números los calcula el código"]) {
+      expect(html).toContain(t);
+    }
+    expect(html).not.toMatch(/<input|NaN|undefined/);
   });
 });

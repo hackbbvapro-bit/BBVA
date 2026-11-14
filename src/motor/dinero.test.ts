@@ -21,6 +21,21 @@ describe("céntimos enteros", () => {
     expect(() => aCentimos("doce")).toThrow();
   });
 
+  it("entiende la coma decimal del teclado en español sin multiplicar por 100", () => {
+    expect(aCentimos("12,50")).toBe(1250);
+    expect(aCentimos("180,5")).toBe(18050);
+    expect(aCentimos("S/ 1.234,56")).toBe(123456);
+    expect(aCentimos("1,250")).toBe(125000);
+    expect(aCentimos("1,250.00")).toBe(125000);
+    expect(aCentimos("12,345,678")).toBe(1234567800);
+    expect(aCentimos("-0,07")).toBe(-7);
+    expect(() => aCentimos("1.250")).toThrow();
+    expect(() => aCentimos("1,2,3")).toThrow();
+    expect(() => aCentimos("12,")).toThrow();
+    expect(() => aCentimos("1,23,456.00")).toThrow();
+    expect(() => aCentimos("")).toThrow();
+  });
+
   it("0.10 + 0.20 da exactamente 0.30", () => {
     expect(sumar([aCentimos("0.10"), aCentimos("0.20")])).toBe(30);
   });
