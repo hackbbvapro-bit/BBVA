@@ -1,0 +1,60 @@
+%PDF-1.4
+%âãÏÓ
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Length 1721 >>
+stream
+BT
+/F2 16 Tf 1 0 0 1 50 765 Tm (DOCUMENTO INVENTADO - SOLO PARA PRUEBAS) Tj
+/F1 10 Tf 1 0 0 1 50 746 Tm (Ninguna persona, entidad ni cifra de este documento es real. No es un documento oficial.) Tj
+/F2 13 Tf 1 0 0 1 50 705 Tm (Resumen de situación financiera \(ejemplo\)) Tj
+/F1 11 Tf 1 0 0 1 50 685 Tm (Titular: Persona de Ejemplo          Periodo: noviembre de 2026          Moneda: soles \(S/\)) Tj
+/F2 12 Tf 1 0 0 1 50 645 Tm (1. Deudas vigentes) Tj
+/F1 11 Tf 1 0 0 1 50 625 Tm (Entidad: Financiera Ejemplo Uno - Tarjeta de crédito) Tj
+/F1 11 Tf 1 0 0 1 50 605 Tm (   Saldo: S/ 3,200.00   Pago mínimo: S/ 240.00   TCEA: 72 %   Día de pago: 5   Atraso: 0 días) Tj
+/F1 11 Tf 1 0 0 1 50 585 Tm (Entidad: Caja Ejemplo Dos - Préstamo personal) Tj
+/F1 11 Tf 1 0 0 1 50 565 Tm (   Saldo: S/ 5,400.00   Cuota mensual: S/ 450.00   TCEA: 38 %   Día de pago: 18   Atraso: 0 días) Tj
+/F1 11 Tf 1 0 0 1 50 545 Tm (Entidad: Tienda Ejemplo Tres - Crédito de consumo) Tj
+/F1 11 Tf 1 0 0 1 50 525 Tm (   Saldo: S/ 900.00   Cuota mensual: S/ 150.00   TCEA: 95 %   Día de pago: 25   Atraso: 12 días) Tj
+/F2 12 Tf 1 0 0 1 50 485 Tm (2. Dinero que le deben al titular) Tj
+/F1 11 Tf 1 0 0 1 50 465 Tm (Deudor: Cliente Ejemplo A   Monto: S/ 600.00   Fecha acordada de cobro: 28/11/2026) Tj
+/F2 12 Tf 1 0 0 1 50 425 Tm (3. Movimientos del mes) Tj
+/F1 11 Tf 1 0 0 1 50 405 Tm (01/11/2026   Ingreso por ventas            + S/ 2,800.00) Tj
+/F1 11 Tf 1 0 0 1 50 385 Tm (03/11/2026   Alquiler del local            - S/ 900.00) Tj
+/F1 11 Tf 1 0 0 1 50 365 Tm (10/11/2026   Compra de mercadería          - S/ 650.00) Tj
+/F1 9 Tf 1 0 0 1 50 328 Tm (Archivo de prueba del prototipo de simulación. Datos sintéticos creados para la demostración.) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Title (Documento inventado de prueba) /Producer (Prototipo de simulacion) >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000121 00000 n 
+0000000257 00000 n 
+0000000354 00000 n 
+0000000456 00000 n 
+0000002229 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R /Info 7 0 R >>
+startxref
+2325
+%%EOF

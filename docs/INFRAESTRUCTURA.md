@@ -39,6 +39,7 @@ en un chat.**
 | `FISH_API_KEY` | Para la voz de Fish Audio | El dueño de la cuenta (fish.audio) |
 | `FISH_VOICE_ID` | Para la voz de Fish Audio | Elegida: `9386123a44af4d43abf10de6e2eea923` («Mayordomo Digital», voz pública de fish.audio) |
 | `FISH_MODEL` | No (por defecto `s2.1-pro`) | — |
+| `LECTURA_DOCUMENTOS` | No (apagada por defecto). Con `1`, el botón «Subir un documento» envía el archivo a la IA para leerlo. Solo documentos inventados: la persona lo declara y el servidor rechaza los que no | Decisión del equipo: encenderla hace que una app pública acepte archivos; la declaración no es una verificación |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Para notificaciones | Ya generadas en `.env.local` y cargadas en el Vercel del equipo |
 
 Para cargar una variable en Vercel desde la terminal (pide el valor sin mostrarlo en pantalla):

@@ -128,9 +128,9 @@ export const botonPrincipal =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-electrico px-4 text-[15px] font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-marino active:scale-[.97] [&_svg]:size-5";
 export const botonSecundario =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-linea-fuerte bg-white px-4 text-[15px] font-semibold text-noche transition-[transform,background-color] duration-150 hover:bg-niebla active:scale-[.97] [&_svg]:size-5";
-export function desplazar(elemento: HTMLElement | null) {
+export function desplazar(elemento: HTMLElement | null, bloque: ScrollLogicalPosition = "nearest") {
   elemento?.scrollIntoView({
     behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
-    block: "nearest",
+    block: bloque,
   });
 }
