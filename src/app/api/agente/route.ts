@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { responder, ultimaPregunta, type EventoAgente } from "@/agente/conversar";
-import { PERFILES } from "@/datos/perfiles";
 import { analizar } from "@/motor";
 import { errorJson, leerJson, mismoOrigen, visitante } from "@/servidor/http";
 import { crearLimite } from "@/servidor/limite";
+import { EsquemaPerfil, MAX_BYTES_PERFIL } from "@/servidor/perfil";
 import { haySesion, sinSesion } from "@/servidor/sesion";
 import { registrarFallo } from "@/servidor/registro";
 
@@ -14,7 +14,7 @@ const limite = crearLimite(20, 60_000);
 const topeGlobal = crearLimite(300, 3_600_000);
 
 const Peticion = z.object({
-  perfilId: z.string().min(1).max(40),
+  perfil: EsquemaPerfil,
   mensajes: z
     .array(z.object({ rol: z.enum(["usuario", "asistente"]), texto: z.string().min(1).max(1000) }))
     .min(1)
@@ -47,14 +47,20 @@ export async function POST(req: Request): Promise<Response> {
   if (!haySesion(req)) return sinSesion();
   if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
     return errorJson("demasiadas_peticiones", 429);
-  const datos = Peticion.safeParse(await leerJson(req));
+  const datos = Peticion.safeParse(await leerJson(req, MAX_BYTES_PERFIL));
   if (!datos.success) return errorJson("peticion_invalida", 400);
-  const perfil = PERFILES.find(p => p.id === datos.data.perfilId);
-  if (!perfil || !ultimaPregunta(datos.data.mensajes)) return errorJson("peticion_invalida", 400);
+  const perfil = datos.data.perfil;
+  if (!ultimaPregunta(datos.data.mensajes)) return errorJson("peticion_invalida", 400);
+  let analisis;
+  try {
+    analisis = analizar(perfil);
+  } catch {
+    return errorJson("peticion_invalida", 400);
+  }
 
   const corte = new AbortController();
   const senal = AbortSignal.any([req.signal, corte.signal]);
-  const eventos = responder({ perfil, analisis: analizar(perfil), mensajes: datos.data.mensajes, senal });
+  const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal });
   return new Response(comoFlujo(eventos, () => corte.abort()), {
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",

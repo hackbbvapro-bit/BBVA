@@ -1,7 +1,8 @@
+import { hayGastoLlamadoComoPagoDe, nombreFijoRepetido } from "./nombres";
 import { datosDeRosa } from "./semilla";
 import type { Cobro, Cuenta, Datos, DatosPerfil, DeudaGuardada, DocumentoAnalizado, Fijo, Sentido } from "./tipos";
 import {
-  validarCobro, validarCuenta, validarDeuda, validarDocumento, validarFijo, validarPerfil,
+  ErrorDatos, validarCobro, validarCuenta, validarDeuda, validarDocumento, validarFijo, validarPerfil,
 } from "./validar";
 
 /** Todo lo que la app lee y escribe. Hay una implementación en PGlite (navegador) y otra en memoria (tests y respaldo). */
@@ -29,8 +30,25 @@ export function validado(base: Repositorio): Repositorio {
     ...base,
     guardarPerfil: async p => base.guardarPerfil(validarPerfil(p)),
     guardarCuenta: async c => base.guardarCuenta(validarCuenta(c)),
-    guardarFijo: async (s, f) => base.guardarFijo(s, validarFijo(f)),
-    guardarDeuda: async d => base.guardarDeuda(validarDeuda(d)),
+    guardarFijo: async (s, f) => {
+      const fijo = validarFijo(f);
+      if (nombreFijoRepetido(await base.leerTodo(), s, fijo.descripcion, fijo.id)) {
+        throw new ErrorDatos(
+          `Ya tienes ${s === "ingreso" ? "un ingreso" : "un gasto"} llamado así. Edítalo o ponle otro nombre: si no, el copiloto los contaría como uno solo.`,
+        );
+      }
+      return base.guardarFijo(s, fijo);
+    },
+    guardarDeuda: async d => {
+      const deuda = validarDeuda(d);
+      const datos = await base.leerTodo();
+      if (!deuda.pagada && deuda.saldo > 0 && hayGastoLlamadoComoPagoDe(datos, deuda.nombre)) {
+        throw new ErrorDatos(
+          "Ya tienes un gasto fijo que se llama como el pago de esta deuda. Cámbiale el nombre al gasto o a la deuda: si no, el copiloto los contaría como uno solo.",
+        );
+      }
+      return base.guardarDeuda(deuda);
+    },
     guardarCobro: async c => base.guardarCobro(validarCobro(c)),
     guardarDocumento: async d => base.guardarDocumento(validarDocumento(d)),
   };

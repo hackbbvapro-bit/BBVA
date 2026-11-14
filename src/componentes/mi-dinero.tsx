@@ -7,8 +7,6 @@ import { Acciones, Seleccion, Texto } from "@/componentes/formularios";
 import { useDatos } from "@/componentes/datos";
 import { nuevoId } from "@/datos/repositorio";
 import { leerDia, leerSoles, solesParaEditar } from "@/datos/formulario";
-import { nombreFijoRepetido } from "@/datos/nombres";
-import { ErrorDatos } from "@/datos/validar";
 import type { Cuenta, Fijo, Sentido } from "@/datos/tipos";
 
 const TIPOS_GASTO: readonly (readonly [Categoria, string])[] = [
@@ -70,11 +68,6 @@ function FormularioFijo({ sentido, id, cerrar }: { sentido: Sentido; id: string 
   function enviar(e: FormEvent) {
     e.preventDefault();
     void envio.correr(async () => {
-      if (nombreFijoRepetido(datos, sentido, nombre, inicial?.id)) {
-        throw new ErrorDatos(
-          `Ya tienes ${sentido === "ingreso" ? "un ingreso" : "un gasto"} llamado así. Edítalo o ponle otro nombre: si no, el copiloto los contaría como uno solo.`,
-        );
-      }
       const fijo: Fijo = {
         id: inicial?.id ?? nuevoId("fijo"),
         descripcion: nombre,
