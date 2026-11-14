@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PERFILES } from "../datos/perfiles";
-import { analizar, formatoSoles } from "../motor";
+import { analizar, formatoLargo, formatoSoles } from "../motor";
 import { avisos, enLista, mejorJugada, paraVoz, proximosPagos, responderSinIA, resumenHablado } from "./explica";
 
 const [rosa, carlos, lucia] = PERFILES;
@@ -21,6 +21,20 @@ describe("avisos", () => {
     expect(jugada.resuelve).toBe(true);
     expect(a.rosa.jugadas.filter(j => j.resuelve).every(j => j.costo >= jugada.costo)).toBe(true);
     expect(avisos(rosa, a.rosa)[0].cuerpo).toContain(jugada.costo > 0 ? formatoSoles(jugada.costo) : "no cuesta dinero");
+  });
+
+  it("si el hueco crece después del primer día en rojo, dice hasta dónde llega y cuándo", () => {
+    const d = a.lucia.proyeccion.deficit!;
+    expect(d.faltanteMaximo).toBeGreaterThan(d.faltante);
+    const cuerpo = avisos(lucia, a.lucia)[0].cuerpo;
+    expect(cuerpo).toContain(`el hueco crece hasta ${formatoSoles(d.faltanteMaximo)} el ${formatoLargo(d.fechaFaltanteMaximo)}`);
+    expect(resumenHablado(lucia, a.lucia)).toContain(formatoSoles(d.faltanteMaximo));
+  });
+
+  it("si el primer día en rojo ya es el peor, no añade la frase del hueco", () => {
+    const d = a.rosa.proyeccion.deficit!;
+    expect(d.faltanteMaximo).toBe(d.faltante);
+    expect(avisos(rosa, a.rosa)[0].cuerpo).not.toContain("el hueco crece");
   });
 
   it("sin déficit: el primero es tranquilizador y dice el día más ajustado", () => {
