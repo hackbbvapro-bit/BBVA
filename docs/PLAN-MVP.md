@@ -9,12 +9,19 @@
 5. **2-3 jugadas con costo**: mover un pago, pagar el mínimo (costo en intereses), recortar un gasto.
 6. **Orden de deudas por TCEA** (avalancha) y ahorro frente a pagar en otro orden.
 7. **Explicación en lenguaje llano** generada por IA a partir de los números ya calculados.
+8. **Agente con voz** (decidido el 13-nov): se le pregunta hablando o escribiendo y contesta con voz.
+   Solo usa las herramientas del motor; no calcula ni inventa cifras.
+9. **Avisos**: campanita dentro de la app y notificación al celular (PWA instalada).
+
+Las ideas y por qué esta primero: `docs/IDEAS.md`.
 
 ## Lo que NO entra (aunque tiente)
 - Conexión real con bancos (no hay finanzas abiertas operativas en Perú todavía).
 - Mover dinero, pagar o contratar productos.
 - Inversiones, criptomonedas, recomendaciones de productos concretos.
-- Chat libre de propósito general: la IA solo habla de lo calculado.
+- Chat libre de propósito general: el agente conversa, pero solo sobre lo que calculó el motor
+  (si le preguntan otra cosa, lo dice y vuelve al tema).
+- Base de datos y cuentas de usuario: no hacen falta para la demo (ver `docs/INFRAESTRUCTURA.md`).
 
 ## Reparto sugerido (5 personas, ajustar)
 | Rol | Tarea |
