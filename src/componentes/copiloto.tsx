@@ -95,7 +95,7 @@ function Contenido() {
     );
   }
   function cambiarModo() {
-    if (perfil.id === ID_PROPIO && !window.confirm("Vas a volver a la pantalla de inicio. Si eliges el caso de Rosa o empiezas de nuevo, se reemplaza el caso que armaste, guardado en este equipo. ¿Continuar?")) return;
+    if (perfil.id === ID_PROPIO && !window.confirm("Vas a volver a la pantalla de inicio. Si eliges el caso de Andrea o empiezas de nuevo, se reemplaza el caso que armaste, guardado en este equipo. ¿Continuar?")) return;
     guardarModo(null);
     setReciente(false);
     setModo(null);
@@ -107,15 +107,15 @@ function Contenido() {
   );
 }
 
-/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo (Rosa) o el caso que armó la persona, y si algo sale del equipo. */
+/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo (Andrea) o el caso que armó la persona, y si algo sale del equipo. */
 function TarjetaModo({ demo, externo, cambiar }: { demo: boolean; externo: boolean; cambiar: () => void }) {
   return (
     <div className="rounded-xl border border-linea bg-papel p-3">
       <p className="flex items-center gap-2 text-[13px] font-semibold text-noche">
         <span aria-hidden="true" className={`size-2 rounded-full ${demo ? "bg-ambar" : "bg-verde"}`} />
-        {demo ? "Caso de Rosa (ejemplo)" : "Tu caso (simulación)"}
+        {demo ? "Caso de Andrea (ejemplo)" : "Tu caso (simulación)"}
       </p>
-      <p className="mt-1 text-xs leading-snug text-gris">{demo ? "Rosa es una persona inventada." : externo ? "IA y voz activadas: tu caso se envía para responderte." : "Sin IA ni voz: nada sale de este equipo."}</p>
+      <p className="mt-1 text-xs leading-snug text-gris">{demo ? "Andrea es una persona inventada." : externo ? "IA y voz activadas: tu caso se envía para responderte." : "Sin IA ni voz: nada sale de este equipo."}</p>
       <button onClick={cambiar} className="mt-1 min-h-9 text-[13px] font-semibold text-electrico hover:text-marino">
         {demo ? "Empezar con mi situación" : "Volver al inicio"}
       </button>

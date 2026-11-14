@@ -1,7 +1,7 @@
 /**
  * Compuerta única de privacidad del navegador. Todo lo que podría sacar datos de este equipo pregunta aquí
  * antes de hacerlo. Nace CERRADA: si algo falla o nadie la abre, no sale nada. Tiene dos niveles:
- *   - IA y voz (asistente, voz, dictado y lectura de un archivo): se abre en el caso de ejemplo (Rosa, inventada)
+ *   - IA y voz (asistente, voz, dictado y lectura de un archivo): se abre en el caso de ejemplo (Andrea, inventada)
  *     y en un caso armado por la persona SOLO si aceptó expresamente enviar ese caso inventado a servicios
  *     externos. Un archivo necesita además que la persona declare, cada vez, que el documento es inventado
  *     (ver `analizarDocumento`); el servidor vuelve a exigir esa declaración.

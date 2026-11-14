@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { analizar, formatoLargo, formatoSoles, soles } from "../motor";
 import type { Analisis, Perfil, Recurrente } from "../motor";
 import { aPerfil } from "../datos/aPerfil";
-import { datosDeRosa } from "../datos/semilla";
+import { datosDeEjemplo } from "../datos/semilla";
 import type { Datos } from "../datos/tipos";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "./entrada";
 import {
@@ -114,8 +114,8 @@ describe("hechosDe", () => {
 });
 
 describe("trazarRuta: a quién le toca cada ruta", () => {
-  it("Rosa, que tiene un día en negativo, va a estar en verde con el día y la jugada que lo resuelve", () => {
-    const datos = datosDeRosa();
+  it("Andrea, que tiene un día en negativo, va a estar en verde con el día y la jugada que lo resuelve", () => {
+    const datos = datosDeEjemplo();
     const perfil = aPerfil(datos);
     const analisis = analizar(perfil);
     const deficit = analisis.proyeccion.deficit!;
@@ -299,8 +299,8 @@ describe("saludoDeRuta", () => {
 
   it("en el caso de ejemplo saluda sin decir que armó nada ni hablar de fechas", () => {
     for (const { ruta } of casos) {
-      const texto = saludoDeRuta("Rosa", ruta, false);
-      expect(texto.startsWith("Hola, Rosa. Tu ruta es:")).toBe(true);
+      const texto = saludoDeRuta("Andrea", ruta, false);
+      expect(texto.startsWith("Hola, Andrea. Tu ruta es:")).toBe(true);
       expect(texto).not.toContain("armé tu caso");
       expect(texto).not.toContain("fechas aproximadas");
     }
@@ -322,13 +322,13 @@ describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
     caso(con({ saldo: soles(10_000), deuda: tarjeta(3000, 250) })).ruta, caso(con({ ingresoMensual: soles(1200), saldo: soles(100) })).ruta,
     caso(con({ ingresoMensual: 0, fijosMensual: 0, diaADiaMensual: 0 })).ruta,
   ];
-  const rosa = (() => {
-    const perfil = aPerfil(datosDeRosa());
+  const andrea = (() => {
+    const perfil = aPerfil(datosDeEjemplo());
     return trazarRuta(perfil, analizar(perfil));
   })();
 
   it("cada paso tiene un id de la lista, sin repetirse dentro de una ruta y en el mismo orden que los textos", () => {
-    for (const r of [...rutas, rosa]) {
+    for (const r of [...rutas, andrea]) {
       expect(r.idsPasos).toHaveLength(r.pasos.length);
       expect(new Set(r.idsPasos).size).toBe(r.idsPasos.length);
       for (const id of r.idsPasos) expect(IDS_PASO).toContain(id);
@@ -337,7 +337,7 @@ describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
 
   it("los ids de una ruta empiezan por su nombre: una marca de otra ruta no se cuela", () => {
     const prefijo = { estar_en_verde: "verde_", construir_historial: "historial_", hacer_crecer: "crecer_" } as const;
-    for (const r of [...rutas, rosa]) for (const id of r.idsPasos) expect(id.startsWith(prefijo[r.id])).toBe(true);
+    for (const r of [...rutas, andrea]) for (const id of r.idsPasos) expect(id.startsWith(prefijo[r.id])).toBe(true);
   });
 
   it("el id no cambia aunque cambie el texto del paso (otra cifra, misma tarea)", () => {
@@ -357,11 +357,11 @@ describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
   });
 
   it("cuenta lo marcado y el siguiente es el primer paso sin marcar, aunque se haya saltado uno", () => {
-    expect(rosa.pasos.length).toBeGreaterThanOrEqual(3);
-    const primero = avanceDe(rosa, [rosa.idsPasos[0]]);
-    expect(primero).toMatchObject({ cumplidos: 1, total: rosa.pasos.length, siguiente: rosa.pasos[1] });
-    const saltado = avanceDe(rosa, [rosa.idsPasos[1]]);
-    expect(saltado).toMatchObject({ cumplidos: 1, siguiente: rosa.pasos[0] });
+    expect(andrea.pasos.length).toBeGreaterThanOrEqual(3);
+    const primero = avanceDe(andrea, [andrea.idsPasos[0]]);
+    expect(primero).toMatchObject({ cumplidos: 1, total: andrea.pasos.length, siguiente: andrea.pasos[1] });
+    const saltado = avanceDe(andrea, [andrea.idsPasos[1]]);
+    expect(saltado).toMatchObject({ cumplidos: 1, siguiente: andrea.pasos[0] });
     expect(saltado.pasos.map(p => p.hecho).slice(0, 2)).toEqual([false, true]);
   });
 
@@ -370,16 +370,16 @@ describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
   });
 
   it("ignora marcas repetidas y marcas de pasos que hoy no están en la ruta", () => {
-    const ajenos = IDS_PASO.filter(id => !rosa.idsPasos.includes(id));
+    const ajenos = IDS_PASO.filter(id => !andrea.idsPasos.includes(id));
     expect(ajenos.length).toBeGreaterThan(0);
-    expect(avanceDe(rosa, [...ajenos, rosa.idsPasos[0], rosa.idsPasos[0]])).toMatchObject({ cumplidos: 1, total: rosa.pasos.length });
+    expect(avanceDe(andrea, [...ajenos, andrea.idsPasos[0], andrea.idsPasos[0]])).toMatchObject({ cumplidos: 1, total: andrea.pasos.length });
   });
 
   it("es pura: no cambia ni la ruta ni la lista de marcas", () => {
-    const marcas: IdPaso[] = [rosa.idsPasos[0]];
-    const antes = JSON.stringify([rosa, marcas]);
-    expect(avanceDe(rosa, marcas)).toEqual(avanceDe(rosa, marcas));
-    expect(JSON.stringify([rosa, marcas])).toBe(antes);
+    const marcas: IdPaso[] = [andrea.idsPasos[0]];
+    const antes = JSON.stringify([andrea, marcas]);
+    expect(avanceDe(andrea, marcas)).toEqual(avanceDe(andrea, marcas));
+    expect(JSON.stringify([andrea, marcas])).toBe(antes);
   });
 
   it("el contador concuerda en singular y en plural", () => {
@@ -388,34 +388,34 @@ describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
   });
 
   it("la frase dice por dónde va: sin empezar, a medias y terminado", () => {
-    expect(fraseAvance(avanceDe(rosa))).toMatch(/^Todavía no marcas ningún paso .* Tu primer paso: /);
-    const medias = fraseAvance(avanceDe(rosa, [rosa.idsPasos[0]]));
-    expect(medias).toContain(`Llevas 1 de ${rosa.pasos.length} pasos hechos`);
+    expect(fraseAvance(avanceDe(andrea))).toMatch(/^Todavía no marcas ningún paso .* Tu primer paso: /);
+    const medias = fraseAvance(avanceDe(andrea, [andrea.idsPasos[0]]));
+    expect(medias).toContain(`Llevas 1 de ${andrea.pasos.length} pasos hechos`);
     expect(medias).toContain("Tu siguiente paso: ");
-    expect(medias.toLowerCase()).toContain(rosa.pasos[1].toLowerCase());
-    expect(fraseAvance(avanceDe(rosa, rosa.idsPasos))).toMatch(/^Ya marcaste como hechos todos los pasos/);
+    expect(medias.toLowerCase()).toContain(andrea.pasos[1].toLowerCase());
+    expect(fraseAvance(avanceDe(andrea, andrea.idsPasos))).toMatch(/^Ya marcaste como hechos todos los pasos/);
     for (const r of rutas) for (const marcas of [[], r.idsPasos.slice(0, 1), r.idsPasos]) {
       expect(fraseAvance(avanceDe(r, marcas))).not.toMatch(/BBVA|undefined|NaN|null/i);
     }
   });
 
   it("la versión hablada y el saludo retoman donde quedó la persona; sin avance no cambian", () => {
-    const sin = avanceDe(rosa);
-    expect(rutaHablada(rosa, sin)).toBe(rutaHablada(rosa));
-    expect(saludoDeRuta("Rosa", rosa, false, sin)).toBe(saludoDeRuta("Rosa", rosa, false));
+    const sin = avanceDe(andrea);
+    expect(rutaHablada(andrea, sin)).toBe(rutaHablada(andrea));
+    expect(saludoDeRuta("Andrea", andrea, false, sin)).toBe(saludoDeRuta("Andrea", andrea, false));
 
-    const medias = avanceDe(rosa, [rosa.idsPasos[0]]);
-    const hablada = rutaHablada(rosa, medias);
-    expect(hablada).toContain(rosa.resumen);
-    expect(hablada).toContain(`Llevas 1 de ${rosa.pasos.length} pasos hechos. Siguiente paso: `);
+    const medias = avanceDe(andrea, [andrea.idsPasos[0]]);
+    const hablada = rutaHablada(andrea, medias);
+    expect(hablada).toContain(andrea.resumen);
+    expect(hablada).toContain(`Llevas 1 de ${andrea.pasos.length} pasos hechos. Siguiente paso: `);
     expect(hablada).not.toContain("Primer paso");
-    const saludo = saludoDeRuta("Lucía", rosa, true, medias);
+    const saludo = saludoDeRuta("Lucía", andrea, true, medias);
     expect(saludo.startsWith("Hola de nuevo, Lucía.")).toBe(true);
     expect(saludo).toContain(hablada);
     expect(saludo).not.toContain("armé tu caso");
     expect(saludo.endsWith("¿Qué quieres saber?")).toBe(true);
 
-    expect(rutaHablada(rosa, avanceDe(rosa, rosa.idsPasos))).toContain("Ya marcaste como hechos todos sus pasos");
+    expect(rutaHablada(andrea, avanceDe(andrea, andrea.idsPasos))).toContain("Ya marcaste como hechos todos sus pasos");
   });
 
   it("el esquema solo acepta ids de la lista: ni texto libre ni listas enormes", () => {

@@ -13,7 +13,7 @@ const GLOSARIO: readonly (readonly [string, string])[] = [
   ["Faltante (déficit)", "El día en que tu saldo proyectado baja de cero y cuánto dinero te falta ese día."],
   ["Saldo proyectado", "Cuánto dinero tendrías cada día de los próximos 30 si entra lo que suele entrar y salen tus gastos y pagos."],
   ["Calificación SBS", "La nota que las entidades le ponen a cada deuda según los días de atraso: Normal, CPP, Deficiente, Dudoso o Pérdida. Mientras más atraso, peor la nota. Aquí solo se muestra una simulación a partir de los días de atraso del caso, no una calificación oficial."],
-  ["Jugada", "Un cambio que pruebas antes de hacerlo (por ejemplo, cambiar la fecha de un pago) para ver cómo cambia tu saldo. No mueve tu dinero real."],
+  ["Jugada", "Un cambio que pruebas antes de hacerlo (por ejemplo, pausar tus suscripciones este mes) para ver cómo cambia tu saldo. No mueve tu dinero real."],
 ];
 
 /** Pantalla de lectura: una columna, sin tarjetas repetidas. Es contenido fijo; no depende de la base. */
@@ -70,7 +70,7 @@ export function ComoFunciona() {
         </h2>
         <ul className="mt-3 space-y-2 leading-relaxed text-tinta">
           <li>Los datos del caso se guardan en este navegador, no en un servidor nuestro.</li>
-          <li>En el caso de ejemplo (Rosa, datos inventados), cuando hablas con el copiloto se envía a servicios externos de IA y de voz lo necesario para contestarte: las cifras del caso y tu mensaje. Nosotros no lo guardamos.</li>
+          <li>En el caso de ejemplo (Andrea, datos inventados), cuando hablas con el copiloto se envía a servicios externos de IA y de voz lo necesario para contestarte: las cifras del caso y tu mensaje. Nosotros no lo guardamos.</li>
           <li>En tu propio caso de simulación, las cifras que escribes no salen de este equipo mientras no actives «IA y voz»: el copiloto responde con reglas. Si la activas, tu caso y tus preguntas viajan a servicios externos de IA y de voz; no pongas datos reales.</li>
           <li>El reporte de ejemplo trae la lectura precargada; solo se guarda lo que tú confirmas.</li>
           <li>Es un prototipo con datos inventados: no escribas datos reales tuyos ni de otras personas. No se piden ni se guardan claves, DNI ni tarjetas.</li>

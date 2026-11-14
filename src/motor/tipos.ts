@@ -163,7 +163,7 @@ export type Ajuste =
   | { tipo: "cambiar_monto"; recurrenteId: string; fecha: FechaISO; monto: Centimos }
   | { tipo: "recortar"; categoria: Categoria; bp: PuntosBasicos; hasta: FechaISO };
 
-export type TipoJugada = "mover_pago" | "pagar_minimo" | "recortar_gasto";
+export type TipoJugada = "pausar_suscripciones" | "pagar_minimo" | "recortar_gasto";
 
 export interface Jugada {
   id: string;

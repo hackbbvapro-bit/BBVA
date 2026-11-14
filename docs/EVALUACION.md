@@ -269,6 +269,10 @@ Costo medio de seguir la jugada: 4 céntimos.
 |---|---:|---:|---:|
 | Recortar un gasto | 131 | 19,1 % | 43,6 % |
 | Mover un pago | 55 | 5,5 % | 2,0 % |
+
+> Nota (14-nov-2026): estas cifras se midieron con la versión anterior de las jugadas. La app ya no propone
+> mover la fecha de pago (no sirve para el mes en curso) y el recorte ya no toca la comida; hay que volver a
+> medir con las jugadas actuales antes de citar estos porcentajes.
 | Pagar el mínimo | 0 | — | — |
 
 **Lectura sin adornos.**
