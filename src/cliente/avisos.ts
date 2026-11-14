@@ -2,7 +2,7 @@
  * Notificaciones en el celular. No se guarda nada en ningún servidor:
  * la suscripción vive en el navegador y se manda solo al pedir un aviso.
  */
-import { documentosPermitidos } from "./salidas";
+import { avisosRemotosPermitidos } from "./salidas";
 
 export type EstadoAvisos =
   | "no_soportado"    // este navegador no puede recibir avisos
@@ -71,7 +71,7 @@ export async function activarAvisos(): Promise<EstadoAvisos> {
     if (permiso !== "granted") return permiso === "denied" ? "denegado" : "sin_permiso";
     // En un caso propio el permiso sirve solo para avisos locales: no se crea suscripción remota.
     const reg = await registro();
-    if (documentosPermitidos()) await suscripcion(reg);
+    if (avisosRemotosPermitidos()) await suscripcion(reg);
     return "activo";
   } catch {
     return "no_soportado";
@@ -88,7 +88,7 @@ export async function enviarAvisoDePrueba(perfilId: string, respaldo: { titulo: 
   try {
     const reg = await registro();
     // Caso propio: sin suscripción ni envío al servidor; solo el aviso local.
-    const sub = documentosPermitidos() ? await suscripcion(reg) : null;
+    const sub = avisosRemotosPermitidos() ? await suscripcion(reg) : null;
     if (sub) {
       const respuesta = await fetch("/api/avisos", {
         method: "POST",
