@@ -19,8 +19,11 @@ Lo que lo respalda (ver informes):
 - Lo que BBVA Perú ya tiene: categorías, presupuestos, metas, compra de deuda, adelanto de
   sueldo y Blue. Lo que no encontramos en Perú y sí en España o México [PROBABLE, sin cuenta
   para comprobarlo]: previsión de saldo, coach de salud financiera, simulador de intereses — `06`.
-- Confianza: 28 % confía en la IA; se acepta más la IA que **protege** (57 %) que la que
-  **aconseja** (44 %) (Ipsos 2026). Más de 4 mensajes la primera semana perjudica (CGAP) — `08`.
+- Confianza (corregido el 13-nov, ver `10`): 28 % de los peruanos confía en los *chatbots* de IA
+  (Ipsos 2026, muestra de 500, leído en prensa). Según Experian Perú (mar-2026), 57 % aceptaría
+  IA para aprobar o rechazar créditos y 44 % para apps de finanzas personales; la lectura
+  «protege frente a aconseja» era nuestra, no de la fuente. El límite de 4 mensajes la primera
+  semana (CGAP) queda [SIN VERIFICAR] — `08`, `10`.
 
 ## Idea A (recomendada): Copiloto anticipador con voz
 **Qué hace.** Proyecta el saldo a 30 días, avisa del día en que no alcanza con su causa, y

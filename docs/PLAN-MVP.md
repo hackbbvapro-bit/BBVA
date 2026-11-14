@@ -40,10 +40,13 @@ Las ideas y por qué esta primero: `docs/IDEAS.md`.
   bloqueados; el dueño del proyecto en Vercel debe ser quien integre, o usar repo público / plan Pro.
 
 ## Guion de la demo (3 minutos)
-1. **El problema** (30 s): 37 % de peruanos no tiene colchón para un mes; las apps te dicen en qué
-   gastaste, no lo que viene.
+1. **El problema** (30 s): solo 39 % de los peruanos podría afrontar un gasto imprevisto de un mes
+   de ingresos (SBS-CAF, 2026); las apps te dicen en qué gastaste, no lo que viene. Las frases
+   con fuente están en `investigacion/10-verificacion-de-cifras.md`.
 2. **La persona** (20 s): independiente con ingresos irregulares, dos tarjetas, Yape diario.
-3. **El aviso** (60 s): «el día 23 te faltan S/ 180» → por qué → 3 jugadas con su costo.
+3. **El aviso** (60 s): «el lunes 23 te faltarán S/ 200.00» (perfil Rosa) → por qué → 3 jugadas
+   con su costo. El guion detallado, con las cifras que hoy muestra la app, está en
+   `docs/GUIA-FINAL.md`.
 4. **La deuda** (40 s): qué tarjeta pagar primero y cuánto ahorra.
 5. **Confianza** (30 s): todos los números salen de un motor con tests; la IA solo explica.
 
