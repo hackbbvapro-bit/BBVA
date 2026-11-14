@@ -13,7 +13,7 @@ Marcas: **[MEDIDO]** salió de ejecutar algo · **[ASUMIDO]** no se comprobó to
 | Motor que calcula, pantallas, chat, avisos dentro de la app | Funciona y está probado en vista de celular **[MEDIDO]** |
 | Código en GitHub | En `main` de `github.com/hackbbvapro-bit/BBVA` (repositorio del equipo) desde el 14-nov-2026 **[MEDIDO]** |
 | Dirección pública (producción) | **Publicada** en `https://copiloto-anticipador-hack.vercel.app`. Cada cambio en `main` la vuelve a publicar sola **[MEDIDO]**. Es pública, sin contraseña |
-| Claves de notificaciones | En `.env.local`; **falta cargarlas en el Vercel del equipo** |
+| Claves de notificaciones | Cargadas en el Vercel del equipo (producción y vista previa); `/api/estado` da `"push":true` [MEDIDO el 14-nov] |
 | Agente de IA (Anthropic) | Código listo. **Falta la clave. Nunca se probó con una clave real** |
 | Voz (Fish Audio) | Código listo. **Faltan la clave y el id de la voz. Nunca se probó con una clave real** |
 | Micrófono y notificaciones en un celular real | **Sin probar** |
@@ -71,7 +71,8 @@ Abre `http://localhost:3000` y comprueba, en este orden:
 
 La app ya está publicada en `https://copiloto-anticipador-hack.vercel.app` **[MEDIDO el 14-nov]**: la
 pantalla carga con Rosa y el chat responde con el motor («Respuesta del motor, sin IA»). Ahí
-`/api/estado` devuelve hoy `"ia":false` y `"voz":false` porque faltan tus claves.
+`/api/estado` devuelve hoy `"ia":false`, `"voz":false` y `"push":true`: las notificaciones ya
+están cargadas; faltan tus claves de Anthropic y Fish Audio.
 
 1. Cuando cargues las claves en Vercel: Deployments → el último → **Redeploy**. Una variable nueva
    solo vale desde la siguiente publicación.
