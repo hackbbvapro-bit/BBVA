@@ -84,23 +84,21 @@ export function ListaEditable({
                 id={`${prefijo}-${f.id}`}
                 onClick={() => setAbierto(f.id)}
                 aria-label={`Editar ${f.principal}, ${f.monto}`}
-                className={`-mx-2 flex min-h-14 w-[calc(100%+1rem)] items-center justify-between gap-4 rounded-xl px-2 py-3 text-left transition-colors hover:bg-niebla ${f.apagada ? "opacity-60" : ""}`}
+                className={`-mx-2 grid min-h-14 w-[calc(100%+1rem)] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 rounded-xl px-2 py-3 text-left transition-colors hover:bg-niebla ${f.apagada ? "opacity-60" : ""}`}
               >
-                <span className="min-w-0">
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="font-medium text-noche">{f.principal}</span>
-                    {f.etiqueta && (
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TONOS_ETIQUETA[f.etiqueta.tono]}`}>{f.etiqueta.texto}</span>
-                    )}
-                  </span>
-                  {f.secundario && <span className="block text-sm text-gris">{f.secundario}</span>}
+                <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="font-medium text-noche">{f.principal}</span>
+                  {f.etiqueta && (
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TONOS_ETIQUETA[f.etiqueta.tono]}`}>{f.etiqueta.texto}</span>
+                  )}
                 </span>
-                <span className="flex shrink-0 items-center gap-3">
+                <span className="flex shrink-0 items-center gap-3 sm:row-span-2 sm:row-start-1 sm:col-start-2">
                   <span className="font-semibold text-noche tabular-nums">{unido(f.monto)}</span>
                   <span className="text-gris">
                     <Icono nombre="lapiz" />
                   </span>
                 </span>
+                {f.secundario && <span className="col-span-2 mt-0.5 text-sm text-gris sm:col-span-1 sm:row-start-2">{f.secundario}</span>}
               </button>
             )}
           </li>
