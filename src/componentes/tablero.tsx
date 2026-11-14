@@ -1,10 +1,12 @@
 "use client";
 import { formatoLargo, formatoSoles, type Analisis, type Jugada, type Perfil, type Proyeccion } from "@/motor";
 import { enLista, mejorJugada, type Aviso } from "@/explica/explica";
-import { Grafico } from "@/componentes/grafico";
+import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Icono, unido } from "@/componentes/ui";
+import type { CobroPendiente } from "@/motor";
 
 type Props = {
+  cobros: CobroPendiente[];
   perfil: Perfil;
   analisis: Analisis;
   aviso: Aviso;
@@ -81,7 +83,7 @@ function Etiquetas({ j, barata }: { j: Jugada; barata: boolean }) {
 }
 
 /* «Pulso» (ANCLA): estructura de Flex en claro; el aviso es la única superficie azul grande de la app. */
-export function Tablero({ perfil, analisis, aviso, jugada, despues, elegir, sonando, alternarVoz }: Props) {
+export function Tablero({ cobros, perfil, analisis, aviso, jugada, despues, elegir, sonando, alternarVoz }: Props) {
   const p = pulso(analisis);
   const barata = mejorJugada(analisis)?.id;
   return (
@@ -139,7 +141,7 @@ export function Tablero({ perfil, analisis, aviso, jugada, despues, elegir, sona
             <h2 className="text-lg font-semibold tracking-[-0.01em] text-noche">Tus próximos 30 días</h2>
             <p className="text-right text-sm text-gris">{jugada ? "Con la jugada que elegiste" : "Así se movería tu saldo"}</p>
           </div>
-          <Grafico base={analisis.proyeccion} despues={despues} descripcion={`${aviso.titulo}. ${aviso.cuerpo}`} ancho={460} />
+          <GraficoSiTePagan base={analisis.proyeccion} despues={despues} cobros={cobros} descripcion={`${aviso.titulo}. ${aviso.cuerpo}`} ancho={460} />
           {despues && <Efecto despues={despues} />}
           {!despues && analisis.proyeccion.deficit && (
             <div className="mt-5 border-t border-linea pt-4">

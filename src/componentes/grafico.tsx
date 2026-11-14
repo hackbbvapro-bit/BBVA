@@ -5,12 +5,15 @@ import { formatoCorto, formatoSoles, type Proyeccion } from "@/motor";
 export function Grafico({
   base,
   despues,
+  siPagan,
   descripcion,
   ancho = 350,
   fondo = "white",
 }: {
   base: Proyeccion;
   despues?: Proyeccion;
+  /** Saldo día a día si entran los cobros prometidos (misma longitud que base.dias); se dibuja punteado. */
+  siPagan?: { saldo: number }[];
   descripcion: string;
   /** Ancho del lienzo SVG: en escritorio el gráfico se estira sin agrandar letras. */
   ancho?: number;
@@ -23,7 +26,7 @@ export function Grafico({
     guia = "var(--color-linea-fuerte)",
     borde = fondo;
   const id = useId().replace(/:/g, "");
-  const valores = [...base.dias, ...(despues?.dias ?? [])].map(d => d.saldo);
+  const valores = [...base.dias, ...(despues?.dias ?? []), ...(siPagan ?? [])].map(d => d.saldo);
   const minimo = Math.min(...valores),
     maximo = Math.max(...valores);
   const inferior = Math.min(0, minimo),
@@ -103,6 +106,17 @@ export function Grafico({
         strokeLinejoin="round"
         strokeLinecap="round"
       />
+      {siPagan && !despues && (
+        <path
+          d={siPagan.map((d, i) => `${i ? "L" : "M"}${x(i)},${y(d.saldo)}`).join(" ")}
+          fill="none"
+          stroke="var(--color-verde-fuerte)"
+          strokeWidth="2.5"
+          strokeDasharray="1 6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
       {despues && (
         <g key={linea(despues)}>
           <path d={area(despues)} clipPath={`url(#${id}-sobre)`} fill={`url(#${id}-agua)`} className="aparecer" />

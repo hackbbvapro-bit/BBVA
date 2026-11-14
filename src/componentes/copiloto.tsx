@@ -160,7 +160,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
           </p>
         )}
         {pestana === "hoy" && (
-          <Hoy perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} />
+          <Hoy perfil={perfil} analisis={analisis} cobros={datos.cobros} leer={leer} detener={detener} sonando={sonando} />
         )}
         {pestana === "dinero" && (
           <div className="md:mx-auto md:max-w-4xl md:px-8 md:py-10">

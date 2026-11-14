@@ -9,20 +9,23 @@ import {
   type Analisis,
   type Jugada,
   type Proyeccion,
+  type CobroPendiente,
 } from "@/motor";
 import { avisos, mejorJugada, proximosPagos, resumenHablado, type Aviso } from "@/explica/explica";
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
-import { Grafico } from "@/componentes/grafico";
+import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { boton, tarjeta, Icono, desplazar, unido } from "@/componentes/ui";
 import { Tablero, cifras, pulso } from "@/componentes/tablero";
 
 export function Hoy({
   perfil,
   analisis,
+  cobros = [],
   sonando,
   leer,
   detener,
 }: {
+  cobros?: CobroPendiente[];
   perfil: Perfil;
   analisis: Analisis;
   sonando: boolean;
@@ -41,6 +44,7 @@ export function Hoy({
     <>
     <div className="hidden lg:block">
       <Tablero
+        cobros={cobros}
         perfil={perfil}
         analisis={analisis}
         aviso={principal}
@@ -78,9 +82,10 @@ export function Hoy({
             )}
           </div>
         </div>
-        <Grafico
+        <GraficoSiTePagan
           base={analisis.proyeccion}
           despues={despues}
+          cobros={cobros}
           descripcion={`${principal.titulo}. ${principal.cuerpo}`}
           fondo="white"
         />
