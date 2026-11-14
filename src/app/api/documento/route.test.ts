@@ -30,7 +30,7 @@ const peticion = (cuerpo: unknown, cabeceras: Record<string, string> = {}) =>
     },
     body: typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo),
   });
-const conArchivo = (tipo = "image/png", datosBase64 = PNG) => ({ nombre: "reporte.png", tipo, datosBase64 });
+const conArchivo = (tipo = "image/png", datosBase64 = PNG) => ({ nombre: "reporte.png", tipo, datosBase64, inventado: true });
 const respuestaIA = (texto: string) => ({ stop_reason: "end_turn", content: [{ type: "text", text: texto }] });
 
 beforeEach(() => {
@@ -88,6 +88,23 @@ describe("POST /api/documento: validación del archivo", () => {
   it("400 si el cuerpo no es JSON o falta el archivo", async () => {
     expect((await POST(peticion("esto no es json"))).status).toBe(400);
     expect((await POST(peticion({ tipo: "image/png" }))).status).toBe(400);
+  });
+});
+
+describe("POST /api/documento: solo documentos inventados", () => {
+  it("403 falta_declaracion si no llega la declaración, sin llamar al SDK aunque haya clave", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "clave-falsa-de-prueba");
+    const sinDeclarar: Record<string, unknown> = conArchivo();
+    delete sinDeclarar.inventado;
+    for (const cuerpo of [sinDeclarar, { ...sinDeclarar, inventado: false }]) {
+      const r = await POST(peticion(cuerpo));
+      expect(r.status).toBe(403);
+      expect((await r.json()).error).toBe("falta_declaracion");
+    }
+    expect(crear).not.toHaveBeenCalled();
+  });
+  it("400 si la declaración no es un booleano", async () => {
+    expect((await POST(peticion({ ...conArchivo(), inventado: "sí" }))).status).toBe(400);
   });
 });
 

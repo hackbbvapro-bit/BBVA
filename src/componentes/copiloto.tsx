@@ -187,7 +187,8 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
   const [situacion, setSituacion] = useState(() => leerSituacion());
   const externo = demo || situacion.externo;
   // Compuerta de privacidad: se fija en el render (antes que los efectos de los hijos). IA y voz: en el ejemplo,
-  // o en un caso propio si la persona lo aceptó. Subir documentos y avisos remotos: solo en el ejemplo.
+  // o en un caso propio si la persona lo aceptó (un archivo exige además declarar que es inventado).
+  // Avisos remotos: solo en el ejemplo.
   fijarSalidas(externo, demo);
   const hechos = useMemo(() => hechosDe(datos, situacion.tuvoCredito), [datos, situacion.tuvoCredito]);
   const ruta = useMemo(() => trazarRuta(perfil, analisis, hechos), [perfil, analisis, hechos]);

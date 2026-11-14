@@ -18,6 +18,8 @@ const Peticion = z.object({
   nombre: z.string().max(200).optional(),
   tipo: z.string().max(100),
   datosBase64: z.string().min(1),
+  // Declaración de la persona: el documento es inventado. Sin ella no se lee nada.
+  inventado: z.boolean().optional(),
 });
 
 /** Error con código corto y mensaje en español para la persona. Nunca datos del documento ni del proveedor. */
@@ -42,7 +44,8 @@ async function leerCuerpo(req: Request): Promise<Cuerpo> {
 
 /**
  * Lee un documento (foto o PDF) y devuelve la extracción estructurada.
- * Petición: JSON `{ nombre?, tipo, datosBase64 }`. Respuesta 200: `Extraccion`. Errores: `{ error, mensaje }`.
+ * Petición: JSON `{ nombre?, tipo, datosBase64, inventado: true }`. Respuesta 200: `Extraccion`.
+ * Errores: `{ error, mensaje }`. El archivo no se guarda ni se registra.
  */
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
@@ -57,6 +60,10 @@ export async function POST(req: Request): Promise<Response> {
   if (!cuerpo.ok) return cuerpo.respuesta;
   const peticion = Peticion.safeParse(cuerpo.datos);
   if (!peticion.success) return fallo("peticion_invalida", "Falta el archivo o su tipo.", 400);
+  // Solo documentos inventados: el navegador ya lo exige, pero esta puerta no depende de él.
+  if (peticion.data.inventado !== true) {
+    return fallo("falta_declaracion", "Confirma que el documento es inventado antes de subirlo. No se leen documentos con datos reales.", 403);
+  }
   const archivo = validarArchivo(peticion.data.tipo, peticion.data.datosBase64);
   if (!archivo.ok) return fallo(archivo.error, archivo.mensaje, archivo.estado);
 
