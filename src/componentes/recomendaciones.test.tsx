@@ -25,7 +25,7 @@ describe("Recomendaciones", () => {
     expect(html).toContain("Tarjeta de crédito con garantía líquida BBVA");
     expect(html).toContain("Por qué te lo sugerimos:");
     expect(html).toContain("12 días de atraso");
-    expect(html).toContain("Depósito desde S/ 700 como garantía");
+    expect(html).toContain("Depósito mínimo S/ 500 como garantía");
     expect(html).toContain('href="https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-de-credito-garantia-liquida.html"');
     expect(html).toContain('target="_blank"');
     expect(html).toContain('rel="noreferrer"');

@@ -3,9 +3,9 @@
 export const TIPOS_PERMITIDOS = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
 export type TipoPermitido = (typeof TIPOS_PERMITIDOS)[number];
 
-export const MAXIMO_ARCHIVO_BYTES = 4 * 1024 * 1024;
-/** Tope del cuerpo JSON completo: 4 MB en base64 son ~5,6 MB. */
-export const MAXIMO_CUERPO_BYTES = 6_000_000;
+export const MAXIMO_ARCHIVO_BYTES = 3 * 1024 * 1024;
+/** Tope del cuerpo JSON completo: 3 MB en base64 son ~4,2 MB; Vercel corta el cuerpo a 4,5 MB. */
+export const MAXIMO_CUERPO_BYTES = 4_400_000;
 
 export type ResultadoArchivo =
   | { ok: true; tipo: TipoPermitido; base64: string; bytes: number }
@@ -51,7 +51,7 @@ export function validarArchivo(tipo: string, datosBase64: string): ResultadoArch
   const relleno = limpio.endsWith("==") ? 2 : limpio.endsWith("=") ? 1 : 0;
   const bytes = (limpio.length / 4) * 3 - relleno;
   if (bytes > MAXIMO_ARCHIVO_BYTES) {
-    return falla(413, "archivo_muy_grande", "El archivo pesa más de 4 MB. Sube uno más liviano.");
+    return falla(413, "archivo_muy_grande", "El archivo pesa más de 3 MB. Sube uno más liviano.");
   }
   if (!firmaCoincide(tipo, Buffer.from(limpio, "base64"))) {
     return falla(400, "firma_no_coincide", "El contenido del archivo no coincide con su tipo. Sube una foto o PDF real.");

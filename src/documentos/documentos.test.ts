@@ -94,7 +94,7 @@ describe("validarArchivo", () => {
       expect(validarArchivo(tipo, base64(PNG))).toMatchObject({ ok: false, estado: 415 });
     }
   });
-  it("413 si el archivo decodificado pesa más de 4 MB", () => {
+  it("413 si el archivo decodificado pesa más de 3 MB", () => {
     expect(validarArchivo("image/png", base64(PNG, MAXIMO_ARCHIVO_BYTES + 1))).toMatchObject({
       ok: false,
       estado: 413,

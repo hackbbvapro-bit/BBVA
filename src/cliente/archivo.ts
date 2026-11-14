@@ -1,8 +1,8 @@
 import { Extraccion } from "@/documentos/esquema";
 
 export const TIPOS_ACEPTADOS = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
-export const MAXIMO_BYTES = 4 * 1024 * 1024;
-const LADO_MAXIMO = 2000;
+export const MAXIMO_BYTES = 3 * 1024 * 1024;
+const LADO_MAXIMO = 1600;
 
 export interface ArchivoListo {
   nombre: string;
@@ -16,7 +16,7 @@ export class ErrorArchivo extends Error {}
 export function mensajeDeEstado(estado: number, mensaje?: string): string {
   if (mensaje) return mensaje;
   if (estado === 401) return "Tu sesión terminó. Vuelve a entrar y prueba otra vez.";
-  if (estado === 413) return "El archivo es demasiado grande. Sube uno de menos de 4 MB.";
+  if (estado === 413) return "El archivo es demasiado grande. Sube uno de menos de 3 MB.";
   if (estado === 415) return "Ese tipo de archivo no se puede leer. Usa una foto (JPG, PNG, WebP) o un PDF.";
   if (estado === 429) return "Hiciste muchos intentos seguidos. Espera un minuto y vuelve a probar.";
   if (estado === 503) return "El análisis con IA no está disponible ahora. Puedes usar el reporte SBS de ejemplo.";
@@ -47,7 +47,7 @@ export async function prepararArchivo(archivo: File): Promise<ArchivoListo> {
   if (!(TIPOS_ACEPTADOS as readonly string[]).includes(archivo.type))
     throw new ErrorArchivo("Ese tipo de archivo no se puede leer. Usa una foto (JPG, PNG, WebP) o un PDF.");
   if (archivo.type === "application/pdf") {
-    if (archivo.size > MAXIMO_BYTES) throw new ErrorArchivo("El PDF pesa más de 4 MB. Sube uno más liviano o una foto de la página.");
+    if (archivo.size > MAXIMO_BYTES) throw new ErrorArchivo("El PDF pesa más de 3 MB. Sube uno más liviano o una foto de la página.");
     return { nombre: archivo.name, tipo: archivo.type, datosBase64: aBase64(new Uint8Array(await archivo.arrayBuffer())) };
   }
   let imagen;
