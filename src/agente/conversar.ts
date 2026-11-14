@@ -5,6 +5,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { responderSinIA } from "../explica/explica";
 import type { Analisis, Perfil } from "../motor";
+import type { Ruta } from "../ruta/ruta";
 import { claveAnthropic, modeloAnthropic } from "../servidor/entorno";
 import { registrarFallo } from "../servidor/registro";
 import { crearHerramientas } from "./herramientas";
@@ -22,6 +23,8 @@ export interface EntradaAgente {
   analisis: Analisis;
   mensajes: readonly MensajeEntrada[];
   senal?: AbortSignal;
+  /** Ruta trazada por el motor en el servidor; habilita la herramienta ver_ruta. */
+  ruta?: Ruta;
 }
 
 const MAXIMO_DE_VUELTAS = 6;
@@ -47,8 +50,8 @@ async function* conIA(clave: string, entrada: EntradaAgente): AsyncGenerator<str
     {
       model: modeloAnthropic(),
       max_tokens: MAXIMO_DE_TOKENS,
-      system: promptSistema(entrada.perfil, entrada.analisis),
-      tools: crearHerramientas(entrada.perfil, entrada.analisis),
+      system: promptSistema(entrada.perfil, entrada.analisis, entrada.ruta),
+      tools: crearHerramientas(entrada.perfil, entrada.analisis, entrada.ruta),
       messages: limpiarMensajes(entrada.mensajes).map(m => ({
         role: m.rol === "usuario" ? ("user" as const) : ("assistant" as const),
         content: m.texto,
@@ -100,6 +103,6 @@ export async function* responder(entrada: EntradaAgente): AsyncGenerator<EventoA
     }
   }
   const pregunta = ultimaPregunta(entrada.mensajes) ?? "";
-  yield { tipo: "texto", texto: responderSinIA(pregunta, entrada.perfil, entrada.analisis) };
+  yield { tipo: "texto", texto: responderSinIA(pregunta, entrada.perfil, entrada.analisis, entrada.ruta) };
   yield { tipo: "fin", origen: "respaldo" };
 }

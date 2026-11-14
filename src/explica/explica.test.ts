@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { PERFILES } from "../datos/perfiles";
 import { analizar, formatoLargo, formatoSoles } from "../motor";
+import { aPerfil } from "../datos/aPerfil";
+import { armarCaso, tuvoCreditoSegun, type Respuestas } from "../ruta/entrada";
+import { fraseLibre, hechosDe, rutaExplicada, trazarRuta } from "../ruta/ruta";
 import { avisos, enLista, mejorJugada, paraVoz, proximosPagos, responderSinIA, resumenHablado } from "./explica";
 
 const [rosa, carlos, lucia] = PERFILES;
@@ -157,5 +160,42 @@ describe("texto para voz", () => {
     expect(enLista(["a"])).toBe("a");
     expect(enLista(["a", "b", "a"])).toBe("a y b");
     expect(enLista(["a", "b", "c"])).toBe("a, b y c");
+  });
+});
+
+describe("respuestas sin IA cuando hay ruta", () => {
+  const respuestas: Respuestas = {
+    nombre: "Lucho", cobro: "fin_de_mes", ingresoMensual: 320_000, saldo: 90_000,
+    fijosMensual: 110_000, diaADiaMensual: 100_000, deuda: null, tuvoCredito: false, hoy: "2026-11-14",
+  };
+  const datos = armarCaso(respuestas);
+  const perfil = aPerfil(datos);
+  const analisis = analizar(perfil);
+  const ruta = trazarRuta(perfil, analisis, hechosDe(datos, tuvoCreditoSegun(respuestas)));
+
+  it("el caso de prueba es de quien nunca tuvo crédito", () => {
+    expect(ruta.id).toBe("construir_historial");
+  });
+
+  it("cuánto queda libre sale del flujo que calculó el motor", () => {
+    expect(responderSinIA("¿Cuánto me queda libre al mes?", perfil, analisis, ruta)).toBe(fraseLibre(ruta.flujo));
+  });
+
+  it("por dónde empezar, historial y tarjeta con garantía explican la ruta completa con su aviso", () => {
+    for (const pregunta of ["¿Por dónde empiezo?", "¿Cómo construyo mi historial?", "¿Qué es una tarjeta con garantía?", "¿Qué me conviene?"]) {
+      const texto = responderSinIA(pregunta, perfil, analisis, ruta);
+      expect(texto).toBe(rutaExplicada(ruta));
+      expect(texto).toContain(ruta.aviso);
+    }
+  });
+
+  it("un gasto concreto sigue respondiéndose con la simulación, no con la ruta", () => {
+    const texto = responderSinIA("¿Me alcanza para un gasto de 200 soles?", perfil, analisis, ruta);
+    expect(texto).not.toBe(rutaExplicada(ruta));
+    expect(texto).toContain("S/ 200.00");
+  });
+
+  it("sin ruta se comporta igual que antes", () => {
+    expect(responderSinIA("¿Por dónde empiezo?", rosa, a.rosa)).toBe(resumenHablado(rosa, a.rosa));
   });
 });

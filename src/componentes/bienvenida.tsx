@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
 import { useDatos } from "@/componentes/datos";
-import { Seleccion, Texto, mensajeDeError } from "@/componentes/formularios";
-import { Icono, Marca, botonPrincipal, botonSecundario } from "@/componentes/ui";
-import { leerSoles } from "@/datos/formulario";
-import { ErrorDatos } from "@/datos/validar";
-import { datosVacios, hoyEnLima } from "@/datos/semilla";
-import type { TipoPerfil } from "@/motor/tipos";
+import { Entrada } from "@/componentes/entrada";
+import { mensajeDeError } from "@/componentes/formularios";
+import { Icono, Marca } from "@/componentes/ui";
+import { borrarSituacion, guardarSituacion } from "@/cliente/situacion";
+import { desbloquearAudio } from "@/cliente/voz";
+import { armarCaso, tuvoCreditoSegun, type Respuestas } from "@/ruta/entrada";
 
 export type Modo = "propio" | "demo";
 const CLAVE = "copiloto-modo";
@@ -29,44 +29,33 @@ export function guardarModo(modo: Modo | null) {
   }
 }
 
-const TIPOS = [
-  ["dependiente", "Sueldo fijo"],
-  ["independiente", "Por cuenta propia (ingresos variables)"],
-  ["mixto", "Las dos cosas"],
-] as const;
-
 const PASOS = [
   ["calendario", "Proyecta tu saldo día a día", "Mira los próximos 30 días y te dice qué día te faltaría plata."],
   ["deudas", "Ordena las deudas", "Tarjetas y préstamos del caso, con el orden de pago que más intereses ahorra según el cálculo."],
   ["rumbo", "Te propone cómo evitarlo", "2 o 3 jugadas con su costo en soles, calculadas por el código."],
 ] as const;
 
-/** Primera pantalla: ver el caso de Rosa (inventada) o armar un caso de práctica que no sale del equipo. */
-export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
+/**
+ * Primera pantalla: ver el caso de Rosa (inventada) o contar la situación propia en unas preguntas cortas.
+ * El caso propio se guarda en este equipo y solo sale a IA y voz si la persona lo acepta al final.
+ */
+export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { reciente?: boolean }) => void }) {
   const { cambiar } = useDatos();
   const [paso, setPaso] = useState<"inicio" | "form">("inicio");
-  const [nombre, setNombre] = useState("");
-  const [tipo, setTipo] = useState<TipoPerfil>("dependiente");
-  const [saldo, setSaldo] = useState("");
-  const [ingreso, setIngreso] = useState("");
   const [error, setError] = useState<string>();
   const [guardando, setGuardando] = useState(false);
 
-  async function empezar() {
+  /** Arma el caso con las respuestas. `externo` es el permiso expreso para usar IA y voz. */
+  async function terminar(r: Respuestas, externo: boolean) {
     setError(undefined);
     setGuardando(true);
+    // Dentro del toque de la persona: así el navegador deja sonar la voz del saludo después.
+    if (externo) desbloquearAudio();
     try {
-      if (!nombre.trim()) throw new ErrorDatos("Escribe un nombre o apodo inventado.");
-      const datos = datosVacios({
-        nombre,
-        tipo,
-        saldo: leerSoles(saldo, "el saldo de hoy"),
-        ingresoAprox: leerSoles(ingreso, "el ingreso al mes"),
-        hoy: hoyEnLima(),
-      });
-      await cambiar(r => r.cargar(datos));
+      await cambiar(repo => repo.cargar(armarCaso(r)));
       guardarModo("propio");
-      alListo("propio");
+      guardarSituacion({ tuvoCredito: tuvoCreditoSegun(r), sinDeudas: !r.deuda || r.deuda.saldo <= 0, externo });
+      alListo("propio", { reciente: true });
     } catch (e) {
       setError(mensajeDeError(e));
       setGuardando(false);
@@ -77,6 +66,7 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
     setGuardando(true);
     try {
       await cambiar(r => r.restablecer());
+      borrarSituacion();
       guardarModo("demo");
       alListo("demo");
     } catch (e) {
@@ -129,50 +119,25 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
                       <span className="block text-sm text-gris">Una persona inventada, con deudas y un mes ajustado. Incluye voz y asistente de IA.</span>
                     </span>
                   </button>
-                  <button onClick={() => setPaso("form")} className="flex items-center gap-4 rounded-xl border border-linea p-4 text-left transition-colors hover:bg-niebla">
+                  <button onClick={() => { setError(undefined); setPaso("form"); }} disabled={guardando} className="flex items-center gap-4 rounded-xl border border-linea p-4 text-left transition-colors hover:bg-niebla">
                     <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-niebla text-noche">
                       <Icono nombre="perfil" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-noche">Armar un caso de práctica</span>
-                      <span className="block text-sm text-gris">No pongas datos reales: es una simulación. Todo se calcula y se queda en este equipo.</span>
+                      <span className="block font-semibold text-noche">Empezar con mi situación</span>
+                      <span className="block text-sm text-gris">Te hago unas preguntas cortas y armo tu ruta. Usa cifras aproximadas o inventadas: es una simulación.</span>
                     </span>
                   </button>
                 </div>
                 {error && <p role="alert" className="mt-4 rounded-xl bg-coral-suave px-4 py-3 text-sm text-coral-fuerte">{error}</p>}
               </>
             ) : (
-              <form
-                onSubmit={e => {
-                  e.preventDefault();
-                  void empezar();
-                }}
-              >
-                <h2 className="text-xl font-semibold text-noche">Datos del caso de práctica</h2>
-                <p className="mt-1 text-[15px] text-gris">Inventa las cifras: es una simulación, no pongas datos reales. Puedes corregirlas después.</p>
-                <div className="mt-5 grid gap-4">
-                  <Texto etiqueta="Un nombre o apodo inventado" valor={nombre} cambiar={setNombre} enfocar marcador="Ej.: Ana" />
-                  <Seleccion etiqueta="¿Cómo gana su dinero?" valor={tipo} cambiar={v => setTipo(v as TipoPerfil)} opciones={TIPOS} />
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Texto etiqueta="Saldo de hoy (S/)" ayuda="Cifra inventada." valor={saldo} cambiar={setSaldo} modo="decimal" marcador="Ej.: 850" />
-                    <Texto etiqueta="Ingreso al mes (S/)" ayuda="Cifra inventada." valor={ingreso} cambiar={setIngreso} modo="decimal" marcador="Ej.: 2500" />
-                  </div>
-                </div>
-                {error && <p role="alert" className="mt-4 rounded-xl bg-coral-suave px-4 py-3 text-sm text-coral-fuerte">{error}</p>}
-                <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <button type="button" onClick={() => setPaso("inicio")} className={botonSecundario}>
-                    Volver
-                  </button>
-                  <button type="submit" disabled={guardando} className={`${botonPrincipal} disabled:opacity-60`}>
-                    {guardando ? "Preparando…" : "Empezar"}
-                  </button>
-                </div>
-              </form>
+              <Entrada alTerminar={(r, externo) => void terminar(r, externo)} volver={() => setPaso("inicio")} guardando={guardando} error={error} />
             )}
             <p className="mt-6 border-t border-linea pt-4 text-[13px] leading-relaxed text-gris">
-              Prototipo educativo con datos sintéticos; no es un producto de ningún banco. El caso de práctica se calcula y se
-              guarda solo en este equipo. En el caso de Rosa, el asistente envía ese caso inventado a servicios externos de IA y
-              de voz. Nunca escribas datos reales: nombres, DNI, tarjetas ni contraseñas. Simulación, no asesoría financiera.
+              Prototipo educativo con datos sintéticos; no es un producto de ningún banco. Tu caso se calcula y se guarda en
+              este equipo; solo se envía a servicios externos de IA y de voz si lo aceptas, igual que el caso inventado de Rosa.
+              Nunca escribas datos reales: nombres completos, DNI, tarjetas ni contraseñas. Simulación, no asesoría financiera.
             </p>
           </section>
         </div>

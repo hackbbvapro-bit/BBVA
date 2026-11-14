@@ -1,4 +1,4 @@
-import { salidasPermitidas } from "./salidas";
+import { documentosPermitidos } from "./salidas";
 import { Extraccion } from "@/documentos/esquema";
 
 export const TIPOS_ACEPTADOS = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
@@ -64,8 +64,8 @@ export async function prepararArchivo(archivo: File): Promise<ArchivoListo> {
 
 /** Envía el archivo a /api/documento y valida la respuesta con el mismo esquema del servidor. */
 export async function analizarDocumento(archivo: ArchivoListo, senal?: AbortSignal): Promise<Extraccion> {
-  if (!salidasPermitidas()) {
-    throw new ErrorArchivo("En el caso de práctica no se envía ningún archivo fuera de este equipo. Usa el reporte de ejemplo.");
+  if (!documentosPermitidos()) {
+    throw new ErrorArchivo("En tu caso de simulación no se envía ningún archivo fuera de este equipo. Usa el reporte de ejemplo.");
   }
   let respuesta: Response;
   try {

@@ -7,7 +7,8 @@ import { escuchar, puedeEscuchar, type Escucha, type ErrorEscucha } from "@/clie
 import { estaActiva, type Fase } from "@/cliente/conversacion";
 import { useManosLibres, type ResultadoEnvio } from "@/cliente/manos-libres";
 import { ConversacionVoz } from "@/componentes/conversacion-voz";
-import { boton, Icono, desplazar, unido } from "@/componentes/ui";
+import { boton, botonPrincipal, botonSecundario, Icono, desplazar, unido } from "@/componentes/ui";
+import { AVISO_SIMULACION, preguntasSugeridas, type Hechos, type Ruta } from "@/ruta/ruta";
 type Burbuja = MensajeChat & { respaldo?: boolean };
 const preguntas = [
   "¿Cómo llego a fin de mes?",
@@ -25,6 +26,11 @@ export function Chat({
   perfil,
   analisis,
   demo = true,
+  externo = demo,
+  ruta,
+  hechos,
+  apertura,
+  alCambiarExterno,
   leer,
   detener,
   sonando,
@@ -32,8 +38,17 @@ export function Chat({
 }: {
   perfil: Perfil;
   analisis: Analisis;
-  /** Caso de ejemplo (Rosa). En el caso de práctica no hay voz, dictado ni IA externa: nada sale del equipo. */
+  /** Caso de ejemplo (Rosa, inventada). Si no, es el caso que armó la persona. */
   demo?: boolean;
+  /** IA, voz y dictado permitidos: siempre en el ejemplo; en un caso propio, solo si la persona aceptó. */
+  externo?: boolean;
+  /** Ruta que trazó el código: de ella salen las preguntas sugeridas y lo que el asistente puede recomendar. */
+  ruta?: Ruta;
+  hechos?: Hechos;
+  /** Saludo inicial ya redactado por el código (con la ruta). */
+  apertura?: string;
+  /** Solo en un caso propio: la persona activa o desactiva IA y voz. */
+  alCambiarExterno?: (activo: boolean) => void;
   leer: (t: string) => void;
   detener: () => void;
   sonando: boolean;
@@ -46,8 +61,9 @@ export function Chat({
     [micro, setMicro] = useState(false),
     [escuchando, setEscuchando] = useState(false);
   const [error, setError] = useState(""),
-    [voz, setVoz] = useState(demo);
-  const vozRef = useRef(demo),
+    [voz, setVoz] = useState(externo),
+    [pidiendo, setPidiendo] = useState(false);
+  const vozRef = useRef(externo),
     vivo = useRef(false),
     bloqueo = useRef(false),
     controlador = useRef<AbortController | null>(null),
@@ -57,14 +73,14 @@ export function Chat({
   useEffect(() => {
     vivo.current = true;
     queueMicrotask(() => {
-      if (vivo.current) setMicro(demo && puedeEscuchar());
+      if (vivo.current) setMicro(externo && puedeEscuchar());
     });
     return () => {
       vivo.current = false;
       controlador.current?.abort();
       escucha.current?.detener();
     };
-  }, [demo]);
+  }, [externo]);
   useEffect(() => {
     // Al entrar solo está el saludo: no se desplaza, para que se vea el título y el interruptor de voz.
     if (mensajes.length > 1 || escuchando) desplazar(fin.current);
@@ -98,6 +114,9 @@ export function Chat({
         perfil,
         analisis,
         mensajes: historial,
+        hechos,
+        ruta,
+        consentimiento: !demo && externo,
         senal: abortador.signal,
         alTexto: trozo => {
           if (!vivo.current || abortador.signal.aborted) return;
@@ -170,19 +189,36 @@ export function Chat({
           <div className="min-w-0">
             <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.02em] text-noche md:text-[1.875rem]">Asistente</h1>
             <p className="mt-1 text-[15px] leading-relaxed text-gris">
-              {demo
+              {externo
                 ? "Pregunta por escrito o por voz. Las cifras las calcula el copiloto; la IA solo las explica."
-                : "En el caso de práctica el copiloto no usa voz ni IA externa: todo se calcula en este equipo."}
+                : "Ahora te respondo con reglas, sin IA ni voz: nada sale de este equipo."}
             </p>
-            {demo && (
+            {externo && (
               <p className="mt-1 text-[13px] leading-snug text-gris">
-                El caso de Rosa es inventado. Sus cifras y tu pregunta viajan a servicios externos de IA y de voz (Anthropic, Fish Audio y el dictado del navegador): no escribas ni digas datos personales.
+                {demo ? "El caso de Rosa es inventado. Sus cifras y tu pregunta" : "Tu caso de simulación y tus preguntas"} viajan a servicios externos de IA y de voz (Anthropic, Fish Audio y el dictado del navegador): no escribas ni digas datos personales.
               </p>
             )}
+            <p className="mt-1 text-[13px] leading-snug text-gris">{AVISO_SIMULACION}</p>
           </div>
         </div>
-        {demo && (
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {!demo && alCambiarExterno && (
+            <button
+              className={`${boton} flex items-center gap-2 rounded-full border text-sm ${externo ? "border-linea-fuerte bg-white text-gris" : "border-electrico bg-electrico text-white"}`}
+              aria-expanded={externo ? undefined : pidiendo}
+              onClick={() => {
+                if (!externo) return setPidiendo(true);
+                detener();
+                manos.desactivar();
+                vozRef.current = false;
+                setVoz(false);
+                alCambiarExterno(false);
+              }}
+            >
+              {externo ? "Desactivar IA y voz" : "Activar IA y voz"}
+            </button>
+          )}
+        {externo && (
           <button
             role="switch"
             aria-checked={voz}
@@ -199,20 +235,45 @@ export function Chat({
             />
             Voz {voz ? "sí" : "no"}
           </button>
-        </div>
         )}
+        </div>
       </header>
+      {pidiendo && !externo && alCambiarExterno && (
+        <div role="group" aria-label="Activar IA y voz" className="aparecer mb-5 rounded-2xl border border-electrico/30 bg-agua-suave/50 p-4">
+          <p className="font-semibold text-noche">¿Activar el asistente de IA y la voz?</p>
+          <p className="mt-1 text-sm leading-relaxed text-gris">
+            Si aceptas, este caso de simulación y tus preguntas se envían a servicios externos de IA y de voz para poder responderte. No pongas datos reales. Puedes desactivarlo cuando quieras.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              className={botonPrincipal}
+              onClick={() => {
+                desbloquearAudio();
+                vozRef.current = true;
+                setVoz(true);
+                setPidiendo(false);
+                alCambiarExterno(true);
+              }}
+            >
+              Sí, activar
+            </button>
+            <button className={botonSecundario} onClick={() => setPidiendo(false)}>
+              Ahora no
+            </button>
+          </div>
+        </div>
+      )}
       <div className="aparecer flex items-start gap-3">
         <span className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl bg-agua-suave text-electrico [&_svg]:size-5" aria-hidden="true">
           <Icono nombre="asistente" />
         </span>
         <div className="rounded-2xl rounded-tl-md border border-linea bg-white p-4 leading-relaxed">
-          Hola, {perfil.nombre}. Te ayudo a entender tu plata y a decidir con tiempo. ¿Qué quieres saber?
+          {apertura ?? `Hola, ${perfil.nombre}. Te ayudo a entender tu plata y a decidir con tiempo. ¿Qué quieres saber?`}
         </div>
       </div>
       {!mensajes.length && (
         <div className="my-5 flex flex-wrap gap-2">
-          {preguntas.map((p, i) => (
+          {(ruta ? preguntasSugeridas(ruta) : preguntas).map((p, i) => (
             <button
               key={p}
               onClick={() => void enviar(p)}
@@ -238,7 +299,7 @@ export function Chat({
       </div>
       <div ref={fin} className="scroll-mb-72 xl:scroll-mb-24" />
       <div className="fixed inset-x-0 bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md border-t border-linea bg-papel px-4 pb-3 pt-3 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:border-t-0 xl:bg-linear-to-t xl:from-papel xl:via-papel/95 xl:to-papel/0 xl:px-0 xl:pt-6">
-        {demo && (
+        {externo && (
         <ConversacionVoz
           estado={manos.estado}
           soporte={manos.soporte}
@@ -254,7 +315,7 @@ export function Chat({
           alInterrumpir={manos.interrumpir}
         />
         )}
-        {demo && sonando && !conversando && (
+        {externo && sonando && !conversando && (
           <button className={`${boton} mb-2 bg-agua-suave text-agua-fuerte`} onClick={detener}>
             Detener voz
           </button>

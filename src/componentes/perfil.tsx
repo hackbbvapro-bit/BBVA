@@ -94,7 +94,7 @@ export function Perfil() {
         <p className="text-[15px] text-gris">Perfil</p>
         <h1 className="mt-1 text-[1.75rem] font-semibold leading-tight tracking-[-0.025em] text-noche md:text-[2rem]">{p.nombre}</h1>
         <p className="mt-2 leading-relaxed text-gris">
-          {practica ? "Caso de práctica · simulación, sin datos reales." : "Caso de ejemplo · datos inventados para la hackathon."}
+          {practica ? "Tu caso · simulación, sin datos reales." : "Caso de ejemplo · datos inventados para la hackathon."}
         </p>
       </Portada>
       <div className="grid items-start gap-6 lg:grid-cols-2">
