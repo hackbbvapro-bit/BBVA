@@ -40,9 +40,9 @@ export function Hoy({
   leer: (texto: string) => void;
   detener: () => void;
   ir?: (a: IrDesdeInicio) => void;
-  /** Datos de ejemplo (Rosa) o datos propios de la persona. */
+  /** Caso de ejemplo (Rosa, inventada) o caso de práctica (simulación que no sale del equipo). */
   demo?: boolean;
-  /** Solo con datos propios: qué pasos de la guía ya hizo. La guía se muestra hasta completar los dos. */
+  /** Solo en el caso de práctica: qué pasos de la guía ya hizo. La guía se muestra hasta completar los dos. */
   pasos?: { deudas: boolean; fijos: boolean };
 }) {
   const [jugada, seleccionar] = useState<Jugada>();
@@ -58,8 +58,8 @@ export function Hoy({
     <div className="space-y-6">
       <Encabezado
         titulo={`Hola, ${perfil.nombre}`}
-        bajada={demo ? `Datos de ejemplo al ${formatoLargo(analisis.hoy)}` : `Tu resumen al ${formatoLargo(analisis.hoy)}`}
-        acciones={
+        bajada={demo ? `Caso de ejemplo (datos sintéticos) al ${formatoLargo(analisis.hoy)}` : `Caso de práctica al ${formatoLargo(analisis.hoy)}`}
+        acciones={demo ? (
           <button className={botonSecundario} onClick={alternarVoz} aria-pressed={sonando}>
             {sonando ? (
               <span className="flex items-center gap-[3px]" aria-hidden="true">
@@ -72,7 +72,7 @@ export function Hoy({
             )}
             {sonando ? "Detener" : "Escuchar resumen"}
           </button>
-        }
+        ) : undefined}
       />
 
       {pasos && !(pasos.deudas && pasos.fijos) && <Empezar ir={ir} hechos={pasos} />}
@@ -192,14 +192,14 @@ export function Hoy({
 /* ---------- Guía para quien recién puso sus datos ---------- */
 function Empezar({ ir, hechos }: { ir?: (a: IrDesdeInicio) => void; hechos: { deudas: boolean; fijos: boolean } }) {
   const pasos: [NombreIcono, string, string, string, IrDesdeInicio, boolean][] = [
-    ["deudas", "Agrega tus deudas", "Tarjetas, préstamos o lo que debas a alguien. También puedes subir una captura.", "Agregar deuda", "agregar-deuda", hechos.deudas],
+    ["deudas", "Agrega tus deudas", "Tarjetas, préstamos o lo que debas a alguien. Usa cifras inventadas: es una simulación.", "Agregar deuda", "agregar-deuda", hechos.deudas],
     ["dinero", "Agrega tu sueldo y gastos fijos", "Con su día de cobro o de pago. Hasta entonces, la proyección no cuenta tu sueldo.", "Ingresos y gastos", "dinero", hechos.fijos],
   ];
   const faltan = pasos.filter(p => !p[5]).length;
   return (
     <section aria-label="Primeros pasos" className="aparecer rounded-2xl border border-linea bg-white p-5 md:p-6">
       <h2 className="text-lg font-semibold text-noche">{faltan === 2 ? "Completa tu mes en 2 pasos" : "Te falta 1 paso para completar tu mes"}</h2>
-      <p className="mt-1 text-[15px] text-gris">Con tu saldo ya proyecto 30 días. Con tus deudas y gastos fijos, el aviso sale exacto.</p>
+      <p className="mt-1 text-[15px] text-gris">Con el saldo ya proyecto 30 días. Con las deudas y los gastos fijos del caso, el aviso sale completo.</p>
       <div className="mt-5 grid gap-3 md:grid-cols-2">
         {pasos.map(([icono, titulo, texto, accion, destino, hecho]) => (
           <div key={titulo} className={`flex flex-col gap-3 rounded-xl border p-4 ${hecho ? "border-verde/40 bg-verde-suave/40" : "border-linea"}`}>
@@ -321,6 +321,8 @@ function Pagos({ analisis }: { analisis: Analisis }) {
 function Pie({ demo }: { demo: boolean }) {
   const [estado, setEstado] = useState<EstadoServicios>();
   useEffect(() => {
+    // En el caso de práctica no se consulta nada al servidor: los servicios externos no se usan.
+    if (!demo) return;
     let activo = true;
     void consultarEstado().then(e => {
       if (activo) setEstado(e);
@@ -328,11 +330,12 @@ function Pie({ demo }: { demo: boolean }) {
     return () => {
       activo = false;
     };
-  }, []);
+  }, [demo]);
   return (
     <footer className="flex flex-col items-center gap-3 border-t border-linea pt-5 text-xs text-gris sm:flex-row sm:justify-between">
       <div className="flex gap-2">
-        {(
+        {!demo && <span className="rounded-full bg-white px-3 py-1.5 ring-1 ring-linea">Sin servicios externos</span>}
+        {demo && (
           [
             ["ia", "IA"],
             ["voz", "Voz"],
@@ -346,7 +349,7 @@ function Pie({ demo }: { demo: boolean }) {
           </span>
         ))}
       </div>
-      <p>{demo ? "Datos de demostración. " : ""}No es asesoría financiera.</p>
+      <p>{demo ? "Datos sintéticos de ejemplo. " : "Caso de práctica: nada sale de este equipo. "}Simulación educativa, no asesoría financiera.</p>
     </footer>
   );
 }

@@ -5,13 +5,16 @@ import { DatosDePrueba } from "@/componentes/datos";
 import { datosDeRosa } from "@/datos/semilla";
 
 describe("Adjuntar", () => {
-  it("avisa antes de subir que el archivo va a la IA y que la demo es solo con datos inventados", () => {
+  it("ofrece solo el reporte de ejemplo, con rótulo honesto y sin selector de archivos", () => {
     const html = renderToStaticMarkup(
       <DatosDePrueba datos={datosDeRosa()}>
         <Adjuntar alGuardar={() => undefined} />
       </DatosDePrueba>,
     );
-    expect(html).toContain("aceptas que se envíe a la IA");
-    expect(html).toContain("documentos inventados");
+    expect(html).toContain("Cargar reporte de ejemplo");
+    expect(html).toContain("no es una IA leyendo en vivo");
+    expect(html).toContain("Datos sintéticos");
+    expect(html).not.toContain('type="file"');
+    expect(html).not.toMatch(/BBVA|SBS/);
   });
 });

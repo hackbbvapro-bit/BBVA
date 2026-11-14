@@ -2,6 +2,8 @@
  * Notificaciones en el celular. No se guarda nada en ningún servidor:
  * la suscripción vive en el navegador y se manda solo al pedir un aviso.
  */
+import { salidasPermitidas } from "./salidas";
+
 export type EstadoAvisos =
   | "no_soportado"    // este navegador no puede recibir avisos
   | "falta_instalar"  // iPhone: primero «Compartir → Añadir a pantalla de inicio»
@@ -67,7 +69,9 @@ export async function activarAvisos(): Promise<EstadoAvisos> {
   try {
     const permiso = await Notification.requestPermission();
     if (permiso !== "granted") return permiso === "denied" ? "denegado" : "sin_permiso";
-    await suscripcion(await registro());
+    // En el caso de práctica el permiso sirve solo para avisos locales: no se crea suscripción remota.
+    const reg = await registro();
+    if (salidasPermitidas()) await suscripcion(reg);
     return "activo";
   } catch {
     return "no_soportado";
@@ -83,7 +87,8 @@ export async function enviarAvisoDePrueba(perfilId: string, respaldo: { titulo: 
   if (estadoAvisos() !== "activo") return "fallo";
   try {
     const reg = await registro();
-    const sub = await suscripcion(reg);
+    // Caso de práctica: sin suscripción ni envío al servidor; solo el aviso local.
+    const sub = salidasPermitidas() ? await suscripcion(reg) : null;
     if (sub) {
       const respuesta = await fetch("/api/avisos", {
         method: "POST",

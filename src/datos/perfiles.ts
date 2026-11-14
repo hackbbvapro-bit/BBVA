@@ -52,7 +52,7 @@ export function generarPerfil(id: TipoPerfil): Perfil {
     monto: -200000, descripcion: 'Mercado', categoria: 'compras', canal: 'cuenta' }] : [];
   const movimientos = [...apertura, ...mensuales(id, deudas), ...diarios(id)].sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id.localeCompare(b.id));
   return { id, tipo: id, nombre: { independiente: 'Rosa', dependiente: 'Carlos', mixto: 'Lucía' }[id],
-    descripcion: { independiente: 'Vende comida y cobra por Yape y Plin. Sus ingresos cambian cada semana.',
+    descripcion: { independiente: 'Vende comida y cobra con billeteras digitales. Sus ingresos cambian cada semana.',
       dependiente: 'Recibe un sueldo fijo a fin de mes y llega justo a la quincena.',
       mixto: 'Tiene un sueldo de medio tiempo y vende los fines de semana.' }[id],
     hoy: HOY_DEMO, saldoActual: sumar([APERTURAS[id], ...movimientos.filter(m => m.canal !== 'tarjeta').map(m => m.monto)]), movimientos, deudas };

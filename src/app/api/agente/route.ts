@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { responder, ultimaPregunta, type EventoAgente } from "@/agente/conversar";
 import { analizar } from "@/motor";
+import { ID_PROPIO } from "@/datos/semilla";
 import { errorJson, leerJson, mismoOrigen, visitante } from "@/servidor/http";
 import { crearLimite } from "@/servidor/limite";
 import { EsquemaPerfil, MAX_BYTES_PERFIL } from "@/servidor/perfil";
@@ -49,6 +50,8 @@ export async function POST(req: Request): Promise<Response> {
   const datos = Peticion.safeParse(await leerJson(req, MAX_BYTES_PERFIL));
   if (!datos.success) return errorJson("peticion_invalida", 400);
   const perfil = datos.data.perfil;
+  // Defensa en profundidad: el caso de práctica se calcula en el equipo y nunca llega al proveedor de IA.
+  if (perfil.id === ID_PROPIO) return errorJson("solo_caso_de_ejemplo", 403);
   if (!ultimaPregunta(datos.data.mensajes)) return errorJson("peticion_invalida", 400);
   let analisis;
   try {

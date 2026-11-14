@@ -30,18 +30,18 @@ export function guardarModo(modo: Modo | null) {
 }
 
 const TIPOS = [
-  ["dependiente", "Tengo sueldo fijo"],
-  ["independiente", "Trabajo por mi cuenta (ingresos variables)"],
+  ["dependiente", "Sueldo fijo"],
+  ["independiente", "Por cuenta propia (ingresos variables)"],
   ["mixto", "Las dos cosas"],
 ] as const;
 
 const PASOS = [
   ["calendario", "Proyecta tu saldo día a día", "Mira los próximos 30 días y te dice qué día te faltaría plata."],
-  ["deudas", "Ordena tus deudas", "Agrega tus tarjetas y préstamos, o sube una captura y la IA las lee."],
+  ["deudas", "Ordena las deudas", "Tarjetas y préstamos del caso, con el orden de pago que más intereses ahorra según el cálculo."],
   ["rumbo", "Te propone cómo evitarlo", "2 o 3 jugadas con su costo en soles, calculadas por el código."],
 ] as const;
 
-/** Primera pantalla: empezar con datos propios o mirar el ejemplo de Rosa (inventada). */
+/** Primera pantalla: ver el caso de Rosa (inventada) o armar un caso de práctica que no sale del equipo. */
 export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
   const { cambiar } = useDatos();
   const [paso, setPaso] = useState<"inicio" | "form">("inicio");
@@ -56,12 +56,12 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
     setError(undefined);
     setGuardando(true);
     try {
-      if (!nombre.trim()) throw new ErrorDatos("Escribe tu nombre o un apodo.");
+      if (!nombre.trim()) throw new ErrorDatos("Escribe un nombre o apodo inventado.");
       const datos = datosVacios({
         nombre,
         tipo,
-        saldo: leerSoles(saldo, "cuánto tienes hoy"),
-        ingresoAprox: leerSoles(ingreso, "cuánto ganas al mes"),
+        saldo: leerSoles(saldo, "el saldo de hoy"),
+        ingresoAprox: leerSoles(ingreso, "el ingreso al mes"),
         hoy: hoyEnLima(),
       });
       await cambiar(r => r.cargar(datos));
@@ -96,8 +96,8 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
               Sabe qué día te faltará plata, antes de que pase.
             </h1>
             <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-gris">
-              Escribe lo que tienes y lo que debes. El copiloto proyecta tus próximos 30 días y te propone cómo llegar sin pagar
-              intereses de más.
+              Prototipo educativo con datos sintéticos. El copiloto proyecta los próximos 30 días de un caso y propone cómo llegar
+              sin pagar intereses de más.
             </p>
             <ul className="mt-8 grid max-w-lg gap-4">
               {PASOS.map(([icono, titulo, texto]) => (
@@ -120,22 +120,22 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
                 <h2 className="text-xl font-semibold text-noche">¿Cómo quieres empezar?</h2>
                 <p className="mt-1 text-[15px] text-gris">Puedes cambiar de opción cuando quieras desde el menú.</p>
                 <div className="mt-6 grid gap-3">
-                  <button onClick={() => setPaso("form")} className="group flex items-center gap-4 rounded-xl border-2 border-electrico bg-agua-suave/40 p-4 text-left transition-colors hover:bg-agua-suave">
+                  <button onClick={verEjemplo} disabled={guardando} className="group flex items-center gap-4 rounded-xl border-2 border-electrico bg-agua-suave/40 p-4 text-left transition-colors hover:bg-agua-suave disabled:opacity-60">
                     <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-electrico text-white">
-                      <Icono nombre="perfil" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-noche">Empezar con mis datos</span>
-                      <span className="block text-sm text-gris">4 datos y listo. Luego agregas tus deudas.</span>
-                    </span>
-                  </button>
-                  <button onClick={verEjemplo} disabled={guardando} className="flex items-center gap-4 rounded-xl border border-linea p-4 text-left transition-colors hover:bg-niebla disabled:opacity-60">
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-niebla text-noche">
                       <Icono nombre="dinero" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-noche">Ver con datos de ejemplo</span>
-                      <span className="block text-sm text-gris">Rosa, una persona inventada, con deudas y un mes ajustado.</span>
+                      <span className="block font-semibold text-noche">Ver el caso de Rosa</span>
+                      <span className="block text-sm text-gris">Una persona inventada, con deudas y un mes ajustado. Incluye voz y asistente de IA.</span>
+                    </span>
+                  </button>
+                  <button onClick={() => setPaso("form")} className="flex items-center gap-4 rounded-xl border border-linea p-4 text-left transition-colors hover:bg-niebla">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-niebla text-noche">
+                      <Icono nombre="perfil" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-noche">Armar un caso de práctica</span>
+                      <span className="block text-sm text-gris">No pongas datos reales: es una simulación. Todo se calcula y se queda en este equipo.</span>
                     </span>
                   </button>
                 </div>
@@ -148,14 +148,14 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
                   void empezar();
                 }}
               >
-                <h2 className="text-xl font-semibold text-noche">Tus datos básicos</h2>
-                <p className="mt-1 text-[15px] text-gris">Basta con cifras aproximadas. Puedes corregirlas después.</p>
+                <h2 className="text-xl font-semibold text-noche">Datos del caso de práctica</h2>
+                <p className="mt-1 text-[15px] text-gris">Inventa las cifras: es una simulación, no pongas datos reales. Puedes corregirlas después.</p>
                 <div className="mt-5 grid gap-4">
-                  <Texto etiqueta="Tu nombre o apodo" valor={nombre} cambiar={setNombre} enfocar marcador="Ej.: Ana" />
-                  <Seleccion etiqueta="¿Cómo ganas tu dinero?" valor={tipo} cambiar={v => setTipo(v as TipoPerfil)} opciones={TIPOS} />
+                  <Texto etiqueta="Un nombre o apodo inventado" valor={nombre} cambiar={setNombre} enfocar marcador="Ej.: Ana" />
+                  <Seleccion etiqueta="¿Cómo gana su dinero?" valor={tipo} cambiar={v => setTipo(v as TipoPerfil)} opciones={TIPOS} />
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Texto etiqueta="¿Cuánto tienes hoy? (S/)" ayuda="En tu cuenta, hoy." valor={saldo} cambiar={setSaldo} modo="decimal" marcador="Ej.: 850" />
-                    <Texto etiqueta="¿Cuánto ganas al mes? (S/)" ayuda="Aproximado." valor={ingreso} cambiar={setIngreso} modo="decimal" marcador="Ej.: 2500" />
+                    <Texto etiqueta="Saldo de hoy (S/)" ayuda="Cifra inventada." valor={saldo} cambiar={setSaldo} modo="decimal" marcador="Ej.: 850" />
+                    <Texto etiqueta="Ingreso al mes (S/)" ayuda="Cifra inventada." valor={ingreso} cambiar={setIngreso} modo="decimal" marcador="Ej.: 2500" />
                   </div>
                 </div>
                 {error && <p role="alert" className="mt-4 rounded-xl bg-coral-suave px-4 py-3 text-sm text-coral-fuerte">{error}</p>}
@@ -170,8 +170,9 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo) => void }) {
               </form>
             )}
             <p className="mt-6 border-t border-linea pt-4 text-[13px] leading-relaxed text-gris">
-              Tus datos se guardan solo en este equipo. Cuando usas el asistente, las cifras se envían a la IA (Anthropic) para
-              explicarlas. Nunca escribas números de tarjeta, DNI ni contraseñas. No es asesoría financiera.
+              Prototipo educativo con datos sintéticos; no es un producto de ningún banco. El caso de práctica se calcula y se
+              guarda solo en este equipo. En el caso de Rosa, el asistente envía ese caso inventado a servicios externos de IA y
+              de voz. Nunca escribas datos reales: nombres, DNI, tarjetas ni contraseñas. Simulación, no asesoría financiera.
             </p>
           </section>
         </div>
