@@ -118,7 +118,7 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
     betaZodTool({
       name: "ver_deudas",
       description:
-        "Las deudas con su saldo, TCEA y pagos, cuál pagar primero y cuánto se ahorra frente a pagar solo los mínimos. Úsala para cualquier pregunta sobre tarjetas, préstamos, intereses o cómo salir de deudas.",
+        "Las deudas con su saldo, TCEA y pagos, cuál pagar primero y cuánto se ahorra frente a pagar solo los mínimos. Trae además la educación: por tarjeta, cuánto del pago mínimo se va en intereses y cuánto tarda pagando solo eso; qué pasa si no paga; cómo salir; y un glosario de palabras de banco. Úsala para cualquier pregunta sobre tarjetas, préstamos, intereses, pago mínimo o cómo salir de deudas.",
       inputSchema: SinDatos,
       eager_input_streaming: true,
       run: () => comoTexto(datosDeudas(situacion.perfil, actual)),

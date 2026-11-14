@@ -14,7 +14,7 @@ describe("OrdenDePago", () => {
     ];
     const r: ResultadoPrioridad = { decisiones, disponible: 50_000, comprometido: 10_000, sobrante: 0, faltante: 20_000, alcanzaParaTodo: false };
     const html = renderToStaticMarkup(<OrdenDePago r={r} />);
-    const numeros = [...html.matchAll(/rounded-full bg-niebla[^>]*>(\d+)</g)].map(m => m[1]);
+    const numeros = [...html.matchAll(/rounded-full bg-noche[^>]*>(\d+)</g)].map(m => m[1]);
     expect(numeros).toEqual(["1", "1", "2"]);
   });
 });
