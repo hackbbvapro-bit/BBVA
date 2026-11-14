@@ -69,7 +69,7 @@ function Pestanas({ actual, cambiar, debo, medeben }: { actual: Pestana; cambiar
       aria-selected={actual === id}
       aria-controls="panel-deudas"
       onClick={() => cambiar(id)}
-      className={`min-h-11 flex-1 rounded-full px-4 text-[15px] font-semibold transition-colors ${actual === id ? "bg-electrico text-white" : "text-gris hover:text-noche"}`}
+      className={`min-h-11 min-w-0 flex-1 whitespace-nowrap rounded-full px-2 text-sm font-semibold transition-colors sm:px-4 sm:text-[15px] ${actual === id ? "bg-electrico text-white" : "text-gris hover:text-noche"}`}
     >
       {texto} {n !== undefined && <span className="tabular-nums opacity-80">({n})</span>}
     </button>
@@ -117,12 +117,12 @@ export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: 
               </h1>
             </>
           )}
-          <div className="mt-7 space-y-4 border-t border-linea pt-6">
+          <div className="mt-7 hidden space-y-4 border-t border-linea pt-6 md:block">
             <Carrera nombre="Pagando en orden" plan={comparacion.avalancha} tope={tope} bueno />
             <Carrera nombre="Pagando solo el mínimo" plan={comparacion.minimos} tope={tope} />
           </div>
           {comparacion.ahorroVsMinimos > 0 && (
-            <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-verde-suave px-4 py-2 font-semibold text-verde-fuerte">
+            <p className="mt-6 inline-flex flex-wrap items-center gap-2 rounded-full bg-verde-suave px-4 py-2 font-semibold text-verde-fuerte">
               Te ahorras {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses
             </p>
           )}
@@ -153,8 +153,7 @@ export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: 
 
   const orden = prioridadDePagos(datos, analisis);
   const resto = comparacion && (
-    <div className="space-y-5">
-      {pestana !== "sbs" && <OrdenDePago r={orden} />}
+    <div className="order-4 space-y-5">
       {avisoDeuda && <TarjetaAviso aviso={avisoDeuda} />}
       <section className={`${tarjeta} aparecer`}>
         <h2 className="mb-4 text-lg font-semibold text-noche">La diferencia está en cómo pagas</h2>
@@ -166,12 +165,23 @@ export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: 
     </div>
   );
 
+  // Dos columnas independientes en escritorio (sin filas compartidas, para que no queden huecos);
+  // en celular y iPad vertical, un solo flujo: resumen, lista con «Agregar», orden de pago, aviso y plan.
   return (
     <>
-      <div className="xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8">
-        <div className="xl:col-span-5 xl:col-start-8 xl:row-start-1">{resumen}</div>
-        <div className="mb-6 xl:col-span-7 xl:col-start-1 xl:row-span-2 xl:row-start-1">{lista}</div>
-        <div className="xl:col-span-5 xl:col-start-8 xl:row-start-2">{resto}</div>
+      <div className="flex flex-col xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8">
+        <div className="contents xl:col-span-7 xl:col-start-1 xl:block">
+          <div className="order-2 mb-6">{lista}</div>
+          {comparacion && pestana !== "sbs" && (
+            <div className="order-3 mb-6 xl:mb-0">
+              <OrdenDePago r={orden} />
+            </div>
+          )}
+        </div>
+        <div className={`contents xl:col-span-5 xl:col-start-8 xl:block ${pestana === "sbs" ? "xl:sticky xl:top-6" : ""}`}>
+          <div className="order-1">{resumen}</div>
+          {resto}
+        </div>
       </div>
       <p role="status" className="sr-only">
         {aviso}
