@@ -2,13 +2,13 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { aPerfil } from "@/datos/aPerfil";
-import { datosDeRosa } from "@/datos/semilla";
+import { datosDeEjemplo } from "@/datos/semilla";
 import { analizar, conCobros, type CobroPendiente } from "@/motor";
 import { Grafico } from "@/componentes/grafico";
 import { Hoy } from "@/componentes/hoy";
 import { fraseSiTePagan, GraficoSiTePagan } from "@/componentes/si-te-pagan";
 
-const perfil = aPerfil(datosDeRosa());
+const perfil = aPerfil(datosDeEjemplo());
 const analisis = analizar(perfil);
 const base = analisis.proyeccion;
 const voz = { leer: () => undefined, detener: () => undefined, sonando: false };
@@ -16,7 +16,7 @@ const plano = (html: string) => html.replace(/\u00a0/g, " ");
 const cobro = (id: string, monto: number, fechaPrometida: string): CobroPendiente => ({ id, quien: id, monto, fechaPrometida, cobrado: false });
 
 describe("«si te pagan» en pantalla", () => {
-  it("la semilla de Rosa no trae cobros: no se muestra el botón ni se inventa nada", () => {
+  it("sin cobros pendientes no se muestra el botón ni se inventa nada", () => {
     const html = renderToStaticMarkup(<GraficoSiTePagan base={base} cobros={[]} descripcion="x" />);
     expect(html).not.toContain("si te pagan");
     expect(html).not.toContain("Ver si te pagan");

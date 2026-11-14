@@ -14,9 +14,9 @@ Marcas: **[MEDIDO]** salió de ejecutar algo · **[ASUMIDO]** no se comprobó to
 | Código en GitHub | En `main` de `github.com/hackbbvapro-bit/BBVA` (repositorio del equipo) desde el 14-nov-2026 **[MEDIDO]** |
 | Dirección pública (producción) | **Publicada** en `https://copiloto-anticipador-hack.vercel.app`. Cada cambio en `main` la vuelve a publicar sola **[MEDIDO]**. Es pública, sin contraseña |
 | Claves de notificaciones | Cargadas en el Vercel del equipo (producción y vista previa); `/api/estado` da `"push":true` [MEDIDO el 14-nov] |
-| Agente de IA (Anthropic) | Clave cargada en local y en Vercel (producción y vista previa). En local respondió «¿Cómo llego a fin de mes?» con IA y sus cifras coinciden con el motor (S/ 200.00, S/ 4.64, S/ 35.44, S/ 677.20) [MEDIDO 14-nov] |
+| Agente de IA (Anthropic) | Clave cargada en local y en Vercel (producción y vista previa). En local respondió «¿Cómo llego a fin de mes?» con IA y sus cifras coinciden con el motor (S/ 200.00, S/ 4.64, S/ 35.44, S/ 677.20) [MEDIDO 14-nov con el perfil anterior; **repetir la prueba con Andrea** antes de la demo] |
 | Voz (Fish Audio) | Voz elegida: «Mayordomo Digital» (`9386123a44af4d43abf10de6e2eea923`). Clave cargada en local y en Vercel; producción devuelve audio con esa voz (tono comparado con la voz de referencia) [MEDIDO 14-nov]. La transcripción con Fish no se probó |
-| Datos de la persona | Se guardan **en el navegador** (PGlite, base local); no hay servidor de datos ni cuentas reales. Se entra con una cuenta demo (Rosa) y «Restablecer datos de la demo» está en Perfil [MEDIDO 14-nov] |
+| Datos de la persona | Se guardan **en el navegador** (PGlite, base local); no hay servidor de datos ni cuentas reales. Se entra con una cuenta demo (Andrea) y «Restablecer datos de la demo» está en Perfil [MEDIDO 14-nov] |
 | Subir un documento con IA real | Con clave: **sin probar con un archivo real**; sin clave ofrece el reporte de ejemplo [MEDIDO con el ejemplo] |
 | Micrófono y notificaciones en un celular real | **Sin probar** |
 
@@ -104,23 +104,27 @@ El tiempo exacto y el formato no están confirmados por los organizadores **[ASU
 
 Las cifras salen de la app servida el 14-nov **[MEDIDO]**. La pantalla dice «Datos de demostración al
 viernes 13 de noviembre»: la fecha está congelada a propósito para que los números no cambien entre el
-ensayo y el escenario. Di «el lunes 23», no «en 10 días». La app solo muestra a **Rosa** (Carlos y Lucía
+ensayo y el escenario. Di «el lunes 23», no «en 10 días». La app solo muestra a **Andrea**, fisioterapeuta independiente inventada (Carlos y Lucía
 ya no aparecen).
 
 | Momento | Qué haces | Qué se ve |
 |---|---|---|
 | 1. Problema (20 s) | Hablas, sin tocar | Las frases de «Cifras para el pitch» |
-| 2. Entrar (10 s) | `/ingresar` → «Ingresar con mi cuenta demo» | Rosa, independiente, ingresos irregulares. Hoy tiene **S/ 461.40** |
-| 3. El aviso (35 s) | Lees el titular en Inicio y tocas la primera jugada | «El lunes 23 de noviembre te faltarán **S/ 200.00**»: se juntan el alquiler y el pago de la Tarjeta Azul. La salida más barata cuesta **S/ 4.64** (cambiar la fecha de un pago). El gráfico dibuja el «después» |
+| 2. Entrar (10 s) | `/ingresar` → «Ingresar con mi cuenta demo» | Andrea, fisioterapeuta independiente: cobra por sesión, ingresos que cambian cada semana, tres deudas. Hoy tiene **S/ 1,168.73** |
+| 3. El aviso (35 s) | Lees el titular en Inicio y tocas la primera jugada | «El lunes 23 de noviembre te faltarán **S/ 119.07**»: se juntan el alquiler (S/ 850.00) y el pago de la Tarjeta Azul (S/ 600.00). La salida más barata cuesta **S/ 0**: pausar streaming, gimnasio y música en línea libera **S/ 161.80**. Las otras: recortar salidas a comer y delivery (S/ 145.60, sin tocar la comida básica) y pagar solo el mínimo de la Tarjeta Azul (cuesta S/ 26.16 de intereses). El gráfico dibuja el «después» |
 | 4. Tus datos (30 s) | Mi dinero → agregas un gasto fijo (por ejemplo S/ 150.50) | Inicio recalcula al instante: el faltante sube a **S/ 350.50** [MEDIDO con `verificar-mi-dinero.mjs`]. Recarga la página: sigue ahí (vive en tu navegador) |
 | 5. Reporte SBS (40 s) | Hablar → «Usar reporte SBS de ejemplo» → «Esto encontré» → revisas y «Guardar lo marcado»; luego Deudas → Reporte SBS | La IA solo lee lo escrito y **tú confirmas**. Salen las 5 deudas del ejemplo, la calificación de cada una y «Qué pagar primero» con los grupos Pagar ya / Este mes / Negociar. Si hay clave, prueba antes con una foto tuya |
 | 6. Hablar (30 s) | Pestaña Hablar, micrófono: «¿Qué deuda pago primero?» | Contesta con voz; la respuesta repite cifras del motor |
 | 7. Cierre (15 s) | Cierras | «Ningún número lo inventa la IA: los calcula un motor con más de 300 pruebas automáticas (343). La IA solo explica y extrae lo que dice un documento, y tú confirmas» |
 
 Sin tocar nada más, solo con la cuenta demo (sin documento): Deudas muestra que con lo que ya paga
-Rosa termina en **5 meses** y ahorra **S/ 1,206.37** en intereses frente a pagar solo el mínimo (20 meses).
-«Qué pagar primero» con la semilla: S/ 400.00 disponibles este mes; Tarjeta Azul S/ 320.00 (mínimo 160 más
-160 extra porque es la más cara, TCEA 100.00 %) y Tarjeta Verde S/ 80.00.
+Andrea termina sus tres deudas en **9 meses** y ahorra **S/ 2,433.17** en intereses frente a pagar solo el mínimo
+(25 meses) [MEDIDO 14-nov con el motor]. «Qué pagar primero» reparte lo disponible empezando por la Tarjeta Azul,
+la más cara (TCEA 100.00 %).
+
+Momento «si te pagan» (opcional, 15 s): Andrea tiene un cobro pendiente de un centro de rehabilitación,
+S/ 480.00 prometidos para el viernes 20 de noviembre. En Inicio aparece «Ver si te pagan»: con ese cobro el
+bache desaparece (saldo más bajo S/ 360.93), pero la proyección base no lo cuenta hasta que llegue.
 
 Si preguntan «¿y si no hay problema?» o «¿y si me deben plata?»: en Deudas → Me deben agrega un cobro
 (quién, cuánto, fecha prometida); en Inicio aparece «Ver si te pagan S/ X» con una línea punteada. Los
@@ -167,15 +171,16 @@ chatbots), ni la cuota de mercado de BBVA (sin verificar).
 
 ## Preguntas probables del jurado (respuestas honestas)
 
-- **«¿De dónde salen los datos?»** Son sintéticos, como pide el reto: la cuenta demo de Rosa con 90 días de
+- **«¿De dónde salen los datos?»** Son sintéticos, como pide el reto: la cuenta demo de Andrea con 90 días de
   movimientos generados por código; lo que agregas tú vive solo en tu navegador. No hay ningún dato real de nadie.
 - **«¿Y si la IA se equivoca con un número?»** El agente no calcula: llama a funciones del motor y
   repite sus resultados. Si la IA no está, la app responde igual con textos del motor.
 - **«¿Una TCEA de 100 % es real?»** Es un dato sintético del perfil. La tasa real del mercado solo
   se dice si está en el documento de cifras verificadas.
-- **«¿Cambiar la fecha de pago se puede de verdad?»** Depende del banco. La app lo presenta como
-  algo que se *pide*, estima solo los intereses de esos días y avisa de que puede haber un cargo por
-  pago tardío. No promete que el banco acepte.
+- **«¿Por qué no propone cambiar la fecha de pago?»** Porque no sirve para este mes: donde la entidad
+  lo permite, el cambio de ciclo rige desde el ciclo siguiente. Por eso la app solo propone lo que la
+  persona puede hacer hoy por su cuenta (pausar suscripciones, recortar ocio, pagar el mínimo) y, si
+  preguntan, explica que hay que llamar a la entidad ANTES de la fecha para pedir una reprogramación.
 - **«¿Se conecta a mi cuenta?»** No. Hoy no mueve dinero ni lee cuentas reales. El siguiente paso
   natural sería leer los movimientos con permiso del cliente.
 - **«¿Dónde se guardan mis datos?»** En tu propio navegador (base local PGlite). No hay servidor de datos ni cuentas reales. Al conversar o subir un archivo, a la IA se le envía lo necesario para contestar; el archivo no se guarda.

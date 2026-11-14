@@ -2,6 +2,12 @@
 
 Rama `atlas/copiloto-pro`. Marcas: **[MEDIDO]** salió de ejecutar algo y ver la salida · **[ASUMIDO]** no se comprobó.
 
+## Lo último · perfil profesional y jugadas realistas (14-nov-2026, noche)
+
+- **Perfil de demo:** Rosa se reemplaza por **Andrea**, fisioterapeuta independiente inventada: cobra por sesión (cuenta, Yape o Plin), tiene tres suscripciones que se pueden pausar, gastos de trabajo que no (software de agenda, taxi a domicilio, insumos), seguro de salud, tres deudas con tasas distintas y un cobro pendiente de S/ 480.00. Cifras [MEDIDO]: hoy S/ 1,168.73; el lunes 23-nov faltan S/ 119.07 (alquiler + Tarjeta Azul).
+- **Jugadas realistas:** se quita «cambiar la fecha de pago» (donde existe rige desde el ciclo siguiente: no sirve para este mes). Las jugadas son las que la persona puede hacer hoy sin pedir nada al banco: pausar suscripciones (S/ 161.80, costo S/ 0), recortar salidas a comer y delivery (S/ 145.60, nunca la comida básica) y pagar solo el mínimo (cuesta S/ 26.16 de intereses). Tests en `src/motor/jugadas.test.ts`.
+- **Lo anterior de este archivo es historial:** las cifras de Rosa (S/ 461.40, S/ 200.00, 5 vs 20 meses) ya no son las de la app.
+
 ## Estado de las prioridades
 | Prioridad | Qué | Estado |
 |---|---|---|
@@ -17,7 +23,7 @@ Rama `atlas/copiloto-pro`. Marcas: **[MEDIDO]** salió de ejecutar algo y ver la
 | P10 | «Cómo funciona», estados, foco, reduced-motion | hecho |
 
 ## Cómo se usa cada cosa
-- **Entrar:** `/ingresar` → «Ingresar con mi cuenta demo» (Rosa). Salir y Perfil están en el menú del avatar.
+- **Entrar:** `/ingresar` → «Ingresar con mi cuenta demo» (Andrea). Salir y Perfil están en el menú del avatar.
 - **Inicio:** cuánto tienes hoy, qué día te falta y por qué, jugadas con su precio, gráfico. Si tienes cobros pendientes dentro del periodo aparece «Ver si te pagan S/ X» (línea punteada; esos cobros no están en la proyección base).
 - **Mi dinero:** cuentas, ingresos fijos y gastos fijos. Agregar, editar o borrar recalcula Inicio al instante y sobrevive a recargar. No deja repetir el nombre de un fijo.
 - **Deudas:** «Debo» (entidad, saldo, TCEA, mínimo, día de pago, atraso), «Me deben» (quién, cuánto, fecha prometida; marcar «ya me pagó») y «Reporte SBS» (calificación por deuda, «Qué pagar primero» con grupos Pagar ya / Pagar este mes / Negociar, recomendaciones BBVA con fuente y fecha de consulta 14-nov-2026).

@@ -76,10 +76,10 @@ describe("agente con IA", () => {
   it("descarta las notas que el modelo escribe antes de consultar al motor", async () => {
     vueltas = [
       { bloques: [{ type: "text", text: "Need both deudas and resumen." }, consulta], stop_reason: "tool_use" },
-      { bloques: [{ type: "text", text: "Rosa, primero paga la Tarjeta Azul." }], stop_reason: "end_turn" },
+      { bloques: [{ type: "text", text: "Andrea, primero paga la Tarjeta Azul." }], stop_reason: "end_turn" },
     ];
     const { texto, origen } = await textoDe();
-    expect(texto).toBe("Rosa, primero paga la Tarjeta Azul.");
+    expect(texto).toBe("Andrea, primero paga la Tarjeta Azul.");
     expect(texto).not.toContain("Need");
     expect(origen).toBe("ia");
   });

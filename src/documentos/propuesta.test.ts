@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { datosDeRosa } from "../datos/semilla";
+import { datosDeEjemplo } from "../datos/semilla";
 import { ErrorDatos } from "../datos/validar";
 import { EXTRACCION_EJEMPLO } from "./ejemplo";
 import { cobroDesdePropuesta, deudaDesdePropuesta, propuestaCobros, propuestaDeudas } from "./propuesta";
@@ -14,7 +14,7 @@ describe("propuesta de un documento", () => {
     expect(caja).toMatchObject({ saldo: 480000, diasAtraso: 22 });
   });
   it("reconoce una deuda ya guardada para actualizarla y no duplicarla", () => {
-    const datos = datosDeRosa();
+    const datos = datosDeEjemplo();
     const guardada = { ...datos.deudas[0], entidad: "Banco Demo", nombre: "Tarjeta de crédito clásica" };
     const p = propuestaDeudas(EXTRACCION_EJEMPLO, [guardada]);
     expect(p[0].existenteId).toBe(guardada.id);

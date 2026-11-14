@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { PERFILES } from "@/datos/perfiles";
 import { analizar } from "@/motor";
 import { aPerfil } from "@/datos/aPerfil";
-import { datosDeRosa } from "@/datos/semilla";
+import { datosDeEjemplo } from "@/datos/semilla";
 import { DatosDePrueba } from "@/componentes/datos";
 import { Hoy } from "@/componentes/hoy";
 import { Deudas } from "@/componentes/deudas";
@@ -26,8 +26,8 @@ import { Marca } from "@/componentes/ui";
 const voz = { leer: () => undefined, detener: () => undefined, sonando: false };
 const nada = () => undefined;
 
-/** Texto visible e invisible (atributos incluidos) de una vista, envuelta en los datos sintéticos de Rosa. */
-function pintar(vista: ReactElement, datos = datosDeRosa()) {
+/** Texto visible e invisible (atributos incluidos) de una vista, envuelta en los datos sintéticos de Andrea. */
+function pintar(vista: ReactElement, datos = datosDeEjemplo()) {
   return renderToStaticMarkup(<DatosDePrueba datos={datos}>{vista}</DatosDePrueba>);
 }
 
@@ -70,7 +70,7 @@ describe("la interfaz no usa la marca de ningún banco", () => {
   });
 
   it("alternativas genéricas: con un atraso aparecen y siguen sin marca", () => {
-    const datos = datosDeRosa();
+    const datos = datosDeEjemplo();
     datos.cuentas = [{ id: "c", nombre: "Cuenta", saldo: 900_000_000 }];
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 12 } : d));
     const analisis = analizar(aPerfil(datos));

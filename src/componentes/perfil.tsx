@@ -40,7 +40,7 @@ function FormularioDatos({ cerrar }: { cerrar: (guardado: boolean) => void }) {
     <form onSubmit={enviar} noValidate aria-label="Editar tus datos">
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2 md:col-span-1">
-          <Texto etiqueta="Cómo te llamamos" valor={nombre} cambiar={setNombre} enfocar marcador="Rosa" />
+          <Texto etiqueta="Cómo te llamamos" valor={nombre} cambiar={setNombre} enfocar marcador="Andrea" />
         </div>
         <div className="col-span-2 md:col-span-1">
           <Seleccion etiqueta="Cómo ganas tu dinero" valor={tipo} cambiar={v => setTipo(v as TipoPerfil)} opciones={TIPOS} />
@@ -133,7 +133,7 @@ export function Perfil() {
           <section className={`${tarjeta} aparecer`}>
             <h2 className="text-lg font-semibold text-noche">Restablecer datos de la demo</h2>
             <p className="mt-2 leading-relaxed text-gris">
-              Vuelve a Rosa, con sus cuentas, deudas y gastos de origen. Se borra todo lo que agregaste o cambiaste.
+              Vuelve a Andrea, con sus cuentas, deudas y gastos de origen. Se borra todo lo que agregaste o cambiaste.
             </p>
             {error && (
               <p role="alert" className="mt-3 rounded-xl bg-coral-suave px-4 py-3 text-[15px] text-coral-fuerte">

@@ -33,33 +33,39 @@ export function hoyEnLima(ahora: Date = new Date()): string {
 }
 
 /**
- * Datos de arranque: Rosa, la persona sintética de la demo. Se parte de `generarPerfil` para que
+ * Datos de arranque: Andrea, fisioterapeuta independiente y persona sintética de la demo. Se parte de `generarPerfil` para que
  * las cifras sean exactamente las de siempre; lo fijo y las deudas pasan a ser filas editables
  * y la historia variable queda como movimientos.
  */
-export function datosDeRosa(): Datos {
-  const rosa = generarPerfil("independiente");
-  const recurrentes = detectarRecurrentes(rosa.movimientos, rosa.deudas);
-  const fijosIds = idsRecurrentes(rosa.movimientos, rosa.deudas);
+export function datosDeEjemplo(): Datos {
+  const ejemplo = generarPerfil("independiente");
+  const recurrentes = detectarRecurrentes(ejemplo.movimientos, ejemplo.deudas);
+  const fijosIds = idsRecurrentes(ejemplo.movimientos, ejemplo.deudas);
   const aFijo = (r: (typeof recurrentes)[number]): Fijo => ({
     id: `semilla-${r.id}`, descripcion: r.descripcion, monto: Math.abs(r.monto), dia: r.diaDelMes ?? partes(r.ultimaFecha).dia, categoria: r.categoria,
   });
   const fijos = recurrentes.filter(r => r.categoria !== "deuda" && r.frecuencia === "mensual");
-  const deudas: DeudaGuardada[] = rosa.deudas.map(d => ({
+  const deudas: DeudaGuardada[] = ejemplo.deudas.map(d => ({
     id: d.id, entidad: "Otra entidad", nombre: d.nombre, tipo: d.tipo, saldo: d.saldo, tceaBp: d.tceaBp,
     pagoMinimo: d.pagoMinimo, pagoHabitual: d.pagoHabitual, diaPago: d.diaPago, diasAtraso: 0, pagada: false,
   }));
   // Ingreso del mes aproximado (a decenas de soles) desde su semana típica; solo informativo.
-  const ingresoAprox = Math.round(((estimarIngresoVariable(rosa.movimientos, rosa.deudas, rosa.hoy).semanalTipico * 52) / 12) / 1000) * 1000;
+  const ingresoAprox = Math.round(((estimarIngresoVariable(ejemplo.movimientos, ejemplo.deudas, ejemplo.hoy).semanalTipico * 52) / 12) / 1000) * 1000;
   return {
     perfil: {
-      id: rosa.id, nombre: rosa.nombre, tipo: rosa.tipo, descripcion: rosa.descripcion,
-      ingresoAprox, diasCobro: [], hoy: rosa.hoy,
+      id: ejemplo.id, nombre: ejemplo.nombre, tipo: ejemplo.tipo, descripcion: ejemplo.descripcion,
+      ingresoAprox, diasCobro: [], hoy: ejemplo.hoy,
     },
-    cuentas: [{ id: "cuenta-principal", nombre: "Cuenta principal", saldo: rosa.saldoActual }],
+    cuentas: [{ id: "cuenta-principal", nombre: "Cuenta principal", saldo: ejemplo.saldoActual }],
     ingresosFijos: fijos.filter(r => r.monto > 0).map(aFijo),
     gastosFijos: fijos.filter(r => r.monto < 0).map(aFijo),
-    movimientos: rosa.movimientos.filter(m => !fijosIds.has(m.id)),
-    deudas, cobros: [], documentos: [], avisosLeidos: [],
+    movimientos: ejemplo.movimientos.filter(m => !fijosIds.has(m.id)),
+    deudas, cobros: [COBRO_DE_EJEMPLO], documentos: [], avisosLeidos: [],
   };
 }
+
+/** Un cobro pendiente sintético: le deben sesiones de octubre y prometieron pagar antes del bache. */
+const COBRO_DE_EJEMPLO = {
+  id: "cobro-centro-rehabilitacion", quien: "Centro de rehabilitación", monto: 48000, fechaPrometida: "2026-11-20",
+  nota: "Sesiones de octubre; recibo por honorarios ya emitido.", cobrado: false,
+} as const satisfies Datos["cobros"][number];

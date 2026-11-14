@@ -136,7 +136,7 @@ export function MiDinero({ analisis }: { analisis: Analisis }) {
           items={[
             {
               icono: "dinero",
-              etiqueta: "Hoy tienes",
+              etiqueta: "Dinero hoy",
               valor: formatoSoles(perfil.saldoActual),
               nota: n === 0 ? "Agrega una cuenta" : n === 1 ? "Al cierre del día" : `Sumando tus ${n} cuentas`,
             },

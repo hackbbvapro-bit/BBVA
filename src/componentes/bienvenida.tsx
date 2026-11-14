@@ -6,7 +6,7 @@ import { mensajeDeError } from "@/componentes/formularios";
 import { Icono, Marca } from "@/componentes/ui";
 import { borrarSituacion, guardarSituacion } from "@/cliente/situacion";
 import { borrarAvances, borrarHistorial } from "@/cliente/memoria";
-import { datosDeRosa, ID_PROPIO } from "@/datos/semilla";
+import { datosDeEjemplo, ID_PROPIO } from "@/datos/semilla";
 import { desbloquearAudio } from "@/cliente/voz";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "@/ruta/entrada";
 
@@ -73,7 +73,7 @@ function MiniProyeccion() {
 }
 
 /**
- * Primera pantalla: ver el caso de Rosa (inventada) o contar la situación propia en unas preguntas cortas.
+ * Primera pantalla: ver el caso de Andrea (inventada) o contar la situación propia en unas preguntas cortas.
  * El caso propio se guarda en este equipo y solo sale a IA y voz si la persona lo acepta al final.
  */
 export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { reciente?: boolean }) => void }) {
@@ -108,7 +108,7 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
       await cambiar(r => r.restablecer());
       borrarSituacion();
       // El ejemplo vuelve a sus datos de fábrica: lo anotado antes ya no está, tampoco su conversación.
-      const idEjemplo = datosDeRosa().perfil.id;
+      const idEjemplo = datosDeEjemplo().perfil.id;
       borrarHistorial(idEjemplo);
       borrarAvances(idEjemplo);
       guardarModo("demo");
@@ -158,8 +158,8 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
                       <Icono nombre="dinero" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-noche">Ver el caso de Rosa</span>
-                      <span className="block text-sm text-gris">Una persona inventada, con deudas y un mes ajustado. Incluye voz y asistente de IA.</span>
+                      <span className="block font-semibold text-noche">Ver el caso de Andrea</span>
+                      <span className="block text-sm text-gris">Fisioterapeuta independiente inventada: ingresos que cambian, tres deudas y un mes ajustado. Incluye voz y asistente de IA.</span>
                     </span>
                   </button>
                   <button onClick={() => { setError(undefined); setPaso("form"); }} disabled={guardando} className="flex items-center gap-4 rounded-xl border border-linea p-4 text-left transition-colors hover:bg-niebla">
@@ -179,7 +179,7 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
             )}
             <p className="mt-6 border-t border-linea pt-4 text-[13px] leading-relaxed text-gris">
               Prototipo educativo con datos sintéticos; no es un producto de ningún banco. Tu caso se calcula y se guarda en
-              este equipo; solo se envía a servicios externos de IA y de voz si lo aceptas, igual que el caso inventado de Rosa.
+              este equipo; solo se envía a servicios externos de IA y de voz si lo aceptas, igual que el caso inventado de Andrea.
               Nunca escribas datos reales: nombres completos, DNI, tarjetas ni contraseñas. Simulación, no asesoría financiera.
             </p>
           </section>
