@@ -38,6 +38,18 @@
   color-scheme: light;
 }
 
+/* Al abrir un formulario, `scrollIntoView` lo deja por encima de la barra inferior (4 rem + 16 px) en celular. */
+html {
+  scroll-padding-top: 6rem;
+  scroll-padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 16px);
+}
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 1.5rem;
+    scroll-padding-bottom: 1.5rem;
+  }
+}
+
 body {
   background: var(--color-papel);
   font-feature-settings: "cv11", "ss01";

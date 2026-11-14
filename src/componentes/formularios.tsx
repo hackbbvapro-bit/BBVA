@@ -67,6 +67,14 @@ export function Texto({
   );
 }
 
+export function Fecha({ etiqueta, valor, cambiar, ayuda }: { etiqueta: string; valor: string; cambiar: (v: string) => void; ayuda?: string }) {
+  return (
+    <Campo etiqueta={etiqueta} ayuda={ayuda}>
+      {(id, describe) => <input id={id} type="date" aria-describedby={describe} value={valor} onChange={e => cambiar(e.target.value)} className={caja} />}
+    </Campo>
+  );
+}
+
 export function Seleccion({
   etiqueta,
   valor,
@@ -104,6 +112,7 @@ export function Acciones({
   alPedirBorrar,
   alBorrar,
   alDesistirBorrar,
+  extra,
 }: {
   error: string | null;
   guardando: boolean;
@@ -114,6 +123,8 @@ export function Acciones({
   alPedirBorrar: () => void;
   alBorrar: () => void;
   alDesistirBorrar: () => void;
+  /** Botón de acción propio del formulario («Marcar como pagada»). */
+  extra?: ReactNode;
 }) {
   const secundario =
     "min-h-11 rounded-xl border border-linea-fuerte bg-white px-4 text-[15px] font-semibold text-noche transition-colors hover:bg-niebla disabled:opacity-50";
@@ -144,6 +155,7 @@ export function Acciones({
           <button type="button" onClick={alCancelar} className={secundario}>
             Cancelar
           </button>
+          {extra}
           {puedeBorrar && (
             <button type="button" onClick={alPedirBorrar} className="ml-auto min-h-11 rounded-xl px-3 text-[15px] font-semibold text-coral-fuerte transition-colors hover:bg-coral-suave">
               Borrar

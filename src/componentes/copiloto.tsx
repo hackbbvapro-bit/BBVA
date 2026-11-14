@@ -7,6 +7,7 @@ import { Hoy } from "@/componentes/hoy";
 import { Deudas } from "@/componentes/deudas";
 import { MiDinero } from "@/componentes/mi-dinero";
 import { Chat } from "@/componentes/chat";
+import { LoQueSe } from "@/componentes/lo-que-se";
 import { HojaAvisos } from "@/componentes/avisos";
 import { Icono, Marca } from "@/componentes/ui";
 import { ProveedorDatos, useDatos } from "@/componentes/datos";
@@ -145,18 +146,18 @@ function Sesion({ perfil }: { perfil: Perfil }) {
           </div>
         )}
         {pestana === "deudas" && (
-          <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10">
+          <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10 xl:max-w-[1360px] xl:px-10">
             <Deudas perfil={perfil} analisis={analisis} />
           </div>
         )}
         {pestana === "perfil" && (
-          <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10">
-            <VistaPerfil perfil={perfil} />
+          <div className="md:mx-auto md:max-w-4xl md:px-8 md:py-10">
+            <VistaPerfil />
           </div>
         )}
         {pestana === "hablar" && (
-          <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10">
-            <Chat perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} />
+          <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10 xl:max-w-[1360px] xl:px-10">
+            <Chat perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} />
           </div>
         )}
       </main>

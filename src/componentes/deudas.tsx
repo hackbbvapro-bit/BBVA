@@ -1,7 +1,10 @@
 "use client";
-import { formatoSoles, formatoTasa, type Perfil, type Analisis, type PlanDeudas } from "@/motor";
+import { useState } from "react";
+import { formatoSoles, type Perfil, type Analisis, type PlanDeudas } from "@/motor";
 import { avisos } from "@/explica/explica";
-import { tarjeta, TarjetaAviso, Icono, Portada, unido } from "@/componentes/ui";
+import { tarjeta, TarjetaAviso, Portada, unido } from "@/componentes/ui";
+import { useDatos } from "@/componentes/datos";
+import { ListaDebo, ListaMeDeben, totalDebo, totalMeDeben } from "@/componentes/deudas-editar";
 function Carrera({
   nombre,
   plan,
@@ -52,108 +55,118 @@ function Plan({ titulo, plan, bueno }: { titulo: string; plan: PlanDeudas; bueno
     </div>
   );
 }
+type Pestana = "debo" | "medeben";
+
+function Pestanas({ actual, cambiar, debo, medeben }: { actual: Pestana; cambiar: (p: Pestana) => void; debo: number; medeben: number }) {
+  const una = (id: Pestana, texto: string, n: number) => (
+    <button
+      role="tab"
+      id={`pestana-${id}`}
+      aria-selected={actual === id}
+      aria-controls="panel-deudas"
+      onClick={() => cambiar(id)}
+      className={`min-h-11 flex-1 rounded-full px-4 text-[15px] font-semibold transition-colors ${actual === id ? "bg-electrico text-white" : "text-gris hover:text-noche"}`}
+    >
+      {texto} <span className="tabular-nums opacity-80">({n})</span>
+    </button>
+  );
+  return (
+    <div role="tablist" aria-label="Deudas" className="flex gap-1 rounded-full bg-niebla p-1">
+      {una("debo", "Debo", debo)}
+      {una("medeben", "Me deben", medeben)}
+    </div>
+  );
+}
+
 export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisis }) {
+  const { datos } = useDatos();
+  const [pestana, setPestana] = useState<Pestana>("debo");
+  const [aviso, setAviso] = useState("");
   const comparacion = analisis.deudas;
-  if (!comparacion)
-    return (
-      <>
-        <Portada>
+  const debo = totalDebo(datos.deudas);
+  const meDeben = totalMeDeben(datos.cobros);
+  const avisoDeuda = comparacion ? avisos(perfil, analisis).find(a => a.id === "deuda") : undefined;
+  const tope = comparacion ? Math.max(comparacion.avalancha.meses, comparacion.minimos.meses, 1) : 1;
+
+  const resumen = (
+    <Portada>
+      {!comparacion ? (
+        <>
           <p className="text-[15px] text-gris">Tus deudas</p>
           <h1 className="mt-1 text-[2rem] font-semibold tracking-[-0.025em] text-noche text-balance">Nada pendiente</h1>
-          <p className="mt-3 text-gris">Tu mes depende solo de tus ingresos y tus gastos.</p>
-        </Portada>
-        <div className={`${tarjeta} aparecer py-12 text-center`}>
-          <div className="mb-4 flex justify-center text-agua-fuerte">
-            <Icono nombre="deudas" />
+          <p className="mt-3 text-gris">Tu mes depende solo de tus ingresos y tus gastos. Si debes algo, agrégalo y el copiloto arma tu plan.</p>
+        </>
+      ) : (
+        <>
+          <p className="text-[15px] text-gris">Que tus deudas bajen</p>
+          {comparacion.avalancha.noTermina ? (
+            <h1 className="mt-1 text-[1.75rem] font-semibold leading-tight tracking-[-0.025em] text-noche text-balance">
+              Con lo que pagas hoy, tus deudas no bajan
+            </h1>
+          ) : (
+            <>
+              <p className="mt-1 text-lg text-noche">Pagando en orden, quedas libre en</p>
+              <h1 className="mt-1 text-[3.5rem] font-semibold leading-none tracking-[-0.045em] text-noche tabular-nums md:text-[4rem]">
+                {comparacion.avalancha.meses}
+                <span className="ml-2 text-2xl font-medium tracking-normal text-gris">meses</span>
+              </h1>
+            </>
+          )}
+          <div className="mt-7 space-y-4 border-t border-linea pt-6">
+            <Carrera nombre="Pagando en orden" plan={comparacion.avalancha} tope={tope} bueno />
+            <Carrera nombre="Pagando solo el mínimo" plan={comparacion.minimos} tope={tope} />
           </div>
-          <h2 className="text-xl font-bold">No tienes deudas registradas</h2>
-          <p className="mt-3 text-gris">Sigue mirando tus próximos pagos para llegar con tranquilidad.</p>
+          {comparacion.ahorroVsMinimos > 0 && (
+            <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-verde-suave px-4 py-2 font-semibold text-verde-fuerte">
+              Te ahorras {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses
+            </p>
+          )}
+        </>
+      )}
+    </Portada>
+  );
+
+  const lista = (
+    <section className={`${tarjeta} aparecer`}>
+      <Pestanas actual={pestana} cambiar={setPestana} debo={debo.n} medeben={meDeben.n} />
+      <p className="mt-5 text-gris">
+        {pestana === "debo"
+          ? debo.n === 0
+            ? "No tienes deudas abiertas."
+            : <>Debes en total <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(debo.total))}</span> en {debo.n} {debo.n === 1 ? "deuda" : "deudas"}.</>
+          : meDeben.n === 0
+            ? "Nadie te debe por ahora."
+            : <>Te deben <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(meDeben.total))}</span> en {meDeben.n} {meDeben.n === 1 ? "cobro" : "cobros"}.</>}
+      </p>
+      <div id="panel-deudas" role="tabpanel" aria-labelledby={`pestana-${pestana}`} className="mt-2">
+        {pestana === "debo" ? <ListaDebo primeraId={comparacion?.primera?.id ?? null} avisar={setAviso} /> : <ListaMeDeben avisar={setAviso} />}
+      </div>
+    </section>
+  );
+
+  const resto = comparacion && (
+    <div className="space-y-5">
+      {avisoDeuda && <TarjetaAviso aviso={avisoDeuda} />}
+      <section className={`${tarjeta} aparecer`}>
+        <h2 className="mb-4 text-lg font-semibold text-noche">La diferencia está en cómo pagas</h2>
+        <div className="grid grid-cols-2 gap-3">
+          <Plan titulo="Pagando en orden" plan={comparacion.avalancha} bueno />
+          <Plan titulo="Pagando solo el mínimo" plan={comparacion.minimos} />
         </div>
-      </>
-    );
-  const aviso = avisos(perfil, analisis).find(a => a.id === "deuda");
-  const { avalancha, minimos } = comparacion;
-  const tope = Math.max(avalancha.meses, minimos.meses, 1);
+      </section>
+    </div>
+  );
+
   return (
     <>
-      <Portada>
-        <p className="text-[15px] text-gris">Que tus deudas bajen</p>
-        {avalancha.noTermina ? (
-          <h1 className="mt-1 text-[1.75rem] font-semibold leading-tight tracking-[-0.025em] text-noche text-balance">
-            Con lo que pagas hoy, tus deudas no bajan
-          </h1>
-        ) : (
-          <>
-            <p className="mt-1 text-lg text-noche">Pagando en orden, quedas libre en</p>
-            <h1 className="mt-1 text-[3.5rem] font-semibold leading-none tracking-[-0.045em] text-noche tabular-nums md:text-[4rem]">
-              {avalancha.meses}
-              <span className="ml-2 text-2xl font-medium tracking-normal text-gris">meses</span>
-            </h1>
-          </>
-        )}
-        <div className="mt-7 space-y-4 border-t border-linea pt-6">
-          <Carrera nombre="Pagando en orden" plan={avalancha} tope={tope} bueno />
-          <Carrera nombre="Pagando solo el mínimo" plan={minimos} tope={tope} />
-        </div>
-        {comparacion.ahorroVsMinimos > 0 && (
-          <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-verde-suave px-4 py-2 font-semibold text-verde-fuerte">
-            Te ahorras {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses
-          </p>
-        )}
-      </Portada>
-      <div className="space-y-5">
-        {aviso && <TarjetaAviso aviso={aviso} />}
-        <section className={tarjeta}>
-          <h2 className="mb-4 text-lg font-semibold text-noche">La diferencia está en cómo pagas</h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Plan titulo="Pagando en orden" plan={avalancha} bueno />
-            <Plan titulo="Pagando solo el mínimo" plan={minimos} />
-          </div>
-        </section>
-        <div>
-          <p className="text-sm font-medium text-agua-fuerte">Tu plan</p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em] text-noche">Tus deudas, en orden</h2>
-          <p className="mt-1 text-gris">Primero la que más te cuesta al año.</p>
-        </div>
-        {[...perfil.deudas]
-          .sort((a, b) => (a.tceaBp > b.tceaBp ? -1 : a.tceaBp < b.tceaBp ? 1 : 0))
-          .map((deuda, i) => {
-            const primera = comparacion.primera?.id === deuda.id;
-            return (
-              <article
-                key={deuda.id}
-                className={`${tarjeta} aparecer flex gap-4 ${primera ? "border-electrico shadow-[0_0_0_1px_var(--color-electrico)]" : ""}`}
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`flex size-10 shrink-0 items-center justify-center rounded-2xl text-lg font-bold ${primera ? "bg-agua-suave text-electrico" : "bg-papel text-gris"}`}
-                >
-                  {i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  {primera && (
-                    <span className="mb-2 inline-block rounded-full bg-agua-suave px-3 py-1 text-sm font-semibold text-agua-fuerte">
-                      Paga esta primero
-                    </span>
-                  )}
-                  <h3 className="font-bold">{deuda.nombre}</h3>
-                  <p className="my-1 text-2xl font-bold tabular-nums">Debes {unido(formatoSoles(deuda.saldo))}</p>
-                  <p>
-                    Te cuesta{" "}
-                    <span className={`font-semibold ${primera ? "text-coral-fuerte" : ""}`}>
-                      {formatoTasa(deuda.tceaBp)}
-                    </span>{" "}
-                    al año
-                  </p>
-                  <p className="mt-3 text-sm text-gris">
-                    Mínimo {unido(formatoSoles(deuda.pagoMinimo))} · vence el día {deuda.diaPago}
-                  </p>
-                </div>
-              </article>
-            );
-          })}
+      <div className="xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8">
+        <div className="xl:col-span-5 xl:col-start-8 xl:row-start-1">{resumen}</div>
+        <div className="mb-6 xl:col-span-7 xl:col-start-1 xl:row-span-2 xl:row-start-1">{lista}</div>
+        <div className="xl:col-span-5 xl:col-start-8 xl:row-start-2">{resto}</div>
       </div>
+      <p role="status" className="sr-only">
+        {aviso}
+      </p>
     </>
   );
 }
