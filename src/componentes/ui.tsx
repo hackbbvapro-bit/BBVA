@@ -1,8 +1,14 @@
 "use client";
+import type { ReactNode } from "react";
 import type { Aviso } from "@/explica/explica";
 export const boton =
-  "min-h-11 rounded-2xl px-4 py-3 font-semibold transition-transform active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed";
-export const tarjeta = "rounded-3xl border border-linea bg-white p-5";
+  "min-h-11 rounded-2xl px-4 py-3 font-semibold transition-[transform,background-color,color] duration-200 active:scale-[.97] disabled:opacity-50 disabled:cursor-not-allowed";
+export const tarjeta =
+  "rounded-[1.75rem] bg-white p-5 ring-1 ring-linea/80 shadow-[0_1px_2px_rgb(11_22_38/.04),0_12px_32px_-16px_rgb(11_22_38/.18)]";
+/** Evita que «S/» quede en una línea y el monto en la siguiente. Solo cambia el espacio. */
+export function unido(texto: string) {
+  return texto.replace(/S\/ /g, "S/ ");
+}
 const trazos = {
   hoy: "M3 11 12 3l9 8M5 10v11h14V10M9 21v-7h6v7",
   deudas: "M3 6h18v14H3zM3 10h18M7 15h4",
@@ -38,18 +44,37 @@ export const tonos = {
 };
 export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
   return (
-    <article className={`rounded-3xl p-5 ${tonos[aviso.nivel]}`}>
-      <p className="mb-2 text-xs font-bold uppercase tracking-widest">
+    <article className={`aparecer rounded-[1.75rem] p-5 ${tonos[aviso.nivel]}`}>
+      <p className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+        <span className="punto-vivo size-2 rounded-full bg-current" aria-hidden="true" />
         {aviso.nivel === "urgente"
           ? "Anticípate"
           : aviso.nivel === "bien"
             ? "Vas por buen camino"
             : "Tenlo presente"}
       </p>
-      <h2 className="text-xl font-bold leading-snug">{aviso.titulo}</h2>
-      <p className="mt-3 leading-relaxed text-tinta">{aviso.cuerpo}</p>
+      <h2 className="text-xl font-bold leading-snug text-balance">{unido(aviso.titulo)}</h2>
+      <p className="mt-3 leading-relaxed text-tinta">{unido(aviso.cuerpo)}</p>
       {aviso.cuerpo.includes("TCEA") && <p className="mt-2 text-sm">TCEA: lo que te cuesta al año.</p>}
     </article>
+  );
+}
+/** Cabina oscura que abre cada pestaña, pegada bajo la cabecera fija. */
+export function Portada({
+  alerta = false,
+  children,
+}: {
+  alerta?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      data-alerta={alerta ? "si" : "no"}
+      className="cabina relative -mx-4 -mt-[calc(9rem+env(safe-area-inset-top))] mb-6 overflow-hidden rounded-b-[2.5rem] px-5 pb-7 pt-[calc(10.5rem+env(safe-area-inset-top))] text-white"
+    >
+      <div aria-hidden="true" className={`aurora ${alerta ? "bg-coral" : "bg-agua"}`} />
+      <div className="relative">{children}</div>
+    </section>
   );
 }
 export function desplazar(elemento: HTMLElement | null) {

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Aviso } from "@/explica/explica";
 import { estadoAvisos, activarAvisos, enviarAvisoDePrueba, type EstadoAvisos } from "@/cliente/avisos";
-import { boton, Icono, tonos } from "@/componentes/ui";
+import { boton, Icono, tonos, unido } from "@/componentes/ui";
 const instrucciones = {
   falta_instalar:
     "En iPhone: toca Compartir y luego “Añadir a pantalla de inicio”. Abre la app desde ahí y vuelve aquí.",
@@ -52,22 +52,22 @@ export function HojaAvisos({
             autoFocus
             aria-label="Cerrar avisos"
             onClick={cerrar}
-            className="flex size-11 items-center justify-center rounded-full bg-white"
+            className="flex size-11 items-center justify-center rounded-full bg-white ring-1 ring-linea"
           >
             <Icono nombre="cerrar" />
           </button>
         </div>
         <div className="space-y-4">
           {lista.map(a => (
-            <article key={a.id} className="rounded-2xl border border-linea bg-white p-4">
+            <article key={a.id} className="aparecer rounded-2xl bg-white p-4 ring-1 ring-linea/80">
               <h3 className="flex items-start gap-3 font-bold">
                 <span
                   aria-label={a.nivel}
                   className={`mt-2 size-2 shrink-0 rounded-full ${a.nivel === "urgente" ? "bg-coral" : a.nivel === "bien" ? "bg-agua" : "bg-ambar"}`}
                 />
-                {a.titulo}
+                {unido(a.titulo)}
               </h3>
-              <p className="mt-2 leading-relaxed text-gris">{a.cuerpo}</p>
+              <p className="mt-2 leading-relaxed text-gris">{unido(a.cuerpo)}</p>
               {a.cuerpo.includes("TCEA") && (
                 <p className="mt-2 text-sm text-gris">TCEA: lo que te cuesta al año.</p>
               )}
