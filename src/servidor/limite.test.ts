@@ -28,6 +28,14 @@ describe("límite de uso por visitante", () => {
     expect(limite.permite("nuevo", 1)).toBe(true);
   });
 
+  it("al llenarse expulsa solo la más antigua y no borra las cuentas vigentes", () => {
+    const limite = crearLimite(1, 60_000);
+    for (let i = 0; i < 5000; i += 1) limite.permite(`v${i}`, i);
+    expect(limite.permite("nuevo", 5000)).toBe(true);
+    expect(limite.permite("v4999", 5001)).toBe(false);
+    expect(limite.permite("v0", 5002)).toBe(true);
+  });
+
   it("rechaza configuraciones sin sentido", () => {
     expect(() => crearLimite(0, 1000)).toThrow();
     expect(() => crearLimite(5, 0)).toThrow();
