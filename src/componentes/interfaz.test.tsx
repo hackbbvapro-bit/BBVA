@@ -62,3 +62,15 @@ describe("Interfaz con perfiles sintéticos", () => {
     ).toContain("No tienes deudas registradas");
   });
 });
+describe("Perfil y menú de usuario", () => {
+  it("el perfil muestra a Rosa y no pide datos sensibles", async () => {
+    const { Perfil } = await import("@/componentes/perfil");
+    const { MenuUsuario } = await import("@/componentes/menu-usuario");
+    const rosa = PERFILES[0];
+    const html = renderToStaticMarkup(<Perfil perfil={rosa} />);
+    expect(html).toContain("Rosa");
+    expect(html).not.toMatch(/<input|NaN|undefined/);
+    const menu = renderToStaticMarkup(<MenuUsuario nombre="Rosa" variante="lateral" alPerfil={() => undefined} />);
+    expect(menu).toContain("Cuenta demo");
+  });
+});

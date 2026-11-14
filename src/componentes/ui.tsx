@@ -20,6 +20,9 @@ const trazos = {
   enviar: "m3 3 18 9-18 9 4-9-4-9ZM7 12h14",
   voz: "m3 9 5 0 5-5v16l-5-5H3ZM17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14",
   rumbo: "m12 3 8 18-8-5-8 5 8-18Z",
+  perfil: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0",
+  salir: "M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h10",
+  abajo: "m6 9 6 6 6-6",
 };
 export function Icono({ nombre }: { nombre: keyof typeof trazos }) {
   return (
@@ -36,6 +39,19 @@ export function Icono({ nombre }: { nombre: keyof typeof trazos }) {
     >
       <path d={trazos[nombre]} />
     </svg>
+  );
+}
+export function Marca() {
+  return (
+    <span className="flex items-center gap-2.5">
+      <span className="flex size-9 items-center justify-center rounded-xl bg-electrico text-white">
+        <Icono nombre="rumbo" />
+      </span>
+      <span className="leading-tight">
+        <span className="block text-[17px] font-semibold tracking-[-0.015em] text-noche">Copiloto</span>
+        <span className="block text-xs text-gris">exclusivo para clientes BBVA</span>
+      </span>
+    </span>
   );
 }
 export const tonos = {
