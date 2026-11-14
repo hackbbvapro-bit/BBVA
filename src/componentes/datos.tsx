@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { abrirAlmacen } from "@/datos/abrir";
 import { aPerfil } from "@/datos/aPerfil";
+import { prepararSinConexion } from "@/cliente/sinConexion";
 import type { Repositorio } from "@/datos/repositorio";
 import type { Datos } from "@/datos/tipos";
 import type { Perfil } from "@/motor";
@@ -52,7 +53,9 @@ export function ProveedorDatos({ children }: { children: ReactNode }) {
     abrirAlmacen()
       .then(async a => {
         const datos = await a.repo.leerTodo();
-        if (vivo) setEstado({ fase: "lista", repo: a.repo, datos, persistente: a.persistente, aviso: a.aviso });
+        if (!vivo) return;
+        setEstado({ fase: "lista", repo: a.repo, datos, persistente: a.persistente, aviso: a.aviso });
+        prepararSinConexion();
       })
       .catch(() => vivo && setEstado({ fase: "error" }));
     return () => {
