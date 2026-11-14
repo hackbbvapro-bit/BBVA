@@ -10,6 +10,7 @@ export * from './recurrentes';
 export * from './proyeccion';
 export * from './jugadas';
 export * from './deudas';
+export * from './simular';
 
 export function analizar(perfil: Perfil): Analisis {
   const proyeccion = proyectar(perfil);

@@ -1,26 +1,39 @@
 @import "tailwindcss";
 
+/* Paleta propia del copiloto (no es la de ningún banco). Un solo tema claro. */
+@theme {
+  --color-tinta: #0c1a2b;
+  --color-tinta-suave: #1b2e47;
+  --color-papel: #f5f7fa;
+  --color-linea: #dfe5ee;
+  --color-gris: #5b6b80;
+  --color-agua: #0fb5a6;
+  --color-agua-fuerte: #0a7d74;
+  --color-agua-suave: #e2f6f4;
+  --color-ambar: #f5a524;
+  --color-ambar-fuerte: #8a5300;
+  --color-ambar-suave: #fef3dc;
+  --color-coral: #e5484d;
+  --color-coral-fuerte: #b92d33;
+  --color-coral-suave: #fde8e9;
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-papel);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
