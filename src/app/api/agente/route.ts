@@ -9,6 +9,8 @@ import { registrarFallo } from "@/servidor/registro";
 export const maxDuration = 60;
 
 const limite = crearLimite(20, 60_000);
+// Tope para todos los visitantes juntos: acota el gasto de la clave si alguien rota direcciones.
+const topeGlobal = crearLimite(300, 3_600_000);
 
 const Peticion = z.object({
   perfilId: z.string().min(1).max(40),
@@ -41,7 +43,8 @@ function comoFlujo(eventos: AsyncGenerator<EventoAgente>, cortar: () => void): R
 
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
-  if (!limite.permite(visitante(req))) return errorJson("demasiadas_peticiones", 429);
+  if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
+    return errorJson("demasiadas_peticiones", 429);
   const datos = Peticion.safeParse(await leerJson(req));
   if (!datos.success) return errorJson("peticion_invalida", 400);
   const perfil = PERFILES.find(p => p.id === datos.data.perfilId);
