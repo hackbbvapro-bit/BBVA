@@ -6,7 +6,7 @@ export type CodigoError =
   | "origen_no_permitido"
   | "demasiadas_peticiones"
   | "ia_no_disponible"
-  | "solo_caso_de_ejemplo"
+  | "falta_consentimiento"
   | "voz_no_disponible"
   | "voz_fallo"
   | "transcripcion_no_disponible"

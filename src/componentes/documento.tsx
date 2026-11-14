@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { analizarDocumento, prepararArchivo, TIPOS_ACEPTADOS } from "@/cliente/archivo";
 import { consultarEstado } from "@/cliente/estado";
-import { salidasPermitidas } from "@/cliente/salidas";
+import { documentosPermitidos } from "@/cliente/salidas";
 import { nuevoId } from "@/datos/repositorio";
 import { Fecha, mensajeDeError, Seleccion, Texto } from "@/componentes/formularios";
 import { tarjeta, boton } from "@/componentes/ui";
@@ -71,7 +71,7 @@ export function Adjuntar({ alGuardar }: { alGuardar: () => void }) {
   const cancelar = useRef<AbortController | null>(null);
   const [lectura, setLectura] = useState(false);
   useEffect(() => {
-    if (!salidasPermitidas()) return;
+    if (!documentosPermitidos()) return;
     let vivo = true;
     void consultarEstado().then(e => {
       if (vivo) setLectura(e.documentos);

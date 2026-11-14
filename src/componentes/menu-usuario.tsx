@@ -60,7 +60,7 @@ export function MenuUsuario({
           {inicial}
           <span className="min-w-0 flex-1 text-sm leading-tight text-noche">
             {nombre}
-            <span className="block text-gris">{demo ? "Caso de ejemplo" : "Caso de práctica"}</span>
+            <span className="block text-gris">{demo ? "Caso de ejemplo" : "Tu caso (simulación)"}</span>
           </span>
           <Icono nombre="abajo" />
         </button>

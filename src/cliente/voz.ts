@@ -120,7 +120,7 @@ export async function hablar(texto: string, alTerminar?: () => void): Promise<Mo
   if (typeof window === "undefined") return "ninguna";
   callar();
   const miTurno = turno;
-  // Caso de práctica: sin voz. Hasta las voces del navegador pueden mandar el texto fuera.
+  // Sin permiso para IA y voz: sin voz. Hasta las voces del navegador pueden mandar el texto fuera.
   if (!salidasPermitidas()) {
     alTerminar?.();
     return "ninguna";

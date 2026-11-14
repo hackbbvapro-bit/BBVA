@@ -71,7 +71,7 @@ export function ComoFunciona() {
         <ul className="mt-3 space-y-2 leading-relaxed text-tinta">
           <li>Los datos del caso se guardan en este navegador, no en un servidor nuestro.</li>
           <li>En el caso de ejemplo (Rosa, datos inventados), cuando hablas con el copiloto se envía a servicios externos de IA y de voz lo necesario para contestarte: las cifras del caso y tu mensaje. Nosotros no lo guardamos.</li>
-          <li>En un caso de práctica, las cifras que escribes no salen de este equipo: el copiloto responde con reglas, sin IA externa y sin voz.</li>
+          <li>En tu propio caso de simulación, las cifras que escribes no salen de este equipo mientras no actives «IA y voz»: el copiloto responde con reglas. Si la activas, tu caso y tus preguntas viajan a servicios externos de IA y de voz; no pongas datos reales.</li>
           <li>El reporte de ejemplo trae la lectura precargada; solo se guarda lo que tú confirmas.</li>
           <li>Es un prototipo con datos inventados: no escribas datos reales tuyos ni de otras personas. No se piden ni se guardan claves, DNI ni tarjetas.</li>
         </ul>
