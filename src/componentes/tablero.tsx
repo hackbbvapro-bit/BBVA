@@ -37,8 +37,8 @@ export function cifras(perfil: Perfil, analisis: Analisis): [string, string][] {
   const cuotas = perfil.deudas.reduce((total, d) => total + d.pagoMinimo, 0);
   return [
     ["Hoy tienes", formatoSoles(perfil.saldoActual)],
-    ["Debes en total", formatoSoles(debes)],
-    ["Cuotas mínimas del mes", formatoSoles(cuotas)],
+    ["Deuda de tarjeta de crédito ", formatoSoles(debes)],
+    ["Deuda a pagar mensual", formatoSoles(cuotas)],
     p.deficit && barata
       ? ["La salida más barata", barata.costo === 0 ? "S/ 0.00" : formatoSoles(barata.costo)]
       : ["Al final del mes", formatoSoles(p.saldoFinal)],

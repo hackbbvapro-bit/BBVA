@@ -14,7 +14,9 @@ import {
 import { avisos, mejorJugada, proximosPagos, resumenHablado } from "@/explica/explica";
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
-import { Encabezado, Icono, Kpi, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
+import { Encabezado, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
+import { ResumenCifras } from "@/componentes/resumen-cifras";
+import type { Cuenta } from "@/datos/tipos";
 import { cifras, pulso } from "@/componentes/tablero";
 
 /** A dónde puede mandar el Inicio (lo resuelve el armazón). */
@@ -23,12 +25,11 @@ import type { Ruta } from "@/ruta/ruta";
 
 export type IrDesdeInicio = "agregar-deuda" | "dinero" | "deudas" | "asistente";
 
-const ICONOS_KPI: NombreIcono[] = ["dinero", "deudas", "calendario", "tendencia"];
-
 export function Hoy({
   perfil,
   analisis,
   cobros = [],
+  cuentas,
   sonando,
   leer,
   detener,
@@ -39,6 +40,7 @@ export function Hoy({
   pasos,
 }: {
   cobros?: CobroPendiente[];
+  cuentas?: Cuenta[];
   perfil: Perfil;
   analisis: Analisis;
   sonando: boolean;
@@ -64,12 +66,13 @@ export function Hoy({
   const d = analisis.proyeccion.deficit;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <Encabezado
+        compacto
         titulo={`Hola, ${perfil.nombre}`}
         bajada={demo ? `Caso de ejemplo (datos sintéticos) al ${formatoLargo(analisis.hoy)}` : `Tu caso (simulación) al ${formatoLargo(analisis.hoy)}`}
         acciones={externo ? (
-          <button className={botonSecundario} onClick={alternarVoz} aria-pressed={sonando}>
+          <button className={`${botonSecundario} !px-3 sm:!px-4`} onClick={alternarVoz} aria-pressed={sonando}>
             {sonando ? (
               <span className="flex items-center gap-[3px]" aria-hidden="true">
                 {[0, 1, 2, 3].map(i => (
@@ -79,10 +82,12 @@ export function Hoy({
             ) : (
               <Icono nombre="voz" />
             )}
-            {sonando ? "Detener" : "Escuchar resumen"}
+            <span className="sr-only sm:not-sr-only">{sonando ? "Detener" : "Escuchar resumen"}</span>
           </button>
         ) : undefined}
       />
+
+      <ResumenCifras cifras={kpis} deficit={Boolean(d)} nota={d && barata ? barata.titulo : undefined} cuentas={cuentas} tarjetas={perfil.deudas.filter(d => d.tipo === "tarjeta").map(d => ({ id: d.id, nombre: d.nombre, saldo: d.saldo }))} alGestionar={ir ? () => ir("dinero") : undefined} alGestionarTarjetas={ir ? () => ir("deudas") : undefined} />
 
       {pasos && !(pasos.deudas && pasos.fijos) && <Empezar ir={ir} hechos={pasos} />}
 
@@ -124,20 +129,6 @@ export function Hoy({
       </section>
 
       {ruta && <TuRuta ruta={ruta} alConversar={ir ? () => ir("asistente") : undefined} />}
-
-      {/* Cifras de un vistazo. */}
-      <section aria-label="Cifras del mes" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {kpis.map(([titulo, valor], i) => (
-          <Kpi
-            key={titulo}
-            icono={ICONOS_KPI[i]}
-            etiqueta={titulo}
-            valor={valor}
-            tono={i === 3 ? (d ? "ambar" : "verde") : "azul"}
-            nota={i === 3 && d && barata ? barata.titulo : undefined}
-          />
-        ))}
-      </section>
 
       {/* Proyección (2/3) + lo que sale esta semana (1/3). */}
       <div className="grid gap-6 lg:grid-cols-3">

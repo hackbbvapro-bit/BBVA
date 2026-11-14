@@ -1,4 +1,4 @@
-# Hack BBVA 2026 — reglas del proyecto
+C:\Users\Christian\Desktop\challenge\BBVA# Hack BBVA 2026 — reglas del proyecto
 
 Proyecto de equipo para la **final presencial** de la Hackathon BBVA 2026 (14 y 15 de noviembre).
 No confundir con `~/Proyectos/Hackathon-BBVA-2026/`, que es la prueba técnica individual de octubre
