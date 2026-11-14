@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { curveMonotoneX, easeBackOut, easeCubicOut, line, select } from "d3";
 import "d3-transition";
+import { partes } from "@/motor/fechas";
 
 export type TipoIconoCifra = "saldo" | "cuenta" | "cartera" | "deuda" | "cuotas" | "salida";
 
@@ -12,11 +13,13 @@ export function IconoCifra({
   orden,
   selector = false,
   cantidad = 0,
+  fecha,
 }: {
   tipo: TipoIconoCifra;
   orden: number;
   selector?: boolean;
   cantidad?: number;
+  fecha?: string;
 }) {
   const elemento = useRef<SVGSVGElement>(null);
 
@@ -136,36 +139,13 @@ export function IconoCifra({
         .attr("d", "M10 20h30v-5a3 3 0 0 0-3-3H13a3 3 0 0 0-3 3Z")
         .attr("fill", "var(--cifra-suave)");
       trazo("M9 21h32M17 7v8M33 7v8");
-      dibujo
-        .selectAll("circle.dia")
-        .data([
-          [17, 27],
-          [25, 27],
-          [33, 27],
-          [17, 35],
-          [25, 35],
-        ])
-        .join("circle")
-        .attr("class", "dia")
-        .attr("cx", d => d[0])
-        .attr("cy", d => d[1])
-        .attr("r", 1.5)
-        .attr("fill", "currentColor")
-        .attr("opacity", 0.35);
-      const dia = dibujo.append("g").attr("data-flota", "");
-      dia
-        .append("circle")
-        .attr("cx", 35)
-        .attr("cy", 36)
-        .attr("r", 8)
-        .attr("fill", "var(--cifra-acento)")
-        .attr("stroke", "white")
-        .attr("stroke-width", 2);
-      dia
-        .append("path")
-        .attr("d", "m31.5 36 2.3 2.5 4.5-5")
-        .attr("stroke", "white")
-        .attr("stroke-width", 1.8);
+      if (fecha) {
+        const { dia } = partes(fecha);
+        dibujo.append("text").attr("x", 25).attr("y", 36).attr("text-anchor", "middle")
+          .attr("fill", "currentColor").attr("font-size", 16).attr("font-weight", 700).text(String(dia));
+      } else {
+        dibujo.append("path").attr("d", "M20 32h10").attr("stroke", "currentColor").attr("stroke-width", 2);
+      }
     } else {
       dibujo
         .selectAll("rect[data-barra]")
@@ -264,7 +244,7 @@ export function IconoCifra({
       reducido.removeEventListener("change", terminar);
       svg.selectAll("*").remove();
     };
-  }, [tipo, orden, selector, cantidad]);
+  }, [tipo, orden, selector, cantidad, fecha]);
 
   return (
     <svg ref={elemento} viewBox="0 0 48 48" width="40" height="40" aria-hidden="true" focusable="false" />

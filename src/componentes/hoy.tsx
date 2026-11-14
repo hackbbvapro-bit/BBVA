@@ -17,7 +17,8 @@ import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Encabezado, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
 import { ResumenCifras } from "@/componentes/resumen-cifras";
 import type { Cuenta } from "@/datos/tipos";
-import { cifras, pulso } from "@/componentes/tablero";
+import { cifras } from "@/componentes/tablero";
+import { proximoVencimiento as calcularProximoVencimiento } from "@/motor/prioridad";
 
 /** A dónde puede mandar el Inicio (lo resuelve el armazón). */
 import { TuRuta } from "@/componentes/tu-ruta";
@@ -64,6 +65,7 @@ export function Hoy({
   const barata = mejorJugada(analisis);
   const kpis = cifras(perfil, analisis);
   const d = analisis.proyeccion.deficit;
+  const proximoVencimiento = calcularProximoVencimiento(perfil.hoy, perfil.deudas.map(deuda => deuda.diaPago));
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -87,55 +89,22 @@ export function Hoy({
         ) : undefined}
       />
 
-      <ResumenCifras cifras={kpis} deficit={Boolean(d)} nota={d && barata ? barata.titulo : undefined} cuentas={cuentas} tarjetas={perfil.deudas.filter(d => d.tipo === "tarjeta").map(d => ({ id: d.id, nombre: d.nombre, saldo: d.saldo }))} alGestionar={ir ? () => ir("dinero") : undefined} alGestionarTarjetas={ir ? () => ir("deudas") : undefined} />
-
-      {pasos && !(pasos.deudas && pasos.fijos) && <Empezar ir={ir} hechos={pasos} />}
-
-      {/* Alerta principal: compacta, blanca, con un filo de color según la urgencia. */}
-      <section
-        aria-label="Alerta principal"
-        className={`aparecer rounded-2xl border border-linea border-l-4 bg-white p-5 md:p-6 ${principal.nivel === "urgente" ? "border-l-coral-fuerte" : principal.nivel === "bien" ? "border-l-verde-fuerte" : "border-l-ambar-fuerte"}`}
-      >
-        <p
-          className={`flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.06em] ${principal.nivel === "urgente" ? "text-coral-fuerte" : principal.nivel === "bien" ? "text-verde-fuerte" : "text-ambar-fuerte"}`}
-        >
-          <span className="size-2 rounded-full bg-current" aria-hidden="true" />
-          {principal.nivel === "urgente" ? "Anticípate" : principal.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
-        </p>
-        {d ? (
-          <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0">
-              <p className="text-[15px] text-gris">El {formatoLargo(d.fecha)} te faltarán</p>
-              <p className="mt-1 text-[2rem] font-semibold leading-none tracking-[-0.03em] text-noche tabular-nums md:text-[2.25rem]">
-                {unido(formatoSoles(d.faltante))}
-              </p>
-              <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-tinta">
-                Ese día se juntan {pulso(analisis)?.causa}. Quedan {d.diasRestantes} días: todavía estás a tiempo.
-              </p>
-            </div>
-            {analisis.jugadas.length > 0 && (
-              <button className={`${botonPrincipal} lg:shrink-0`} onClick={() => desplazar(document.getElementById("como-evitarlo"))}>
-                <Icono nombre="rumbo" />
-                Ver cómo evitarlo
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            <h2 className="mt-2 text-xl font-semibold leading-snug text-noche text-balance">{unido(principal.titulo)}</h2>
-            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-tinta">{unido(principal.cuerpo)}</p>
-          </>
-        )}
-      </section>
-
-      {ruta && <TuRuta ruta={ruta} alConversar={ir ? () => ir("asistente") : undefined} />}
+      <ResumenCifras cifras={kpis.slice(0, 3)} deficit={Boolean(d)} cuentas={cuentas} proximoVencimiento={proximoVencimiento} tarjetas={perfil.deudas.filter(d => d.tipo === "tarjeta").map(d => ({ id: d.id, nombre: d.nombre, saldo: d.saldo }))} alGestionar={ir ? () => ir("dinero") : undefined} alGestionarTarjetas={ir ? () => ir("deudas") : undefined} />
 
       {/* Proyección (2/3) + lo que sale esta semana (1/3). */}
       <div className="grid gap-6 lg:grid-cols-3">
         <section ref={grafico} className="aparecer scroll-mt-24 rounded-2xl border border-linea bg-white p-5 md:p-6 lg:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-noche">Tus próximos 30 días</h2>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h2 className="text-lg font-semibold tracking-tight text-noche">Tus próximos 30 días</h2>
+                {(despues ?? analisis.proyeccion).dias.some(dia => dia.saldo < 0) && (
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-coral-fuerte">
+                    <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-coral-fuerte text-[11px] text-white" aria-hidden="true">!</span>
+                    Cuidado, te faltará dinero
+                  </span>
+                )}
+              </div>
               <p className="mt-0.5 text-sm text-gris">{jugada ? "Así cambia con la jugada que elegiste" : "Así se movería tu saldo"}</p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1.5 pt-1 text-xs font-semibold">
@@ -158,10 +127,43 @@ export function Hoy({
           <div className="hidden lg:block">
             <GraficoSiTePagan base={analisis.proyeccion} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} ancho={640} fondo="white" />
           </div>
+          {d && barata && (
+            <details className="mt-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900">
+              <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+                <span aria-hidden="true" className="flex size-6 items-center justify-center rounded-full bg-amber-100 text-amber-700">!</span>
+                <span className="flex-1">Evita que te falte dinero</span>
+                <span className="tabular-nums">Costo: {unido(formatoSoles(barata.costo))}</span>
+                <span aria-hidden="true">⌄</span>
+              </summary>
+              <div className="border-t border-amber-200 px-4 py-3 text-sm">
+                <p>{barata.titulo}</p>
+                <button type="button" className="mt-2 font-semibold underline" onClick={() => desplazar(document.getElementById("como-evitarlo"))}>Ver opciones</button>
+              </div>
+            </details>
+          )}
           {jugada && despues && <Resultado key={jugada.id} jugada={jugada} despues={despues} />}
         </section>
         <Pagos analisis={analisis} />
       </div>
+
+
+      {pasos && !(pasos.deudas && pasos.fijos) && <Empezar ir={ir} hechos={pasos} />}
+
+      {!d && <section
+        aria-label="Alerta principal"
+        className={`aparecer rounded-2xl border border-linea border-l-4 bg-white p-5 md:p-6 ${principal.nivel === "urgente" ? "border-l-coral-fuerte" : principal.nivel === "bien" ? "border-l-verde-fuerte" : "border-l-ambar-fuerte"}`}
+      >
+        <p
+          className={`flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.06em] ${principal.nivel === "urgente" ? "text-coral-fuerte" : principal.nivel === "bien" ? "text-verde-fuerte" : "text-ambar-fuerte"}`}
+        >
+          <span className="size-2 rounded-full bg-current" aria-hidden="true" />
+          {principal.nivel === "urgente" ? "Anticípate" : principal.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
+        </p>
+        <h2 className="mt-2 text-xl font-semibold leading-snug text-noche text-balance">{unido(principal.titulo)}</h2>
+        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-tinta">{unido(principal.cuerpo)}</p>
+      </section>}
+
+      {ruta && <TuRuta ruta={ruta} alConversar={ir ? () => ir("asistente") : undefined} />}
 
       {analisis.jugadas.length > 0 && (
         <section id="como-evitarlo" aria-labelledby="titulo-evitar" className="scroll-mt-24 space-y-4">

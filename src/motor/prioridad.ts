@@ -75,12 +75,27 @@ export interface ResultadoPrioridad {
 }
 
 /** Próxima fecha de pago desde hoy (hoy cuenta). Fin de mes sin deriva: día 31 en febrero -> 28/29. */
-function proximoPagoDesde(hoy: FechaISO, diaPago: number): FechaISO | null {
+export function proximoPagoDesde(hoy: FechaISO, diaPago: number): FechaISO | null {
   if (!Number.isInteger(diaPago) || diaPago < 1 || diaPago > 31) return null;
   const { anio, mes } = partes(hoy);
   const esteMes = fechaEnMes(anio, mes, diaPago);
   if (esteMes >= hoy) return esteMes;
   return mes === 12 ? fechaEnMes(anio + 1, 1, diaPago) : fechaEnMes(anio, mes + 1, diaPago);
+}
+
+/** Próxima fecha de pago entre las deudas activas, incluida la fecha de hoy. */
+export function proximoVencimiento(hoy: FechaISO, diasPago: number[]): FechaISO | undefined {
+  return diasPago.map(dia => proximoPagoDesde(hoy, dia)).filter((fecha): fecha is FechaISO => fecha !== null).sort()[0];
+}
+
+/** Describe el mes del próximo vencimiento sin suponer que el pago ya se realizó. */
+export function etiquetaVencimiento(hoy: FechaISO, proximo: FechaISO | undefined): string {
+  if (!proximo) return "Deuda del pago normal de este mes";
+  const actual = partes(hoy);
+  const fecha = partes(proximo);
+  return actual.anio === fecha.anio && actual.mes === fecha.mes
+    ? "Deuda del pago normal de este mes"
+    : "Deuda del pago normal del siguiente mes";
 }
 
 interface Fila {

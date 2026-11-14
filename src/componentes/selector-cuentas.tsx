@@ -94,7 +94,6 @@ export function SelectorCuentas({
   seleccion,
   elegir,
   cerrar,
-  gestionar,
   tarjetasCredito = false,
 }: {
   id: string;
@@ -103,7 +102,6 @@ export function SelectorCuentas({
   seleccion: string | null;
   elegir: (id: string | null) => void;
   cerrar: () => void;
-  gestionar?: () => void;
   tarjetasCredito?: boolean;
 }) {
   const elemento = useRef<HTMLDivElement>(null);
@@ -199,11 +197,6 @@ export function SelectorCuentas({
     <div ref={elemento} id={id} className="cuentas-inline" data-tipo={tarjetasCredito ? "credito" : "cuentas"} hidden inert={!abierto} aria-hidden={!abierto}>
       <div className="cuentas-inline-cabecera">
         <span id={`${id}-titulo`}>{tarjetasCredito ? "Tarjetas de crédito" : "Cuentas"}</span>
-        {gestionar && (
-          <button type="button" className="cuentas-inline-gestionar" onClick={gestionar}>
-            Administrar &#8599;
-          </button>
-        )}
         <button
           type="button"
           className="cuentas-inline-cerrar"
