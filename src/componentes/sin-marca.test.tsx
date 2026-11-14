@@ -107,11 +107,10 @@ describe("«Mi ruta» y la tarjeta corta de Inicio", () => {
       expect(pagina).toContain(contadorDeAvance(avance));
       expect(pagina).not.toMatch(/BBVA/i);
       for (const externo of [true, false]) {
-        const html = pintar(<Hoy perfil={perfil} analisis={analisis} demo={false} externo={externo} ruta={ruta} avance={avance} ir={nada} {...voz} />, datos);
-        // Inicio queda limpio: solo el título, el avance y el siguiente paso; el detalle vive en «Mi ruta».
-        expect(html).toContain(ruta.titulo);
-        expect(html).toContain("Siguiente paso");
-        expect(html).toContain("Ver mi ruta");
+        const html = pintar(<Hoy perfil={perfil} analisis={analisis} demo={false} externo={externo} ir={nada} {...voz} />, datos);
+        // Inicio queda limpio: cifras, proyección y jugadas; la ruta vive solo en «Mi ruta».
+        expect(html).toContain(`Hola, ${perfil.nombre}`);
+        expect(html).not.toContain("Ver mi ruta");
         expect(html).not.toContain("Tus pasos, en orden");
         expect(html).not.toMatch(/BBVA/i);
         expect(html.includes("Escuchar resumen")).toBe(externo);

@@ -11,12 +11,15 @@ export function MenuUsuario({
   variante,
   alPerfil,
   alComoFunciona,
+  alCambiarModo,
   demo = true,
 }: {
   nombre: string;
   variante: "lateral" | "cabecera";
   alPerfil: () => void;
   alComoFunciona: () => void;
+  /** Si llega, el menú ofrece pasar del caso de ejemplo a la situación propia (o volver al ejemplo). */
+  alCambiarModo?: () => void;
   /** false cuando la persona usa sus propios datos. */
   demo?: boolean;
 }) {
@@ -81,6 +84,23 @@ export function MenuUsuario({
           aria-label="Menú del usuario"
           className={`absolute z-40 w-56 rounded-2xl border border-linea bg-white p-1.5 ${variante === "lateral" ? "inset-x-0 bottom-full mb-2 w-auto" : "right-0 top-full mt-2"}`}
         >
+          {alCambiarModo && (
+            <>
+              <p className="px-3 pb-1 pt-2 text-xs font-medium text-gris">{demo ? "Estás viendo un caso de ejemplo" : "Estás en tu simulación"}</p>
+              <button
+                role="menuitem"
+                className={`${ITEM} text-electrico`}
+                onClick={() => {
+                  setAbierto(false);
+                  alCambiarModo();
+                }}
+              >
+                <Icono nombre={demo ? "lapiz" : "perfil"} />
+                {demo ? "Empezar con mi situación" : "Ver el caso de ejemplo"}
+              </button>
+              <div className="my-1 h-px bg-linea" aria-hidden="true" />
+            </>
+          )}
           <button
             role="menuitem"
             className={ITEM}

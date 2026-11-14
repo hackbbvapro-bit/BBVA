@@ -32,10 +32,45 @@ export function guardarModo(modo: Modo | null) {
 }
 
 const PASOS = [
-  ["calendario", "Proyecta tu saldo día a día", "Mira los próximos 30 días y te dice qué día te faltaría plata."],
-  ["deudas", "Ordena las deudas", "Tarjetas y préstamos del caso, con el orden de pago que más intereses ahorra según el cálculo."],
+  ["calendario", "Proyecta tu saldo día a día", "Mira tus próximos 30 días y te avisa qué día te faltaría plata, y por qué."],
+  ["deudas", "Ordena tus deudas", "Tarjetas y préstamos en el orden de pago que más intereses te ahorra."],
   ["rumbo", "Te propone cómo evitarlo", "2 o 3 jugadas con su costo en soles, calculadas por el código."],
 ] as const;
+
+/**
+ * Ilustración decorativa de una proyección: el saldo baja con los pagos, cruza el cero un día y vuelve a subir
+ * cuando entra la plata. No lleva montos: es un dibujo, no un cálculo.
+ */
+function MiniProyeccion() {
+  const linea = "M0 34 L44 38 L62 52 L104 56 L122 70 L168 74 L186 96 L218 99 L232 50 L274 54 L296 64 L320 66";
+  return (
+    <div aria-hidden="true" className="relative bg-[linear-gradient(180deg,#e9f4ff_0%,#ffffff_100%)] px-5 pb-3 pt-5 md:px-7 md:pt-6">
+      <svg viewBox="0 0 320 118" className="block h-auto w-full overflow-visible" fill="none">
+        <defs>
+          <linearGradient id="mini-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stopColor="#001391" stopOpacity="0.16" />
+            <stop offset="1" stopColor="#001391" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={`${linea} L320 118 L0 118 Z`} fill="url(#mini-area)" />
+        <line x1="0" x2="320" y1="88" y2="88" className="stroke-coral-fuerte/50" strokeDasharray="4 5" strokeWidth="1.25" />
+        <rect x="183" y="88" width="38" height="18" rx="3" className="fill-coral-fuerte/10" />
+        <path d={linea} className="stroke-electrico" strokeWidth="2.75" strokeLinejoin="round" strokeLinecap="round" />
+        <circle cx="0" cy="34" r="4.5" className="fill-electrico" />
+        <circle cx="202" cy="97.5" r="9" className="fill-coral-fuerte/15" />
+        <circle cx="202" cy="97.5" r="4.5" className="fill-coral-fuerte stroke-white" strokeWidth="2" />
+      </svg>
+      <div className="mt-1.5 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.08em] text-gris">
+        <span>Hoy</span>
+        <span className="inline-flex items-center gap-1.5 normal-case tracking-normal text-coral-fuerte">
+          <span className="size-1.5 rounded-full bg-coral-fuerte" />
+          El día que faltaría
+        </span>
+        <span>30 días</span>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Primera pantalla: ver el caso de Rosa (inventada) o contar la situación propia en unas preguntas cortas.
@@ -88,32 +123,31 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
     <div className="min-h-dvh bg-papel text-tinta">
       <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 pb-10 pt-[calc(1.25rem+env(safe-area-inset-top))] md:px-8">
         <Marca />
-        <div className="grid flex-1 items-center gap-10 py-8 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
-          <section className="aparecer">
-            <p className="text-sm font-semibold uppercase tracking-[0.08em] text-electrico">Copiloto anticipador</p>
-            <h1 className="mt-3 max-w-xl text-[2rem] font-semibold leading-[1.1] tracking-[-0.03em] text-noche text-balance md:text-[2.5rem]">
-              Sabe qué día te faltará plata, antes de que pase.
-            </h1>
-            <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-gris">
-              Prototipo educativo con datos sintéticos. El copiloto proyecta los próximos 30 días de un caso y propone cómo llegar
-              sin pagar intereses de más.
-            </p>
-            <ul className="mt-8 grid max-w-lg gap-4">
-              {PASOS.map(([icono, titulo, texto]) => (
-                <li key={titulo} className="flex gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-agua-suave text-electrico [&_svg]:size-5">
+        <div className="grid flex-1 items-center gap-5 py-6 md:gap-8 md:py-10 lg:grid-cols-[1fr_1fr] lg:gap-12">
+          <section
+            aria-label="Qué hace el copiloto"
+            className="aparecer overflow-hidden rounded-3xl border border-linea bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_19_145/0.22)]"
+          >
+            <MiniProyeccion />
+            <ol className="divide-y divide-linea px-5 md:px-7">
+              {PASOS.map(([icono, titulo, texto], i) => (
+                <li key={titulo} className="flex items-start gap-3.5 py-3.5 md:gap-4 md:py-5">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-agua-suave md:size-11 text-electrico [&_svg]:size-5">
                     <Icono nombre={icono} />
                   </span>
-                  <span>
-                    <span className="block font-semibold text-noche">{titulo}</span>
-                    <span className="block text-[15px] leading-snug text-gris">{texto}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[11px] font-semibold tabular-nums tracking-[0.08em] text-agua-fuerte">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="block text-base font-semibold leading-snug text-noche md:text-[17px]">{titulo}</span>
+                    <span className="mt-0.5 block text-sm leading-snug text-gris md:text-[15px]">{texto}</span>
                   </span>
                 </li>
               ))}
-            </ul>
+            </ol>
           </section>
 
-          <section aria-label="Empezar" className="aparecer rounded-2xl border border-linea bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_8px_24px_-12px_rgb(0_19_145/0.18)] md:p-7">
+          <section aria-label="Empezar" className="aparecer rounded-3xl border border-linea bg-white p-5 shadow-[0_1px_2px_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_19_145/0.22)] md:p-7">
             {paso === "inicio" ? (
               <>
                 <h2 className="text-xl font-semibold text-noche">¿Cómo quieres empezar?</h2>
