@@ -22,6 +22,7 @@ const peticion = (cuerpo: unknown, cabeceras: Record<string, string> = {}) =>
     headers: {
       "content-type": "application/json",
       "x-forwarded-host": "copiloto.test",
+      "sec-fetch-site": "same-origin",
       // Una dirección distinta por prueba para no agotar el límite por minuto.
       "x-real-ip": `10.0.0.${++ip}`,
       cookie: SESION,
@@ -168,5 +169,16 @@ describe("POST /api/documento: sin y con IA", () => {
     expect(registrado).toContain("documento");
     expect(registrado).not.toContain("detalle-interno");
     escribir.mockRestore();
+  });
+
+  it("las peticiones inválidas no gastan el tope común de la IA", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "clave-falsa-de-prueba");
+    // Más basura que el tope común entero (120 por hora), cada una desde otra dirección.
+    for (let i = 0; i < 150; i++) {
+      expect((await POST(peticion({ tipo: "image/png" }))).status).toBe(400);
+    }
+    expect(crear).not.toHaveBeenCalled();
+    crear.mockResolvedValue(respuestaIA(JSON.stringify(EXTRACCION_EJEMPLO)));
+    expect((await POST(peticion(conArchivo()))).status).toBe(200);
   });
 });

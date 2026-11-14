@@ -36,10 +36,14 @@ export function visitante(req: Request): string {
   return real || "local";
 }
 
-/** true si la petición no viene de otra web (un navegador siempre manda `Origin` en un POST entre sitios). */
+/**
+ * true si la petición sale de esta misma web. Los navegadores mandan `Origin` en todo POST; sin él solo
+ * se acepta si el navegador declara `Sec-Fetch-Site: same-origin`. Un script suelto sin ninguna de las
+ * dos cabeceras queda fuera (no reemplaza a la sesión ni a los límites, pero sube el costo del abuso).
+ */
 export function mismoOrigen(req: Request): boolean {
   const origen = req.headers.get("origin");
-  if (!origen) return true;
+  if (!origen) return req.headers.get("sec-fetch-site") === "same-origin";
   const anfitrion = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
   try {
     return new URL(origen).host === anfitrion;
