@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PERFILES } from "@/datos/perfiles";
 import { analizar, type Perfil } from "@/motor";
 import { avisos } from "@/explica/explica";
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
@@ -10,11 +9,10 @@ import { MiDinero } from "@/componentes/mi-dinero";
 import { Chat } from "@/componentes/chat";
 import { HojaAvisos } from "@/componentes/avisos";
 import { Icono, Marca } from "@/componentes/ui";
+import { ProveedorDatos, useDatos } from "@/componentes/datos";
 import { MenuUsuario } from "@/componentes/menu-usuario";
 import { Perfil as VistaPerfil } from "@/componentes/perfil";
 type Pestana = "hoy" | "dinero" | "deudas" | "hablar" | "perfil";
-/** Un solo perfil en la interfaz: Rosa (independiente), el del guion de la demo. */
-const ROSA = PERFILES.find(p => p.id === "independiente") ?? PERFILES[0];
 const PESTANAS = [
   ["hoy", "Inicio"],
   ["dinero", "Mi dinero"],
@@ -23,8 +21,16 @@ const PESTANAS = [
 ] as const;
 export function Copiloto() {
   return (
+    <ProveedorDatos>
+      <Contenido />
+    </ProveedorDatos>
+  );
+}
+function Contenido() {
+  const { perfil } = useDatos();
+  return (
     <div className="relative min-h-dvh w-full bg-papel text-base text-tinta [overflow-wrap:anywhere] md:pl-[232px] [&_button]:cursor-pointer [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-4 [&_:focus-visible]:outline-electrico">
-      <Sesion perfil={ROSA} />
+      <Sesion perfil={perfil} />
     </div>
   );
 }
@@ -35,6 +41,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
     [hoja, setHoja] = useState(false),
     [sonando, setSonando] = useState(false);
   const pendientes = lista.filter(a => a.nivel !== "bien").length;
+  const { aviso } = useDatos();
   const turno = useRef(0);
   useEffect(
     () => () => {
@@ -124,6 +131,11 @@ function Sesion({ perfil }: { perfil: Perfil }) {
         </div>
       </header>
       <main className="px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pb-0 md:pt-0">
+        {aviso && (
+          <p role="status" className="mb-4 rounded-2xl bg-ambar-suave px-4 py-3 text-sm text-ambar-fuerte md:mx-8 md:mt-6">
+            {aviso}
+          </p>
+        )}
         {pestana === "hoy" && (
           <Hoy perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} />
         )}
