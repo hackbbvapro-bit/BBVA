@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import { analizarDocumento, prepararArchivo, TIPOS_ACEPTADOS } from "@/cliente/archivo";
 import { nuevoId } from "@/datos/repositorio";
-import { mensajeDeError, Seleccion, Texto } from "@/componentes/formularios";
+import { Fecha, mensajeDeError, Seleccion, Texto } from "@/componentes/formularios";
 import { tarjeta, boton } from "@/componentes/ui";
 import { useDatos } from "@/componentes/datos";
 import type { Extraccion } from "@/documentos/esquema";
@@ -48,11 +48,7 @@ function RevisarCobro({ p, cambiar }: { p: CobroPropuesta; cambiar: (n: Partial<
       {p.incluir && (
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <Texto etiqueta="Cuánto (S/)" modo="decimal" valor={p.monto} cambiar={monto => cambiar({ monto })} />
-          <div>
-            <label className="mb-1.5 block text-[15px] font-medium text-noche">Fecha en que te paga</label>
-            <input type="date" value={p.fecha} onChange={e => cambiar({ fecha: e.target.value })} className="min-h-11 w-full rounded-xl border border-linea-fuerte bg-white px-3.5 text-base text-tinta" />
-            {!p.fecha && <p className="mt-1 text-sm text-gris">El documento no trae fecha: elígela.</p>}
-          </div>
+          <Fecha etiqueta="Fecha en que te paga" valor={p.fecha} cambiar={fecha => cambiar({ fecha })} ayuda={p.fecha ? undefined : "El documento no trae fecha: elígela."} />
         </div>
       )}
     </li>
