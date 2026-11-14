@@ -7,8 +7,8 @@ desmontable; solo se montó lo que el puesto necesita para atender, no un local 
 
 | Pieza | Para qué | Estado |
 |---|---|---|
-| GitHub (repositorio privado) | Guardar el código y trabajar en equipo | Listo. Rama `base-motor` subida y pull request 1 abierto. **Sin fusionar a `main`** |
-| Vercel (proyecto `copiloto-anticipador`) | Publicar la app con dirección `https` (obligatoria para micrófono y notificaciones) | Proyecto creado y conectado al repositorio. **Producción sin publicar**: se publica al fusionar el pull request [ASUMIDO] |
+| GitHub (repositorio privado) | Guardar el código y trabajar en equipo | Listo. Pull request 1 fusionado a `main` el 13-nov-2026 [MEDIDO] |
+| Vercel (proyecto `copiloto-anticipador`) | Publicar la app con dirección `https` (obligatoria para micrófono y notificaciones) | **Publicada** en `https://copiloto-anticipador.vercel.app`; cada fusión a `main` se publica sola [MEDIDO]. Pública, sin contraseña. Hoy `/api/estado` da `ia:false`, `voz:false`, `push:true` hasta que se carguen las claves y se haga Redeploy |
 | API de Anthropic | El agente que conversa y explica | Código listo. **Falta la clave** |
 | Fish Audio | La voz del agente (y transcribir audio como respaldo) | Código listo. **Faltan la clave y el id de la voz** |
 | Notificaciones web (VAPID) | Avisos en el celular | Claves generadas en `.env.local` y cargadas en Vercel (Production y Preview). **Sin probar en un celular real** |
