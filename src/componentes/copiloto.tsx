@@ -12,7 +12,6 @@ import { Hoy, type IrDesdeInicio } from "@/componentes/hoy";
 import { Deudas, type AbrirDeudas, type PestanaDeudas } from "@/componentes/deudas";
 import { MiDinero } from "@/componentes/mi-dinero";
 import { Chat } from "@/componentes/chat";
-import { LoQueSe } from "@/componentes/lo-que-se";
 import { HojaAvisos } from "@/componentes/avisos";
 import { Icono, Marca, type NombreIcono } from "@/componentes/ui";
 import { ProveedorDatos, useDatos } from "@/componentes/datos";
@@ -387,19 +386,11 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
                 </span>
               )}
             </button>
-            <MenuUsuario nombre={perfil.nombre} variante="cabecera" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} demo={demo} />
+            <MenuUsuario nombre={perfil.nombre} variante="cabecera" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} alCambiarModo={cambiarModo} demo={demo} />
           </div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-7xl px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-8 md:pb-12 md:pt-8">
-        {demo && (
-          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-ambar-suave px-3 text-xs text-ambar-fuerte md:hidden">
-            <span>Caso de ejemplo</span>
-            <button onClick={cambiarModo} className="min-h-9 font-semibold underline underline-offset-2">
-              Empezar con mi situación
-            </button>
-          </div>
-        )}
         {aviso && (
           <p role="status" className="mb-4 rounded-xl bg-ambar-suave px-4 py-3 text-sm text-ambar-fuerte">
             {aviso}
@@ -416,8 +407,6 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             ir={desdeInicio}
             demo={demo}
             externo={externo}
-            ruta={ruta}
-            avance={avance}
             pasos={pasos}
           />
         )}
@@ -443,7 +432,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
           </div>
         )}
         {pestana === "asistente" && (
-          <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} avance={avance} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} cobros={datos.cobros} alAnotar={anotar} guardar={persistente} />
+          <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} avance={avance} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} cobros={datos.cobros} alAnotar={anotar} guardar={persistente} />
         )}
       </main>
       <nav

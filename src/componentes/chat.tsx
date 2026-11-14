@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Analisis, Perfil } from "@/motor";
 import type { CobroPendiente } from "@/motor/cobros";
 import { describir, type Accion } from "@/agente/registro";
@@ -63,7 +63,6 @@ export function Chat({
   leer,
   detener,
   sonando,
-  lateral,
   cobros,
   alAnotar,
   avance,
@@ -85,8 +84,6 @@ export function Chat({
   leer: (t: string) => void;
   detener: () => void;
   sonando: boolean;
-  /** Panel de la derecha en pantallas anchas (≥1280 px). */
-  lateral?: ReactNode;
   /** Pagos que le deben a la persona: el asistente los cuenta y puede anotar nuevos. */
   cobros?: readonly CobroPendiente[];
   /** Guarda en el panel lo que el asistente anotó («me acaban de pagar 1.000»). Sin esto, solo se muestra. */
@@ -298,84 +295,95 @@ export function Chat({
     setPorExplicar(preguntaTrasGuardar(guardado));
   }
   return (
-    <section className="pb-44 xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8 xl:pb-0">
-      <div className="xl:col-span-7 xl:flex xl:min-h-[calc(100dvh-5rem)] xl:flex-col">
-      <header className="aparecer mb-2 flex items-center gap-3 md:mb-3 md:gap-4">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-electrico text-white md:size-12 md:rounded-2xl">
-          <span className={`flex items-end gap-[3px] md:gap-1 ${sonando ? "" : "opacity-90"}`} aria-hidden="true">
+    <section aria-labelledby="titulo-asistente" className="mx-auto max-w-3xl pb-44 xl:flex xl:min-h-[calc(100dvh-5rem)] xl:flex-col xl:pb-0">
+      <h1 id="titulo-asistente" className="sr-only">Asistente</h1>
+      {/* Saludo: firma del asistente y una sola burbuja; las opciones de IA y voz quedan discretas, a la derecha. */}
+      <div className="aparecer flex items-start gap-3">
+        <span className="relative mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-electrico text-white md:size-10" aria-hidden="true">
+          <span className="flex items-end gap-[2.5px]">
             {[0, 1, 2, 3].map(i => (
               <span
                 key={i}
-                className={`w-[3px] rounded-full bg-white md:w-1 ${sonando || ocupado || escuchando ? "onda" : ""}`}
-                style={{ height: `${[8, 16, 11, 14][i]}px`, animationDelay: `${i * 120}ms` }}
+                className={`w-[2.5px] rounded-full bg-white ${sonando || ocupado || escuchando ? "onda" : ""}`}
+                style={{ height: `${[6, 12, 8, 10][i]}px`, animationDelay: `${i * 120}ms` }}
               />
             ))}
           </span>
+          <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-papel ${externo ? "bg-verde-fuerte" : "bg-linea-fuerte"}`} />
         </span>
         <div className="min-w-0 flex-1">
-          <h1 className="text-lg font-semibold leading-tight tracking-[-0.01em] text-noche md:text-[1.875rem] md:tracking-[-0.02em]">Asistente</h1>
-          <p className="truncate text-xs text-gris md:text-sm">
-            {externo ? "Escribe o habla · las cifras las calcula el copiloto" : "Sin IA ni voz: nada sale de este equipo"}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {!demo && alCambiarExterno && !externo && (
-            <button
-              className="inline-flex min-h-10 items-center rounded-full bg-electrico px-3.5 text-sm font-semibold text-white transition-transform duration-150 active:scale-[.97]"
-              aria-expanded={pidiendo}
-              onClick={() => setPidiendo(true)}
-            >
-              Activar IA y voz
-            </button>
-          )}
-          {externo && (
-            <button
-              role="switch"
-              aria-checked={voz}
-              aria-label="Respuestas en voz alta"
-              className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-colors duration-150 ${voz ? "border-electrico bg-agua-suave text-electrico" : "border-linea-fuerte bg-white text-gris"}`}
-              onClick={() => {
-                vozRef.current = !voz;
-                setVoz(!voz);
-                if (voz) detener();
-              }}
-            >
-              <span aria-hidden="true" className={`size-2 rounded-full ${voz ? "bg-electrico" : "bg-linea-fuerte"}`} />
-              Voz {voz ? "sí" : "no"}
-            </button>
-          )}
-        </div>
-      </header>
-      <details className="group mb-4 text-xs leading-snug text-gris md:mb-6">
-        <summary className="inline-flex min-h-8 cursor-pointer list-none items-center gap-1 font-semibold text-gris hover:text-noche [&::-webkit-details-marker]:hidden">
-          Privacidad y datos
-          <span aria-hidden="true" className="transition-transform duration-150 group-open:rotate-180 [&_svg]:size-3.5"><Icono nombre="abajo" /></span>
-        </summary>
-        <div className="mt-1 space-y-1.5 rounded-xl bg-niebla px-3 py-2.5">
-          {externo && (
-            <p>
-              {demo ? "El caso de Rosa es inventado. Sus cifras y tu pregunta" : "Tu caso de simulación y tus preguntas"} viajan a servicios externos de IA y de voz (Anthropic, Fish Audio y el dictado del navegador): no escribas ni digas datos personales.
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[13px] font-semibold text-noche">
+              Copiloto <span className="font-medium text-gris">· {externo ? "IA y voz activas" : "Sin IA: nada sale de este equipo"}</span>
             </p>
-          )}
-          <p>{AVISO_SIMULACION}</p>
-          {!demo && alCambiarExterno && externo && (
-            <button
-              className="min-h-9 font-semibold text-electrico underline underline-offset-2"
-              onClick={() => {
-                detener();
-                manos.desactivar();
-                vozRef.current = false;
-                setVoz(false);
-                alCambiarExterno(false);
-              }}
-            >
-              Desactivar IA y voz
-            </button>
-          )}
+            <div className="flex shrink-0 items-center gap-1.5">
+              {!demo && alCambiarExterno && !externo && (
+                <button
+                  className="inline-flex min-h-9 items-center rounded-full bg-electrico px-3 text-[13px] font-semibold text-white transition-transform duration-150 active:scale-[.97]"
+                  aria-expanded={pidiendo}
+                  onClick={() => setPidiendo(true)}
+                >
+                  Activar IA y voz
+                </button>
+              )}
+              {externo && (
+                <button
+                  role="switch"
+                  aria-checked={voz}
+                  aria-label="Respuestas en voz alta"
+                  title={voz ? "Respuestas en voz alta: activadas" : "Respuestas en voz alta: apagadas"}
+                  className={`relative flex size-9 items-center justify-center rounded-full transition-colors duration-150 [&_svg]:size-[18px] ${voz ? "bg-agua-suave text-electrico" : "text-gris hover:bg-niebla"}`}
+                  onClick={() => {
+                    vozRef.current = !voz;
+                    setVoz(!voz);
+                    if (voz) detener();
+                  }}
+                >
+                  <Icono nombre="voz" />
+                  {!voz && <span aria-hidden="true" className="absolute h-5 w-[2px] rotate-45 rounded-full bg-current" />}
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="mt-1.5 rounded-2xl rounded-tl-md bg-white px-4 py-3.5 text-[15px] leading-relaxed text-tinta shadow-[0_1px_2px_rgb(7_33_70/0.06),0_8px_24px_-16px_rgb(7_33_70/0.25)] ring-1 ring-linea md:px-5 md:py-4 md:text-base">
+            <p>{apertura ?? `Hola, ${perfil.nombre}. Te ayudo a entender tu plata y a decidir con tiempo. ¿Qué quieres saber?`}</p>
+            <p className="mt-2.5 flex items-center gap-1.5 border-t border-linea pt-2.5 text-xs text-gris">
+              <span aria-hidden="true" className="text-verde-fuerte [&_svg]:size-3.5"><Icono nombre="check" /></span>
+              Las cifras las calcula el copiloto; la IA solo las explica.
+            </p>
+          </div>
+          <details className="group mt-1.5 text-xs leading-snug text-gris">
+            <summary className="inline-flex min-h-8 cursor-pointer list-none items-center gap-1 font-medium text-gris hover:text-noche [&::-webkit-details-marker]:hidden">
+              Privacidad y datos
+              <span aria-hidden="true" className="transition-transform duration-150 group-open:rotate-180 [&_svg]:size-3.5"><Icono nombre="abajo" /></span>
+            </summary>
+            <div className="mt-1 space-y-1.5 rounded-xl bg-niebla px-3 py-2.5">
+              {externo && (
+                <p>
+                  {demo ? "El caso de Rosa es inventado. Sus cifras y tu pregunta" : "Tu caso de simulación y tus preguntas"} viajan a servicios externos de IA y de voz (Anthropic, Fish Audio y el dictado del navegador): no escribas ni digas datos personales.
+                </p>
+              )}
+              <p>{AVISO_SIMULACION}</p>
+              {!demo && alCambiarExterno && externo && (
+                <button
+                  className="min-h-9 font-semibold text-electrico underline underline-offset-2"
+                  onClick={() => {
+                    detener();
+                    manos.desactivar();
+                    vozRef.current = false;
+                    setVoz(false);
+                    alCambiarExterno(false);
+                  }}
+                >
+                  Desactivar IA y voz
+                </button>
+              )}
+            </div>
+          </details>
         </div>
-      </details>
+      </div>
       {pidiendo && !externo && alCambiarExterno && (
-        <div role="group" aria-label="Activar IA y voz" className="aparecer mb-5 rounded-2xl border border-electrico/30 bg-agua-suave/50 p-4">
+        <div role="group" aria-label="Activar IA y voz" className="aparecer mt-3 rounded-2xl border border-electrico/30 bg-agua-suave/50 p-4 md:ml-[52px]">
           <p className="font-semibold text-noche">¿Activar el asistente de IA y la voz?</p>
           <p className="mt-1 text-sm leading-relaxed text-gris">
             Si aceptas, este caso de simulación y tus preguntas se envían a servicios externos de IA y de voz para poder responderte. No pongas datos reales. Puedes desactivarlo cuando quieras.
@@ -399,22 +407,14 @@ export function Chat({
           </div>
         </div>
       )}
-      <div className="aparecer flex items-start gap-2.5 md:gap-3">
-        <span className="mt-1 flex size-7 md:size-8 shrink-0 items-center justify-center rounded-xl bg-agua-suave text-electrico [&_svg]:size-5" aria-hidden="true">
-          <Icono nombre="asistente" />
-        </span>
-        <div className="rounded-2xl rounded-tl-md border border-linea bg-white px-3.5 py-3 text-[15px] leading-relaxed md:p-4 md:text-base">
-          {apertura ?? `Hola, ${perfil.nombre}. Te ayudo a entender tu plata y a decidir con tiempo. ¿Qué quieres saber?`}
-        </div>
-      </div>
       {!mensajes.length && (
-        <div className="-mx-4 my-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:my-5 md:flex-wrap md:overflow-visible md:px-0">
+        <div className="-mx-4 my-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:my-4 md:ml-[52px] md:flex-wrap md:overflow-visible md:px-0">
           {(ruta ? preguntasSugeridas(ruta) : preguntas).map((p, i) => (
             <button
               key={p}
               onClick={() => void enviar(p)}
               style={{ animationDelay: `${120 + i * 70}ms` }}
-              className="aparecer inline-flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-full border border-agua/40 bg-agua-suave/60 px-3.5 text-[13px] font-semibold text-agua-fuerte transition-transform duration-150 active:scale-[.97] md:min-h-11 md:whitespace-normal md:px-4 md:text-sm"
+              className="aparecer inline-flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-full border border-linea bg-white px-3.5 text-[13px] font-medium text-noche transition-[transform,border-color,background-color] duration-150 hover:border-electrico/40 hover:bg-agua-suave/50 active:scale-[.97] md:whitespace-normal md:px-4 md:text-sm"
             >
               {unido(p)}
             </button>
@@ -444,7 +444,7 @@ export function Chat({
         {mensajes.map((m, i) => (
           <div key={i} className={`max-w-[92%] ${m.rol === "usuario" ? "ml-auto" : "mr-auto"}`}>
             <p
-              className={`whitespace-pre-wrap break-words rounded-3xl aparecer p-4 leading-relaxed ${m.rol === "usuario" ? "rounded-tr-md bg-agua-suave text-tinta" : "rounded-tl-md border border-linea bg-white"}`}
+              className={`aparecer whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-[15px] leading-relaxed md:text-base ${m.rol === "usuario" ? "rounded-tr-md bg-electrico text-white" : "rounded-tl-md bg-white text-tinta ring-1 ring-linea"}`}
             >
               {m.texto || "Pensando…"}
             </p>
@@ -579,8 +579,6 @@ export function Chat({
           )}
         </form>
       </div>
-      </div>
-      {lateral && <aside className="mt-6 xl:sticky xl:top-8 xl:col-span-5 xl:mt-0" aria-label="Lo que sabe el copiloto">{lateral}</aside>}
     </section>
   );
 }

@@ -1,5 +1,5 @@
 import { aCentimos } from "../motor/dinero";
-import { leerMonto } from "../motor/numeros";
+import { leerAproximado, leerMonto, type Aproximado } from "../motor/numeros";
 import type { Centimos } from "../motor/tipos";
 import { ErrorDatos } from "./validar";
 
@@ -13,6 +13,24 @@ export function leerSoles(texto: string, campo: string): Centimos {
     const leido = leerMonto(texto);
     if (leido !== null) return leido;
     throw new ErrorDatos(`Revisa ${campo}: escríbelo en soles con números o letras, por ejemplo 180, 180.50 o «ciento ochenta».`);
+  }
+}
+
+/**
+ * Para quien no sabe la cifra exacta: acepta números o letras dentro de una frase («2500 pero es variable»,
+ * «más o menos dos mil») y rangos («entre 1500 y 3000»). Si hay dos montos que no forman un rango, pide aclarar.
+ */
+export function leerSolesAproximado(texto: string, campo: string): Aproximado {
+  if (!texto.trim()) throw new ErrorDatos(`Escribe ${campo}.`);
+  try {
+    const c = aCentimos(texto);
+    return { min: c, max: c };
+  } catch {
+    const leido = leerAproximado(texto);
+    if (leido !== null) return leido;
+    throw new ErrorDatos(
+      `Revisa ${campo}: no tiene que ser exacto. Escribe un monto con números o letras («2500», «dos mil quinientos») o un rango («entre 1500 y 3000»).`,
+    );
   }
 }
 

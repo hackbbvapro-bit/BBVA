@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buscarMonto, leerMonto } from "./numeros";
+import { buscarMonto, leerAproximado, leerMonto } from "./numeros";
 
 describe("leerMonto: montos como los escribe o dicta la gente", () => {
   it("cifras: las mismas que acepta el formulario", () => {
@@ -73,5 +73,28 @@ describe("buscarMonto: el monto dentro de una frase", () => {
     expect(buscarMonto("los 15 de cada mes pago 80 de internet")?.monto).toBe(8000);
     expect(buscarMonto("hola, ¿cómo voy?")).toBeNull();
     expect(buscarMonto("tengo una deuda")).toBeNull();
+  });
+});
+
+describe("leerAproximado: para quien no sabe la cifra exacta", () => {
+  it("un monto dentro de una frase, en cifras o en letras", () => {
+    expect(leerAproximado("2500 pero es variable")).toEqual({ min: 250_000, max: 250_000 });
+    expect(leerAproximado("más o menos dos mil quinientos")).toEqual({ min: 250_000, max: 250_000 });
+    expect(leerAproximado("unos 900 soles")).toEqual({ min: 90_000, max: 90_000 });
+  });
+  it("rangos en sus formas comunes, siempre de menor a mayor", () => {
+    expect(leerAproximado("entre 1500 y 3000")).toEqual({ min: 150_000, max: 300_000 });
+    expect(leerAproximado("de 1500 a 3000")).toEqual({ min: 150_000, max: 300_000 });
+    expect(leerAproximado("1500-3000")).toEqual({ min: 150_000, max: 300_000 });
+    expect(leerAproximado("entre 3000 y 1500")).toEqual({ min: 150_000, max: 300_000 });
+  });
+  it("«no» o «nada» es cero", () => {
+    expect(leerAproximado("no")).toEqual({ min: 0, max: 0 });
+    expect(leerAproximado("nada")).toEqual({ min: 0, max: 0 });
+  });
+  it("si es ambiguo, no adivina", () => {
+    expect(leerAproximado("2000 y en diciembre 4000")).toBeNull();
+    expect(leerAproximado("mucho")).toBeNull();
+    expect(leerAproximado("")).toBeNull();
   });
 });
