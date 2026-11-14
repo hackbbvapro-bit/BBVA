@@ -40,7 +40,7 @@ export function Icono({ nombre }: { nombre: keyof typeof trazos }) {
 export const tonos = {
   urgente: "bg-coral-suave text-coral-fuerte",
   atencion: "bg-ambar-suave text-ambar-fuerte",
-  bien: "bg-agua-suave text-agua-fuerte",
+  bien: "bg-verde-suave text-verde-fuerte",
 };
 export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
   return (

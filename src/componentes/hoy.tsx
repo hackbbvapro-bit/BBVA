@@ -14,7 +14,7 @@ import { avisos, mejorJugada, proximosPagos, resumenHablado, type Aviso } from "
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { Grafico } from "@/componentes/grafico";
 import { boton, tarjeta, Icono, desplazar, unido } from "@/componentes/ui";
-import { TableroA, TableroB, type Direccion } from "@/componentes/tablero";
+import { Tablero } from "@/componentes/tablero";
 
 export function Hoy({
   perfil,
@@ -22,14 +22,12 @@ export function Hoy({
   sonando,
   leer,
   detener,
-  direccion = "a",
 }: {
   perfil: Perfil;
   analisis: Analisis;
   sonando: boolean;
   leer: (texto: string) => void;
   detener: () => void;
-  direccion?: Direccion;
 }) {
   const [jugada, seleccionar] = useState<Jugada>();
   const grafico = useRef<HTMLElement>(null);
@@ -38,7 +36,6 @@ export function Hoy({
     [perfil, jugada],
   );
   const principal = avisos(perfil, analisis)[0];
-  const Tablero = direccion === "b" ? TableroB : TableroA;
   const alternarVoz = () => (sonando ? detener() : leer(resumenHablado(perfil, analisis)));
   return (
     <>
@@ -150,7 +147,7 @@ function Cabina({
     >
       <div
         className="aurora"
-        style={{ background: alerta ? "rgb(255 90 95 / .55)" : "rgb(20 200 180 / .5)" }}
+        style={{ background: alerta ? "rgb(255 90 95 / .55)" : "rgb(133 200 255 / .5)" }}
         aria-hidden="true"
       />
       <div className="relative">
@@ -158,6 +155,14 @@ function Cabina({
         <Saldo key={perfil.id} monto={perfil.saldoActual} />
         <p className="mt-1 text-xs text-white/55">Datos de demostración al {formatoLargo(analisis.hoy)}</p>
         <Mes proyeccion={despues ?? analisis.proyeccion} />
+        {analisis.proyeccion.deficit && (
+          <p className="aparecer mt-6 text-lg font-medium leading-snug text-white/80" style={{ animationDelay: ".25s" }}>
+            El {formatoLargo(analisis.proyeccion.deficit.fecha)}, te faltarán
+            <span className="mt-1 block text-[3.25rem] leading-none tracking-[-0.045em] text-coral tabular-nums">
+              {unido(formatoSoles(analisis.proyeccion.deficit.faltante))}
+            </span>
+          </p>
+        )}
         <AvisoCabina aviso={aviso} />
         <p className="mt-4 text-sm leading-relaxed text-white/70">{perfil.descripcion}</p>
       </div>
@@ -233,7 +238,7 @@ function Mes({ proyeccion }: { proyeccion: Proyeccion }) {
   );
 }
 
-const puntos = { urgente: "text-coral", atencion: "text-ambar", bien: "text-agua" };
+const puntos = { urgente: "text-coral", atencion: "text-ambar", bien: "text-verde" };
 function AvisoCabina({ aviso }: { aviso: Aviso }) {
   return (
     <article className="vidrio aparecer mt-5 rounded-3xl p-4" style={{ animationDelay: ".35s" }}>
@@ -254,7 +259,7 @@ function Resultado({ jugada, despues }: { jugada: Jugada; despues: Proyeccion })
   const sinRojo = deficit === null;
   return (
     <div
-      className={`aparecer mt-4 flex items-start gap-3 rounded-2xl p-4 ${sinRojo ? "bg-agua-suave text-agua-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
+      className={`aparecer mt-4 flex items-start gap-3 rounded-2xl p-4 ${sinRojo ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
     >
       <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-white/70 text-sm font-bold" aria-hidden="true">
         {sinRojo ? "✓" : "!"}
@@ -288,12 +293,12 @@ function TarjetaJugada({
 }) {
   return (
     <article
-      className={`${tarjeta} aparecer relative overflow-hidden transition-shadow duration-300 ${activa ? "ring-2 ring-agua shadow-[0_18px_40px_-18px_rgb(10_125_116/.55)]" : ""}`}
+      className={`${tarjeta} aparecer relative overflow-hidden transition-shadow duration-300 ${activa ? "ring-2 ring-agua shadow-[0_18px_40px_-18px_rgb(20_100_165/.55)]" : ""}`}
       style={{ animationDelay: `${0.2 + orden * 0.08}s` }}
     >
       <div className="flex flex-wrap items-center gap-2">
         <span
-          className={`rounded-full px-2.5 py-1 text-xs font-bold ${j.resuelve ? "bg-agua-suave text-agua-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
+          className={`rounded-full px-2.5 py-1 text-xs font-bold ${j.resuelve ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
         >
           {j.resuelve ? "Resuelve el problema" : "Sola no alcanza"}
         </span>
