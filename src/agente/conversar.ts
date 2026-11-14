@@ -61,18 +61,23 @@ async function* conIA(clave: string, entrada: EntradaAgente): AsyncGenerator<str
   );
   let huboTexto = false;
   for await (const flujo of runner) {
-    let primerTrozo = true;
+    // El texto de cada vuelta se retiene: si la vuelta termina consultando al motor, ese texto son notas
+    // de trabajo del modelo (a veces en inglés) y nunca llega a la persona. Solo se muestra la respuesta.
+    const trozos: string[] = [];
     for await (const evento of flujo) {
-      if (evento.type !== "content_block_delta" || evento.delta.type !== "text_delta") continue;
-      yield primerTrozo && huboTexto ? `\n\n${evento.delta.text}` : evento.delta.text;
-      primerTrozo = false;
-      huboTexto = true;
+      if (evento.type === "content_block_delta" && evento.delta.type === "text_delta") trozos.push(evento.delta.text);
     }
     const mensaje = await flujo.finalMessage();
     if (mensaje.stop_reason === "refusal") return;
-    if (mensaje.stop_reason === "max_tokens" && mensaje.content.some(b => b.type === "tool_use")) {
+    const consulta = mensaje.content.some(b => b.type === "tool_use");
+    if (mensaje.stop_reason === "max_tokens" && consulta) {
       throw new Error("La respuesta se cortó antes de terminar una consulta al motor");
     }
+    if (consulta) continue;
+    const texto = trozos.join("").trim();
+    if (!texto) continue;
+    yield huboTexto ? `\n\n${texto}` : texto;
+    huboTexto = true;
   }
 }
 
