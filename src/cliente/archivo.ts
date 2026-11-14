@@ -1,4 +1,4 @@
-import { documentosPermitidos } from "./salidas";
+import { salidasPermitidas } from "./salidas";
 import { Extraccion } from "@/documentos/esquema";
 
 export const TIPOS_ACEPTADOS = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
@@ -62,17 +62,24 @@ export async function prepararArchivo(archivo: File): Promise<ArchivoListo> {
   return { nombre: archivo.name, tipo: imagen.tipo, datosBase64: aBase64(imagen.bytes) };
 }
 
-/** Envía el archivo a /api/documento y valida la respuesta con el mismo esquema del servidor. */
-export async function analizarDocumento(archivo: ArchivoListo, senal?: AbortSignal): Promise<Extraccion> {
-  if (!documentosPermitidos()) {
-    throw new ErrorArchivo("En tu caso de simulación no se envía ningún archivo fuera de este equipo. Usa el reporte de ejemplo.");
+/**
+ * Envía el archivo a /api/documento y valida la respuesta con el mismo esquema del servidor.
+ * Dos candados antes de que salga un solo byte: IA y voz permitidas en este caso, y la declaración de la
+ * persona de que el documento es inventado. El servidor repite el segundo.
+ */
+export async function analizarDocumento(archivo: ArchivoListo, inventado: boolean, senal?: AbortSignal): Promise<Extraccion> {
+  if (!salidasPermitidas()) {
+    throw new ErrorArchivo("Para leer un archivo primero activa IA y voz en el asistente. Mientras tanto no sale nada de este equipo: usa el reporte de ejemplo.");
+  }
+  if (inventado !== true) {
+    throw new ErrorArchivo("Confirma primero que el documento es inventado. No se leen documentos con datos reales.");
   }
   let respuesta: Response;
   try {
     respuesta = await fetch("/api/documento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(archivo),
+      body: JSON.stringify({ ...archivo, inventado: true }),
       signal: senal,
     });
   } catch {

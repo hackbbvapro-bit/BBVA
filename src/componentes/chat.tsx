@@ -8,6 +8,8 @@ import { estaActiva, type Fase } from "@/cliente/conversacion";
 import { useManosLibres, type ResultadoEnvio } from "@/cliente/manos-libres";
 import { ConversacionVoz } from "@/componentes/conversacion-voz";
 import { boton, botonPrincipal, botonSecundario, Icono, desplazar, unido } from "@/componentes/ui";
+import { ElegirArchivo, Fallo, Leyendo, Revision, useLecturaDisponible, useSubida, type Guardado } from "@/componentes/subida";
+import { EXTRACCION_EJEMPLO } from "@/documentos/ejemplo";
 import { AVISO_SIMULACION, preguntasSugeridas, type Hechos, type Ruta } from "@/ruta/ruta";
 type Burbuja = MensajeChat & { respaldo?: boolean };
 const preguntas = [
@@ -16,6 +18,20 @@ const preguntas = [
   "¿Qué deuda pago primero?",
   "¿Qué pasa si pago solo el mínimo?",
 ];
+/** PDF inventado para probar la lectura de documentos (ninguna persona ni entidad es real). */
+export const RUTA_PDF_EJEMPLO = "/ejemplos/situacion-financiera-ejemplo.pdf";
+const cuantos = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
+/**
+ * Pregunta que se le hace al asistente después de guardar un documento. La redacta el código con los
+ * conteos: nunca lleva texto leído del archivo, para que un documento no pueda darle órdenes al asistente.
+ */
+export function preguntaTrasGuardar({ deudas, cobros }: Guardado): string | null {
+  const partes = [
+    ...(deudas > 0 ? [cuantos(deudas, "deuda", "deudas")] : []),
+    ...(cobros > 0 ? [cuantos(cobros, "cobro pendiente", "cobros pendientes")] : []),
+  ];
+  return partes.length ? `Subí un documento y guardé ${partes.join(" y ")}. ¿Qué cambia en mi plan?` : null;
+}
 const errores: Record<ErrorEscucha, string> = {
   sin_permiso: "Activa el micrófono en los ajustes del navegador",
   sin_voz: "No te escuché. Inténtalo otra vez",
@@ -63,12 +79,18 @@ export function Chat({
   const [error, setError] = useState(""),
     [voz, setVoz] = useState(externo),
     [pidiendo, setPidiendo] = useState(false);
+  const [subiendo, setSubiendo] = useState(false),
+    [porExplicar, setPorExplicar] = useState<string | null>(null);
+  const subida = useSubida();
+  const lectura = useLecturaDisponible(externo);
+  const paso = subida.estado.paso;
   const vozRef = useRef(externo),
     vivo = useRef(false),
     bloqueo = useRef(false),
     controlador = useRef<AbortController | null>(null),
     escucha = useRef<Escucha | undefined>(undefined),
     faseRef = useRef<Fase>("apagado"),
+    panel = useRef<HTMLElement>(null),
     fin = useRef<HTMLDivElement>(null);
   useEffect(() => {
     vivo.current = true;
@@ -85,6 +107,21 @@ export function Chat({
     // Al entrar solo está el saludo: no se desplaza, para que se vea el título y el interruptor de voz.
     if (mensajes.length > 1 || escuchando) desplazar(fin.current);
   }, [mensajes, escuchando]);
+  useEffect(() => {
+    // Al abrir el panel o cambiar de paso (elegir, leyendo, revisar) se lleva a la vista su inicio.
+    if (subiendo) desplazar(panel.current, "start");
+  }, [subiendo, paso]);
+  useEffect(() => {
+    // Tras guardar un documento, el asistente explica qué cambió. Espera a estar libre y usa el perfil ya actualizado.
+    if (!porExplicar || ocupado) return;
+    queueMicrotask(() => {
+      if (!vivo.current) return;
+      setPorExplicar(null);
+      void enviar(porExplicar);
+    });
+    // `enviar` se recrea en cada pintado; solo interesa reaccionar a la pregunta pendiente y a que quede libre.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [porExplicar, ocupado]);
   const manos = useManosLibres({
     enviar: t => enviar(t, true),
     detener,
@@ -169,6 +206,14 @@ export function Chat({
         if (e === "no_soportado") setMicro(false);
       },
     });
+  }
+  function cerrarSubida() {
+    subida.reiniciar();
+    setSubiendo(false);
+  }
+  function alGuardarDocumento(guardado: Guardado) {
+    cerrarSubida();
+    setPorExplicar(preguntaTrasGuardar(guardado));
   }
   return (
     <section className="pb-44 xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8 xl:pb-0">
@@ -297,6 +342,46 @@ export function Chat({
           </div>
         ))}
       </div>
+      {subiendo && (
+        <section ref={panel} id="panel-subida" aria-labelledby="subir-documento" className="aparecer mt-5 scroll-mt-24 rounded-2xl border border-linea bg-white p-4 md:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <h2 id="subir-documento" className="text-lg font-semibold text-noche">
+              {paso !== "revisar" ? "Subir un documento" : subida.estado.ejemplo ? "Reporte de ejemplo, ya leído" : "Esto encontré"}
+            </h2>
+            <button type="button" aria-label="Cerrar la subida de documentos" onClick={cerrarSubida} className="flex size-11 shrink-0 items-center justify-center rounded-full text-gris hover:bg-niebla [&_svg]:size-5">
+              <Icono nombre="cerrar" />
+            </button>
+          </div>
+          {paso === "inicio" && (
+            <>
+              <p className="mt-1 leading-relaxed text-gris">
+                Sube un reporte de deudas o un resumen de tu situación financiera. Te muestro lo que trae, tú corriges y decides qué guardar, y con eso actualizo tu plan.
+              </p>
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-noche">
+                Solo documentos inventados: este es un prototipo de simulación y no debe recibir datos reales de ninguna persona.
+              </p>
+              {lectura && <ElegirArchivo id="archivo-chat" alElegir={(archivo, inventado) => void subida.elegir(archivo, inventado)} />}
+              {!externo && <p className="mt-3 text-sm leading-relaxed text-gris">Para leer un archivo con IA, primero activa IA y voz arriba. Mientras tanto puedes usar el reporte de ejemplo: no envía nada fuera de este equipo.</p>}
+              {externo && !lectura && <p className="mt-3 text-sm leading-relaxed text-gris">La lectura de archivos con IA está apagada en este prototipo. Puedes usar el reporte de ejemplo, que ya viene leído.</p>}
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button type="button" onClick={() => subida.precargada(EXTRACCION_EJEMPLO)} className={lectura ? botonSecundario : botonPrincipal}>
+                  Usar reporte de ejemplo
+                </button>
+                {lectura && (
+                  <a href={RUTA_PDF_EJEMPLO} download className="text-sm font-semibold text-electrico underline underline-offset-4">
+                    Descargar un PDF inventado para probar
+                  </a>
+                )}
+              </div>
+            </>
+          )}
+          {subida.estado.paso === "analizando" && <Leyendo nombre={subida.estado.nombre} alCancelar={subida.reiniciar} />}
+          {subida.estado.paso === "revisar" && (
+            <Revision ext={subida.estado.ext} ejemplo={subida.estado.ejemplo} alGuardar={alGuardarDocumento} alDescartar={subida.reiniciar} />
+          )}
+          {subida.error && <Fallo texto={subida.error} />}
+        </section>
+      )}
       <div ref={fin} className="scroll-mb-72 xl:scroll-mb-24" />
       <div className="fixed inset-x-0 bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md border-t border-linea bg-papel px-4 pb-3 pt-3 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:border-t-0 xl:bg-linear-to-t xl:from-papel xl:via-papel/95 xl:to-papel/0 xl:px-0 xl:pt-6">
         {externo && (
@@ -337,6 +422,17 @@ export function Chat({
             void enviar(texto);
           }}
         >
+          <button
+            type="button"
+            aria-label="Subir un documento"
+            aria-expanded={subiendo}
+            aria-controls={subiendo ? "panel-subida" : undefined}
+            disabled={ocupado}
+            onClick={() => (subiendo ? cerrarSubida() : setSubiendo(true))}
+            className={`flex size-12 shrink-0 items-center justify-center rounded-full ring-1 transition-transform duration-100 active:scale-95 disabled:opacity-40 [&_svg]:size-5 ${subiendo ? "bg-agua-suave text-electrico ring-electrico" : "bg-white text-electrico ring-linea-fuerte"}`}
+          >
+            <Icono nombre="subir" />
+          </button>
           <label className="sr-only" htmlFor="pregunta">
             Tu pregunta
           </label>
@@ -345,8 +441,8 @@ export function Chat({
             maxLength={300}
             value={texto}
             onChange={e => setTexto(e.target.value)}
-            placeholder="Escribe tu pregunta…"
-            className="min-h-12 min-w-0 flex-1 rounded-full bg-white px-5 ring-1 ring-linea-fuerte focus:ring-2 focus:ring-electrico"
+            placeholder="Tu pregunta…"
+            className="min-h-12 min-w-0 flex-1 rounded-full bg-white px-4 ring-1 md:px-5 ring-linea-fuerte focus:ring-2 focus:ring-electrico"
             disabled={ocupado}
           />
           <button

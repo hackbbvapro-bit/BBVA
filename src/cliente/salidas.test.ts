@@ -4,7 +4,7 @@ import { analizar } from "@/motor";
 import { conversar } from "./agente";
 import { analizarDocumento, ErrorArchivo } from "./archivo";
 import { SIN_HECHOS } from "@/ruta/ruta";
-import { documentosPermitidos, fijarSalidas, salidasPermitidas } from "./salidas";
+import { avisosRemotosPermitidos, fijarSalidas, salidasPermitidas } from "./salidas";
 
 const perfil = PERFILES[0];
 const analisis = analizar(perfil);
@@ -35,7 +35,7 @@ describe("compuerta de privacidad del navegador", () => {
   it("cerrada: no se envía ningún documento y no llama a fetch", async () => {
     const red = vi.fn();
     vi.stubGlobal("fetch", red);
-    await expect(analizarDocumento(archivo)).rejects.toBeInstanceOf(ErrorArchivo);
+    await expect(analizarDocumento(archivo, true)).rejects.toBeInstanceOf(ErrorArchivo);
     expect(red).not.toHaveBeenCalled();
   });
 
@@ -51,27 +51,45 @@ describe("compuerta de privacidad del navegador", () => {
   });
 });
 
-describe("compuerta de dos niveles: IA y voz por un lado, documentos por otro", () => {
-  it("caso propio con permiso: IA y voz abiertas, documentos cerrados y ningún archivo sale", async () => {
-    const red = vi.fn();
-    vi.stubGlobal("fetch", red);
+describe("compuerta de dos niveles: IA, voz y archivos por un lado, avisos remotos por otro", () => {
+  it("caso propio con permiso: IA y voz abiertas, avisos remotos cerrados", () => {
     fijarSalidas(true, false);
     expect(salidasPermitidas()).toBe(true);
-    expect(documentosPermitidos()).toBe(false);
-    await expect(analizarDocumento(archivo)).rejects.toBeInstanceOf(ErrorArchivo);
-    expect(red).not.toHaveBeenCalled();
+    expect(avisosRemotosPermitidos()).toBe(false);
   });
 
-  it("los documentos nunca se abren si IA y voz están cerradas", () => {
+  it("los avisos remotos nunca se abren si IA y voz están cerradas", () => {
     fijarSalidas(false, true);
     expect(salidasPermitidas()).toBe(false);
-    expect(documentosPermitidos()).toBe(false);
+    expect(avisosRemotosPermitidos()).toBe(false);
   });
 
   it("caso de ejemplo: un solo argumento abre las dos, como antes", () => {
     fijarSalidas(true);
     expect(salidasPermitidas()).toBe(true);
-    expect(documentosPermitidos()).toBe(true);
+    expect(avisosRemotosPermitidos()).toBe(true);
+  });
+
+  it("un archivo sin la declaración de «inventado» no sale, aunque IA y voz estén permitidas", async () => {
+    const red = vi.fn();
+    vi.stubGlobal("fetch", red);
+    for (const conAvisos of [true, false]) {
+      fijarSalidas(true, conAvisos);
+      await expect(analizarDocumento(archivo, false)).rejects.toBeInstanceOf(ErrorArchivo);
+      // Un valor que no sea exactamente `true` tampoco cuenta como declaración.
+      await expect(analizarDocumento(archivo, "sí" as unknown as boolean)).rejects.toBeInstanceOf(ErrorArchivo);
+    }
+    expect(red).not.toHaveBeenCalled();
+  });
+
+  it("con permiso y declaración, el archivo va a /api/documento llevando la declaración", async () => {
+    const red = vi.fn().mockRejectedValue(new Error("sin red"));
+    vi.stubGlobal("fetch", red);
+    fijarSalidas(true, false);
+    await expect(analizarDocumento(archivo, true)).rejects.toBeInstanceOf(ErrorArchivo);
+    expect(red).toHaveBeenCalledTimes(1);
+    expect(red.mock.calls[0][0]).toBe("/api/documento");
+    expect(JSON.parse(red.mock.calls[0][1].body)).toEqual({ ...archivo, inventado: true });
   });
 
   it("conversar envía los hechos y el consentimiento solo cuando la persona lo dio", async () => {
