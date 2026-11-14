@@ -49,7 +49,7 @@ de fish.audio: es el final de la dirección `fish.audio/m/<id>`).
   un editor de texto, pega cada valor después del `=` de su línea y guarda. Ese archivo no se sube.
 
 Opcional: `ANTHROPIC_MODEL`. Vacío usa `claude-opus-5-5`. Si en la prueba el agente tarda en
-contestar, prueba con `claude-sonnet-5-5` **[ASUMIDO: más rápido y barato; no se midió]**.
+contestar, prueba con `claude-sonnet-5-5` **[MEDIDO el 14-nov, 2 preguntas: Sonnet 5.5 contesta en 3,3–3,5 s y Opus 5.5 en 5,6–5,9 s; con Sonnet no se evaluó si mantiene las cifras exactas]**.
 
 ## Paso 3 · Probar en la computadora (10 min)
 
