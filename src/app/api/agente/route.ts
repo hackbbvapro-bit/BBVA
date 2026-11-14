@@ -45,8 +45,7 @@ function comoFlujo(eventos: AsyncGenerator<EventoAgente>, cortar: () => void): R
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
   if (!haySesion(req)) return sinSesion();
-  if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
-    return errorJson("demasiadas_peticiones", 429);
+  if (!limite.permite(visitante(req))) return errorJson("demasiadas_peticiones", 429);
   const datos = Peticion.safeParse(await leerJson(req, MAX_BYTES_PERFIL));
   if (!datos.success) return errorJson("peticion_invalida", 400);
   const perfil = datos.data.perfil;
@@ -58,6 +57,8 @@ export async function POST(req: Request): Promise<Response> {
     return errorJson("peticion_invalida", 400);
   }
 
+  // El tope común se gasta solo con peticiones válidas que de verdad llaman al proveedor.
+  if (!topeGlobal.permite("todos")) return errorJson("demasiadas_peticiones", 429);
   const corte = new AbortController();
   const senal = AbortSignal.any([req.signal, corte.signal]);
   const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal });

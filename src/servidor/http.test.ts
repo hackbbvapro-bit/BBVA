@@ -6,10 +6,15 @@ function peticion(cabeceras: Record<string, string>, cuerpo?: string): Request {
 }
 
 describe("origen de la petición", () => {
-  it("acepta el mismo sitio y las llamadas sin cabecera Origin", () => {
+  it("acepta el mismo sitio, también sin Origin si el navegador dice same-origin", () => {
     expect(mismoOrigen(peticion({ host: "demo.test", origin: "https://demo.test" }))).toBe(true);
-    expect(mismoOrigen(peticion({ host: "demo.test" }))).toBe(true);
+    expect(mismoOrigen(peticion({ host: "demo.test", "sec-fetch-site": "same-origin" }))).toBe(true);
     expect(mismoOrigen(peticion({ host: "localhost:3000", origin: "http://localhost:3000" }))).toBe(true);
+  });
+
+  it("rechaza un POST sin Origin ni Sec-Fetch-Site de mismo sitio", () => {
+    expect(mismoOrigen(peticion({ host: "demo.test" }))).toBe(false);
+    expect(mismoOrigen(peticion({ host: "demo.test", "sec-fetch-site": "cross-site" }))).toBe(false);
   });
 
   it("rechaza otra web y un Origin ilegible", () => {

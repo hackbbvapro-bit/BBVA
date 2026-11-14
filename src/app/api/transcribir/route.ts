@@ -31,13 +31,14 @@ async function leerAudio(req: Request): Promise<File | undefined> {
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
   if (!haySesion(req)) return sinSesion();
-  if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
-    return errorJson("demasiadas_peticiones", 429);
+  if (!limite.permite(visitante(req))) return errorJson("demasiadas_peticiones", 429);
   const clave = claveFish();
   if (!clave) return errorJson("transcripcion_no_disponible", 503);
   const audio = await leerAudio(req);
   if (!audio) return errorJson("peticion_invalida", 400);
 
+  // El tope común se gasta solo con peticiones válidas que de verdad llaman al proveedor.
+  if (!topeGlobal.permite("todos")) return errorJson("demasiadas_peticiones", 429);
   try {
     const cuerpo = new FormData();
     cuerpo.append("audio", audio, audio.type.includes("mp4") ? "audio.mp4" : "audio.webm");

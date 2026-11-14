@@ -47,8 +47,7 @@ async function leerCuerpo(req: Request): Promise<Cuerpo> {
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
   if (!haySesion(req)) return sinSesion();
-  if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
-    return errorJson("demasiadas_peticiones", 429);
+  if (!limite.permite(visitante(req))) return errorJson("demasiadas_peticiones", 429);
 
   const cuerpo = await leerCuerpo(req);
   if (!cuerpo.ok) return cuerpo.respuesta;
@@ -66,6 +65,8 @@ export async function POST(req: Request): Promise<Response> {
     );
   }
 
+  // El tope común se gasta solo con peticiones válidas que de verdad llaman al proveedor.
+  if (!topeGlobal.permite("todos")) return errorJson("demasiadas_peticiones", 429);
   try {
     const extraccion = await extraerDocumento(clave, { tipo: archivo.tipo, base64: archivo.base64 }, req.signal);
     if (!extraccion) {

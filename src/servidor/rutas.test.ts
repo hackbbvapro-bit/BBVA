@@ -16,6 +16,7 @@ const json = (ruta: string, cuerpo: unknown, cabeceras: Record<string, string> =
     headers: {
       "content-type": "application/json",
       "x-forwarded-host": "copiloto.test",
+      "sec-fetch-site": "same-origin",
       cookie: SESION,
       ...cabeceras,
     },
@@ -104,7 +105,7 @@ describe("rutas de voz y avisos sin configurar", () => {
     const peticion = new Request(`${BASE}/api/transcribir`, {
       method: "POST",
       body: cuerpo,
-      headers: { cookie: SESION },
+      headers: { "sec-fetch-site": "same-origin", cookie: SESION },
     });
     expect((await transcribir(peticion)).status).toBe(503);
   });
@@ -140,7 +141,7 @@ describe("sin sesión de la cuenta demo", () => {
       const cuerpo = new FormData();
       cuerpo.append("audio", new Blob(["x"], { type: "audio/webm" }), "audio.webm");
       const r = await transcribir(
-        new Request(`${BASE}/api/transcribir`, { method: "POST", body: cuerpo, headers: { cookie } }),
+        new Request(`${BASE}/api/transcribir`, { method: "POST", body: cuerpo, headers: { "sec-fetch-site": "same-origin", cookie } }),
       );
       expect(r.status).toBe(401);
     }
