@@ -4,6 +4,9 @@ import type { Analisis, Perfil } from "@/motor";
 import { conversar, type MensajeChat } from "@/cliente/agente";
 import { desbloquearAudio } from "@/cliente/voz";
 import { escuchar, puedeEscuchar, type Escucha, type ErrorEscucha } from "@/cliente/escucha";
+import { estaActiva, type Fase } from "@/cliente/conversacion";
+import { useManosLibres, type ResultadoEnvio } from "@/cliente/manos-libres";
+import { ConversacionVoz } from "@/componentes/conversacion-voz";
 import { boton, Icono, desplazar, Portada, unido } from "@/componentes/ui";
 type Burbuja = MensajeChat & { respaldo?: boolean };
 const preguntas = [
@@ -46,6 +49,7 @@ export function Chat({
     bloqueo = useRef(false),
     controlador = useRef<AbortController | null>(null),
     escucha = useRef<Escucha | undefined>(undefined),
+    faseRef = useRef<Fase>("apagado"),
     fin = useRef<HTMLDivElement>(null);
   useEffect(() => {
     vivo.current = true;
@@ -62,9 +66,20 @@ export function Chat({
     // Al entrar solo está el saludo: no se desplaza, para que se vea el título y el interruptor de voz.
     if (mensajes.length > 1 || escuchando) desplazar(fin.current);
   }, [mensajes, escuchando]);
-  async function enviar(pregunta: string) {
+  const manos = useManosLibres({
+    enviar: t => enviar(t, true),
+    detener,
+    sonando,
+    hayVoz: () => vozRef.current,
+  });
+  const fase = manos.estado.fase;
+  useEffect(() => {
+    faseRef.current = fase;
+  }, [fase]);
+  const conversando = estaActiva(manos.estado);
+  async function enviar(pregunta: string, porVoz = false): Promise<ResultadoEnvio> {
     const limpio = pregunta.trim().slice(0, 300);
-    if (!limpio || bloqueo.current || !vivo.current) return;
+    if (!limpio || bloqueo.current || !vivo.current) return "omitido";
     desbloquearAudio();
     detener();
     bloqueo.current = true;
@@ -88,14 +103,17 @@ export function Chat({
           );
         },
       });
-      if (!vivo.current || abortador.signal.aborted) return;
+      if (!vivo.current || abortador.signal.aborted) return "omitido";
       setMensajes([
         ...historial,
         { rol: "asistente", texto: respuesta.texto, respaldo: respuesta.origen === "respaldo" },
       ]);
-      if (vozRef.current) leer(respuesta.texto);
+      // Si la conversación se cerró mientras pensaba, la respuesta queda escrita pero no se lee.
+      if (vozRef.current && (!porVoz || faseRef.current === "pensando")) leer(respuesta.texto);
+      return "ok";
     } catch {
       if (vivo.current && !abortador.signal.aborted) setError("No pude responder. Inténtalo otra vez.");
+      return "error";
     } finally {
       if (vivo.current) {
         bloqueo.current = false;
@@ -199,7 +217,21 @@ export function Chat({
       </div>
       <div ref={fin} className="scroll-mb-72 xl:scroll-mb-24" />
       <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md bg-linear-to-t from-papel via-papel/95 to-papel/0 px-4 pb-3 pt-6 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:px-0">
-        {sonando && (
+        <ConversacionVoz
+          estado={manos.estado}
+          soporte={manos.soporte}
+          parcial={manos.parcial}
+          bloqueado={ocupado || escuchando}
+          alActivar={() => {
+            desbloquearAudio();
+            detener();
+            setError("");
+            manos.activar();
+          }}
+          alTerminar={manos.desactivar}
+          alInterrumpir={manos.interrumpir}
+        />
+        {sonando && !conversando && (
           <button className={`${boton} mb-2 bg-agua-suave text-agua-fuerte`} onClick={detener}>
             Detener voz
           </button>
@@ -246,7 +278,7 @@ export function Chat({
               type="button"
               aria-label={escuchando ? "Terminar de escuchar" : "Hablar con el micrófono"}
               aria-pressed={escuchando}
-              disabled={ocupado}
+              disabled={ocupado || conversando}
               onClick={dictar}
               className={`flex size-14 shrink-0 items-center justify-center rounded-full disabled:opacity-40 ${escuchando ? "motion-safe:animate-pulse bg-coral-suave text-coral-fuerte" : "bg-agua-suave text-agua-fuerte"}`}
             >
