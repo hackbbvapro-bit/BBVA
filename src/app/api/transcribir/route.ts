@@ -11,6 +11,8 @@ const ESPERA_MS = 25_000;
 const MAXIMO_BYTES = 4_000_000;
 const MAXIMO_TEXTO = 1000;
 const limite = crearLimite(15, 60_000);
+// Tope para todos los visitantes juntos: acota el gasto de la clave si alguien rota direcciones.
+const topeGlobal = crearLimite(300, 3_600_000);
 const Transcripcion = z.object({ text: z.string() });
 
 async function leerAudio(req: Request): Promise<File | undefined> {
@@ -27,7 +29,8 @@ async function leerAudio(req: Request): Promise<File | undefined> {
 /** Pasa a texto un audio corto grabado en el celular (respaldo cuando el navegador no reconoce voz). */
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
-  if (!limite.permite(visitante(req))) return errorJson("demasiadas_peticiones", 429);
+  if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
+    return errorJson("demasiadas_peticiones", 429);
   const clave = claveFish();
   if (!clave) return errorJson("transcripcion_no_disponible", 503);
   const audio = await leerAudio(req);

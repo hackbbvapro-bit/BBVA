@@ -9,12 +9,15 @@ export const maxDuration = 30;
 const FISH_TTS = "https://api.fish.audio/v1/tts";
 const ESPERA_MS = 20_000;
 const limite = crearLimite(30, 60_000);
+// Tope para todos los visitantes juntos: acota el gasto de la clave si alguien rota direcciones.
+const topeGlobal = crearLimite(400, 3_600_000);
 const Peticion = z.object({ texto: z.string().trim().min(1).max(800) });
 
 /** Convierte un texto en audio con Fish Audio. La clave nunca sale del servidor. */
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
-  if (!limite.permite(visitante(req))) return errorJson("demasiadas_peticiones", 429);
+  if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
+    return errorJson("demasiadas_peticiones", 429);
   const datos = Peticion.safeParse(await leerJson(req));
   if (!datos.success) return errorJson("peticion_invalida", 400);
   const config = configVoz();
