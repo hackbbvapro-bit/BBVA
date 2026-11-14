@@ -6,11 +6,21 @@ export function Grafico({
   base,
   despues,
   descripcion,
+  ancho = 350,
+  oscuro = false,
 }: {
   base: Proyeccion;
   despues?: Proyeccion;
   descripcion: string;
+  /** Ancho del lienzo SVG: en escritorio el gráfico se estira sin agrandar letras. */
+  ancho?: number;
+  oscuro?: boolean;
 }) {
+  const der = ancho - 22;
+  const trazo = oscuro ? "#ffffff" : "var(--color-tinta)",
+    suave = oscuro ? "rgb(255 255 255 / .62)" : "var(--color-gris)",
+    guia = oscuro ? "rgb(255 255 255 / .12)" : "var(--color-linea)",
+    borde = oscuro ? "var(--color-noche)" : "white";
   const id = useId().replace(/:/g, "");
   const valores = [...base.dias, ...(despues?.dias ?? [])].map(d => d.saldo);
   const minimo = Math.min(...valores),
@@ -19,33 +29,33 @@ export function Grafico({
     superior = Math.max(0, maximo);
   const margen = Math.max((superior - inferior) * 0.12, 1);
   const y = (saldo: number) => 24 + ((superior + margen - saldo) / (superior - inferior + margen * 2)) * 176;
-  const x = (i: number) => 80 + (i / Math.max(base.dias.length - 1, 1)) * 248;
+  const x = (i: number) => 80 + (i / Math.max(base.dias.length - 1, 1)) * (der - 80);
   const linea = (serie: Proyeccion) =>
     serie.dias.map((d, i) => `${i ? "L" : "M"}${x(i)},${y(d.saldo)}`).join(" ");
-  const area = (serie: Proyeccion) => `${linea(serie)} L328,${y(0)} L80,${y(0)} Z`;
+  const area = (serie: Proyeccion) => `${linea(serie)} L${der},${y(0)} L80,${y(0)} Z`;
   const fecha = base.deficit?.fecha ?? base.fechaSaldoMinimo;
   const indice = base.dias.findIndex(d => d.fecha === fecha);
   const punto = base.dias[indice];
   // Solo geometría: dónde cabe cada rótulo sin pisar a otro.
-  const xPunto = punto ? Math.min(306, Math.max(102, x(indice))) : 205;
+  const xPunto = punto ? Math.min(der - 22, Math.max(102, x(indice))) : ancho / 2 + 30;
   const ceroVisible = y(0) - y(maximo) > 16 && Math.abs(y(minimo) - y(0)) > 16;
   const rotulo = base.deficit ? `Faltan ${formatoSoles(base.deficit.faltante)}` : undefined;
   const anchoRotulo = rotulo ? rotulo.length * 7 + 18 : 0;
-  const xRotulo = punto ? Math.min(328 - anchoRotulo / 2, Math.max(80 + anchoRotulo / 2, x(indice))) : 0;
+  const xRotulo = punto ? Math.min(der - anchoRotulo / 2, Math.max(80 + anchoRotulo / 2, x(indice))) : 0;
   const yRotulo = punto ? Math.max(4, y(punto.saldo) - 40) : 0;
   return (
     <svg
       className="mt-4 h-auto w-full overflow-visible"
-      viewBox="0 0 350 250"
+      viewBox={`0 0 ${ancho} 250`}
       role="img"
       aria-label={descripcion}
     >
       <defs>
         <clipPath id={`${id}-bajo`}>
-          <rect x="80" y={y(0)} width="248" height={224 - y(0)} />
+          <rect x="80" y={y(0)} width={der - 80} height={224 - y(0)} />
         </clipPath>
         <clipPath id={`${id}-sobre`}>
-          <rect x="80" y="0" width="248" height={y(0)} />
+          <rect x="80" y="0" width={der - 80} height={y(0)} />
         </clipPath>
         <linearGradient id={`${id}-agua`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="var(--color-agua)" stopOpacity="0.32" />
@@ -63,20 +73,20 @@ export function Grafico({
           </feMerge>
         </filter>
       </defs>
-      <path d={`M80,${y(maximo)}H328 M80,${y(minimo)}H328`} stroke="var(--color-linea)" />
+      <path d={`M80,${y(maximo)}H${der} M80,${y(minimo)}H${der}`} stroke={guia} />
       <g className="desvanecer" opacity={despues ? 0.25 : 1}>
         <path d={area(base)} clipPath={`url(#${id}-sobre)`} fill={`url(#${id}-agua)`} />
         <path d={area(base)} clipPath={`url(#${id}-bajo)`} fill={`url(#${id}-coral)`} />
       </g>
-      <path d={`M80,${y(0)}H328`} stroke="var(--color-gris)" strokeOpacity="0.6" strokeDasharray="4 5" />
-      <text x="3" y={y(maximo) + 4} fontSize="13" fill="var(--color-gris)">
+      <path d={`M80,${y(0)}H${der}`} stroke={suave} strokeOpacity="0.6" strokeDasharray="4 5" />
+      <text x="3" y={y(maximo) + 4} fontSize="13" fill={suave}>
         {formatoSoles(maximo, { sinDecimales: true })}
       </text>
-      <text x="3" y={y(minimo) + 4} fontSize="13" fill="var(--color-gris)">
+      <text x="3" y={y(minimo) + 4} fontSize="13" fill={suave}>
         {formatoSoles(minimo, { sinDecimales: true })}
       </text>
       {ceroVisible && (
-        <text x="3" y={y(0) + 4} fontSize="13" fill="var(--color-gris)">
+        <text x="3" y={y(0) + 4} fontSize="13" fill={suave}>
           {formatoSoles(0, { sinDecimales: true })}
         </text>
       )}
@@ -86,7 +96,7 @@ export function Grafico({
         pathLength={1}
         d={linea(base)}
         fill="none"
-        stroke="var(--color-tinta)"
+        stroke={trazo}
         strokeOpacity={despues ? 0.35 : 1}
         strokeWidth="2.5"
         strokeLinejoin="round"
@@ -112,7 +122,7 @@ export function Grafico({
         <g>
           <path
             d={`M${x(indice)},${y(punto.saldo) + 8}V226`}
-            stroke="var(--color-gris)"
+            stroke={suave}
             strokeOpacity="0.6"
             strokeDasharray="2 4"
           />
@@ -130,7 +140,7 @@ export function Grafico({
             cy={y(punto.saldo)}
             r="5.5"
             fill={base.deficit ? "var(--color-coral)" : "var(--color-ambar)"}
-            stroke="white"
+            stroke={borde}
             strokeWidth="2.5"
           />
           {rotulo && !despues && (
@@ -161,19 +171,19 @@ export function Grafico({
             textAnchor="middle"
             fontSize="13"
             fontWeight="700"
-            fill="var(--color-tinta)"
+            fill={trazo}
           >
             {formatoCorto(fecha)}
           </text>
         </g>
       )}
       {xPunto > 150 && (
-        <text x="80" y="240" fontSize="13" fill="var(--color-gris)">
+        <text x="80" y="240" fontSize="13" fill={suave}>
           {formatoCorto(base.dias[0]?.fecha ?? base.desde)}
         </text>
       )}
-      {xPunto < 262 && (
-        <text x="328" y="240" textAnchor="end" fontSize="13" fill="var(--color-gris)">
+      {xPunto < der - 66 && (
+        <text x={der} y="240" textAnchor="end" fontSize="13" fill={suave}>
           {formatoCorto(base.hasta)}
         </text>
       )}

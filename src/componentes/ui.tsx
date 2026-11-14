@@ -70,7 +70,7 @@ export function Portada({
   return (
     <section
       data-alerta={alerta ? "si" : "no"}
-      className="cabina relative -mx-4 -mt-[calc(9rem+env(safe-area-inset-top))] mb-6 overflow-hidden rounded-b-[2.5rem] px-5 pb-7 pt-[calc(10.5rem+env(safe-area-inset-top))] text-white"
+      className="cabina relative -mx-4 -mt-[calc(5.25rem+env(safe-area-inset-top))] mb-6 overflow-hidden rounded-b-[2.5rem] px-5 pb-7 pt-[calc(6.75rem+env(safe-area-inset-top))] text-white lg:mx-0 lg:mt-0 lg:rounded-[2rem] lg:px-10 lg:py-10"
     >
       <div aria-hidden="true" className={`aurora ${alerta ? "bg-coral" : "bg-agua"}`} />
       <div className="relative">{children}</div>
