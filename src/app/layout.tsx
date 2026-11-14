@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -16,6 +16,17 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Copiloto anticipador",
   description: "Te avisa antes de que te falte plata y te propone qué hacer, con su costo en soles.",
+  applicationName: "Copiloto anticipador",
+  appleWebApp: { capable: true, title: "Copiloto", statusBarStyle: "black-translucent" },
+  icons: { icon: "/icono-192.png", apple: "/apple-touch-icon.png" },
+  formatDetection: { telephone: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0c1a2b",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
