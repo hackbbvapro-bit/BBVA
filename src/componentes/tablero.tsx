@@ -59,7 +59,7 @@ function Efecto({ despues }: { despues: Proyeccion }) {
   const d = despues.deficit;
   return (
     <p
-      className={`aparecer mt-4 flex items-center gap-3 rounded-2xl px-4 py-3 font-medium ${d === null ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
+      className={`aparecer-heroe mt-4 flex items-center gap-3 rounded-2xl px-4 py-3 font-medium ${d === null ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
     >
       <span aria-hidden="true">{d === null ? "✓" : "!"}</span>
       {d === null
@@ -102,7 +102,7 @@ export function Tablero({ cobros, perfil, analisis, aviso, jugada, despues, eleg
         </button>
       </div>
       <div className="mt-8 grid grid-cols-12 gap-6">
-        <section className="aparecer col-span-12 flex flex-col rounded-[28px] bg-electrico p-10 text-white xl:col-span-7 2xl:p-12">
+        <section className="aparecer-heroe col-span-12 flex flex-col rounded-[28px] bg-electrico p-10 text-white xl:col-span-7 2xl:p-12">
           <p className="flex w-fit items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-sm font-medium">
             <span className="size-2 rounded-full bg-[#ffb3b8]" aria-hidden="true" />
             {aviso.nivel === "urgente" ? "Anticípate" : aviso.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
@@ -159,8 +159,8 @@ export function Tablero({ cobros, perfil, analisis, aviso, jugada, despues, eleg
         </section>
       </div>
       <dl className="mt-6 grid grid-cols-2 gap-6 xl:grid-cols-4">
-        {cifras(perfil, analisis).map(([titulo, valor], i) => (
-          <div key={titulo} className="aparecer rounded-[22px] border border-linea bg-white p-6" style={{ animationDelay: `${0.12 + i * 0.04}s` }}>
+        {cifras(perfil, analisis).map(([titulo, valor]) => (
+          <div key={titulo} className="rounded-[22px] border border-linea bg-white p-6">
             <dt className="text-[15px] text-gris">{titulo}</dt>
             <dd className="mt-2 text-[2rem] font-semibold leading-none tracking-[-0.035em] text-noche tabular-nums">{unido(valor)}</dd>
           </div>
@@ -173,13 +173,12 @@ export function Tablero({ cobros, perfil, analisis, aviso, jugada, despues, eleg
             <p className="text-gris">Elige una y mira cómo queda tu mes.</p>
           </div>
           <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-            {analisis.jugadas.map((j, i) => {
+            {analisis.jugadas.map(j => {
               const activa = jugada?.id === j.id;
               return (
                 <article
                   key={j.id}
                   className={`aparecer flex flex-col rounded-[22px] border bg-white p-7 transition-[border-color,box-shadow] duration-200 ${activa ? "border-electrico shadow-[0_0_0_1px_var(--color-electrico)]" : "border-linea"}`}
-                  style={{ animationDelay: `${0.2 + i * 0.06}s` }}
                 >
                   <div className="flex flex-wrap gap-2">
                     <Etiquetas j={j} barata={barata === j.id} />

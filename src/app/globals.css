@@ -65,7 +65,11 @@ body {
 }
 
 /* ---------- Movimiento ---------- */
+/* Tarjetas y jugadas: 250 ms (MOTION.md §2). El héroe del déficit conserva 600 ms. */
 .aparecer {
+  animation: aparecer 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.aparecer-heroe {
   animation: aparecer 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes aparecer {

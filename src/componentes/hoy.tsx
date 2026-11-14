@@ -155,7 +155,7 @@ function Pulso({
         <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.025em] text-noche">Hola, {perfil.nombre}</h1>
         <p className="mt-1 text-sm text-gris">Datos de demostración al {formatoLargo(analisis.hoy)}</p>
       </header>
-      <section className="aparecer rounded-[28px] bg-electrico p-6 text-white">
+      <section className="aparecer-heroe rounded-[28px] bg-electrico p-6 text-white">
         <p className="flex w-fit items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-sm font-medium">
           <span className="size-2 rounded-full bg-[#ffb3b8]" aria-hidden="true" />
           {aviso.nivel === "urgente" ? "Anticípate" : aviso.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
@@ -173,7 +173,7 @@ function Pulso({
         </p>
         <Mes proyeccion={despues ?? analisis.proyeccion} />
       </section>
-      <dl className="aparecer grid grid-cols-2 rounded-[22px] border border-linea bg-white" style={{ animationDelay: ".08s" }}>
+      <dl className="grid grid-cols-2 rounded-[22px] border border-linea bg-white">
         {cifras(perfil, analisis).map(([titulo, valor], i) => (
           <div key={titulo} className={`px-4 py-4 ${i % 2 ? "border-l border-linea" : ""} ${i > 1 ? "border-t border-linea" : ""}`}>
             <dt className="text-sm leading-snug text-gris">{titulo}</dt>
@@ -263,8 +263,8 @@ function TarjetaJugada({
 }) {
   return (
     <article
-      className={`${tarjeta} aparecer relative overflow-hidden transition-shadow duration-300 ${activa ? "ring-2 ring-electrico" : ""}`}
-      style={{ animationDelay: `${0.2 + orden * 0.08}s` }}
+      className={`${tarjeta} aparecer relative overflow-hidden transition-shadow duration-200 ${activa ? "ring-2 ring-electrico" : ""}`}
+      style={{ animationDelay: `${orden * 0.04}s` }}
     >
       <div className="flex flex-wrap items-center gap-2">
         <span
