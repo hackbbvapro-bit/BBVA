@@ -1,9 +1,12 @@
 /** Herramientas del agente: cada una consulta el motor. El modelo no tiene otra fuente de números. */
 import { betaZodTool } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
-import type { Analisis, Perfil } from "../motor";
-import type { Ruta } from "../ruta/ruta";
+import { analizar, type Analisis, type Perfil } from "../motor";
+import type { CobroPendiente } from "../motor/cobros";
+import { leerMonto } from "../motor/numeros";
+import type { Avance, Ruta } from "../ruta/ruta";
 import { datosDeudas, datosJugadas, datosProximosPagos, datosResumen, datosRuta, datosSimulacion } from "./datos";
+import { CATEGORIAS, EsquemaAccion, aplicar, efectoComoDato, efectoDe, frase, leerFecha, type Accion, type Situacion } from "./registro";
 
 const SinDatos = z.object({});
 const DiasPagos = z.object({
@@ -14,16 +17,95 @@ const Gasto = z.object({
   fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("Día del gasto en formato AAAA-MM-DD, dentro del periodo proyectado."),
 });
 
-export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Ruta) {
-  const comoTexto = (datos: unknown): string => JSON.stringify(datos);
+const montoDicho = () =>
+  z.string().trim().min(1).max(40)
+    .describe("El monto tal como lo dijo la persona, sin calcular nada: «1000», «1.000», «mil», «S/ 250.50», «cien soles».");
+const anotar = z.boolean()
+  .describe("true si es un hecho (ya pasó, o la persona afirma que pasará) y debe quedar en su panel; false si solo pregunta «¿y si…?».");
+const descripcion = z.string().trim().max(40).optional().describe("Qué es, en 1 a 4 palabras: «Limpieza», «Luz», «Sueldo».");
+const diaDelMes = z.number().int().min(1).max(31).optional().describe("Solo para cada_mes: el día del mes que dijo la persona (1 a 31).");
+
+const Ingreso = z.object({
+  monto: montoDicho(),
+  cuando: z.enum(["ya_llego", "por_llegar", "cada_mes"])
+    .describe("ya_llego: ya lo recibió. por_llegar: le pagarán una vez más adelante. cada_mes: ingreso que se repite."),
+  fecha_dicha: z.string().trim().max(40).optional()
+    .describe("Solo para por_llegar: el día tal como lo dijo («mañana», «el viernes», «el 20», «20 de diciembre», «fin de mes»). Si no lo dijo, no lo pongas."),
+  dia_del_mes: diaDelMes,
+  descripcion,
+  anotar,
+});
+const GastoAnotado = z.object({
+  monto: montoDicho(),
+  cuando: z.enum(["ya_paso", "cada_mes"]).describe("ya_paso: ya lo gastó o pagó. cada_mes: gasto fijo que se repite."),
+  dia_del_mes: diaDelMes,
+  descripcion,
+  categoria: z.enum(CATEGORIAS).optional().describe("Solo para cada_mes."),
+  anotar,
+});
+const DeudaAnotada = z.object({
+  entidad: z.string().trim().min(1).max(40).describe("A quién le debe: una entidad, o «Familiar», «Amigo»."),
+  nombre: z.string().trim().min(1).max(40).describe("Cómo llamarla: «Préstamo moto», «Tarjeta»."),
+  tipo: z.enum(["tarjeta", "prestamo", "personal"]),
+  saldo: montoDicho().describe("Cuánto debe en total, tal como lo dijo."),
+  pago_mensual: montoDicho().describe("Cuánto paga al mes, tal como lo dijo."),
+  dia_de_pago: z.number().int().min(1).max(31),
+  tcea_dicha: z.string().trim().max(20).optional().describe("El costo anual (TCEA) si lo dijo, por ejemplo «45%». Si no lo dijo, no lo pongas."),
+  anotar,
+});
+
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+/** «45%», «45,5 %» → puntos básicos (4550). null si no se dijo o no se entiende. */
+export function leerTcea(texto: string | undefined): number | null {
+  const m = texto?.replace(",", ".").match(/^\s*(\d{1,3}(?:\.\d{1,2})?)\s*%?\s*$/);
+  return m ? Math.round(Number(m[1]) * 100) : null;
+}
+
+export interface OpcionesHerramientas {
+  /** Cobros pendientes de la persona: el resumen y los efectos cuentan lo que está por llegar. */
+  cobros?: readonly CobroPendiente[];
+  /** Se llama cuando el modelo anota algo como hecho: el navegador lo guarda en el panel. */
+  alAccion?: (accion: Accion, texto: string) => void;
+  /** Qué pasos de la ruta marcó la persona en «Mi ruta» (calculado en el servidor). */
+  avance?: Avance;
+}
+
+const comoTexto = (datos: unknown): string => JSON.stringify(datos);
+const error = (mensaje: string) => comoTexto({ error: mensaje });
+const SIN_MONTO = "No entendí el monto. Pregúntale a la persona cuánto es, sin adivinar.";
+
+export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Ruta, opciones: OpcionesHerramientas = {}) {
+  // Estado de esta conversación: lo que se anota cambia los números que ven las demás herramientas.
+  let situacion: Situacion = { perfil, cobros: (opciones.cobros ?? []).filter(c => !c.cobrado) };
+  let actual = analisis;
+  const yaAnotadas = new Set<string>();
+
+  function registrar(propuesta: Accion, quiereAnotar: boolean): string {
+    const valida = EsquemaAccion.safeParse(propuesta);
+    if (!valida.success) return error("Faltan datos o no son válidos. Pregúntale a la persona lo que falta.");
+    const accion = valida.data;
+    const efecto = efectoDe(accion, situacion);
+    const texto = frase(accion, efecto, quiereAnotar);
+    const clave = JSON.stringify(accion);
+    if (quiereAnotar && !yaAnotadas.has(clave)) {
+      // Una misma acción no se anota dos veces en la misma respuesta, aunque el modelo repita la llamada.
+      yaAnotadas.add(clave);
+      situacion = aplicar(accion, situacion);
+      actual = analizar(situacion.perfil);
+      opciones.alAccion?.(accion, texto);
+    }
+    return comoTexto({ anotado_en_su_panel: quiereAnotar, ...efectoComoDato(accion, efecto), respuesta_sugerida: texto });
+  }
+
   const herramientas = [
     betaZodTool({
       name: "ver_resumen",
       description:
-        "Saldo de hoy, saldo más bajo de los próximos 30 días, si habrá algún día en negativo (cuándo, cuánto falta y por qué), ingresos y gastos típicos. Úsala para cualquier pregunta sobre cómo va la persona o si le alcanzará el dinero.",
+        "Saldo de hoy, saldo más bajo de los próximos 30 días, si habrá algún día en negativo (cuándo, cuánto falta y por qué), ingresos y gastos típicos, y los pagos que le deben (si los hay). Úsala para cualquier pregunta sobre cómo va la persona o si le alcanzará el dinero.",
       inputSchema: SinDatos,
       eager_input_streaming: true,
-      run: () => comoTexto(datosResumen(perfil, analisis)),
+      run: () => comoTexto(datosResumen(situacion.perfil, actual, situacion.cobros)),
     }),
     betaZodTool({
       name: "ver_jugadas",
@@ -31,7 +113,7 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
         "Las jugadas que propone el motor para evitar el día en negativo, con cuánto libera cada una y cuánto cuesta en soles. Úsala cuando pregunten qué hacer, qué opciones hay o cuál conviene.",
       inputSchema: SinDatos,
       eager_input_streaming: true,
-      run: () => comoTexto(datosJugadas(analisis)),
+      run: () => comoTexto(datosJugadas(actual)),
     }),
     betaZodTool({
       name: "ver_deudas",
@@ -39,14 +121,14 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
         "Las deudas con su saldo, TCEA y pagos, cuál pagar primero y cuánto se ahorra frente a pagar solo los mínimos. Úsala para cualquier pregunta sobre tarjetas, préstamos, intereses o cómo salir de deudas.",
       inputSchema: SinDatos,
       eager_input_streaming: true,
-      run: () => comoTexto(datosDeudas(perfil, analisis)),
+      run: () => comoTexto(datosDeudas(situacion.perfil, actual)),
     }),
     betaZodTool({
       name: "ver_proximos_pagos",
       description: "Los pagos fijos (alquiler, servicios, cuotas) que salen en los próximos días, con su fecha y monto.",
       inputSchema: DiasPagos,
       eager_input_streaming: true,
-      run: ({ dias }) => comoTexto(datosProximosPagos(analisis, dias)),
+      run: ({ dias }) => comoTexto(datosProximosPagos(actual, dias)),
     }),
     betaZodTool({
       name: "simular_gasto",
@@ -54,7 +136,66 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
         "Responde «¿me alcanza para gastar X tal día?»: calcula cómo queda el saldo si se hace un gasto único en una fecha. Úsala siempre que pregunten si pueden comprar o pagar algo.",
       inputSchema: Gasto,
       eager_input_streaming: true,
-      run: ({ monto_soles, fecha }) => comoTexto(datosSimulacion(analisis, monto_soles, fecha)),
+      run: ({ monto_soles, fecha }) => comoTexto(datosSimulacion(actual, monto_soles, fecha)),
+    }),
+    betaZodTool({
+      name: "anotar_ingreso",
+      description:
+        "Cuando la persona cuenta que recibió, recibirá o gana dinero («me acaban de pagar 1.000», «me van a dar 100 el viernes por limpiar», «gano 1.500 al mes el día 30»), o pregunta «¿y si me pagan X?». El motor recalcula su saldo y su mes y devuelve el antes y el después; con anotar=true queda guardado en su panel.",
+      inputSchema: Ingreso,
+      eager_input_streaming: true,
+      run: ({ monto, cuando, fecha_dicha, dia_del_mes, descripcion: d, anotar: si }) => {
+        const centimos = leerMonto(monto);
+        if (centimos === null || centimos <= 0) return error(SIN_MONTO);
+        const nombre = d?.trim() || undefined;
+        if (cuando === "ya_llego") {
+          return registrar({ tipo: "saldo", monto: centimos, descripcion: nombre ? `Ingreso: ${nombre}` : "Ingreso extra" }, si);
+        }
+        if (cuando === "cada_mes") {
+          if (!dia_del_mes) return error("Falta el día del mes en que le pagan. Pregúntaselo.");
+          return registrar(
+            { tipo: "fijo", sentido: "ingreso", descripcion: nombre ?? "Ingreso fijo", monto: centimos, dia: dia_del_mes, categoria: "sueldo" },
+            si,
+          );
+        }
+        const fecha = fecha_dicha ? (ISO.test(fecha_dicha) ? fecha_dicha : leerFecha(fecha_dicha, situacion.perfil.hoy)) : null;
+        if (!fecha) return error("Falta el día en que le pagarán (o no lo entendí). Pregúntaselo.");
+        return registrar({ tipo: "cobro", quien: nombre ?? "Ingreso por llegar", monto: centimos, fecha }, si);
+      },
+    }),
+    betaZodTool({
+      name: "anotar_gasto",
+      description:
+        "Cuando la persona cuenta que gastó o pagó algo («gasté 80 en el mercado», «pagué 120 de luz») o tiene un gasto que se repite cada mes («pago 50 de internet cada mes el 15»). El motor recalcula y, con anotar=true, queda en su panel. Para «¿me alcanza para gastar…?» no uses esta: usa simular_gasto.",
+      inputSchema: GastoAnotado,
+      eager_input_streaming: true,
+      run: ({ monto, cuando, dia_del_mes, descripcion: d, categoria, anotar: si }) => {
+        const centimos = leerMonto(monto);
+        if (centimos === null || centimos <= 0) return error(SIN_MONTO);
+        const nombre = d?.trim() || undefined;
+        if (cuando === "ya_paso") return registrar({ tipo: "saldo", monto: -centimos, descripcion: nombre ? `Gasto: ${nombre}` : "Gasto" }, si);
+        if (!dia_del_mes) return error("Falta el día del mes en que lo paga. Pregúntaselo.");
+        return registrar(
+          { tipo: "fijo", sentido: "gasto", descripcion: nombre ?? "Gasto fijo", monto: centimos, dia: dia_del_mes, categoria: categoria ?? "otros" },
+          si,
+        );
+      },
+    }),
+    betaZodTool({
+      name: "anotar_deuda",
+      description:
+        "Cuando la persona cuenta una deuda nueva con cuánto debe, cuánto paga al mes y qué día. Si falta alguno de esos datos, pregúntalo antes de llamarla; no los inventes. El motor recalcula y, con anotar=true, queda en su panel.",
+      inputSchema: DeudaAnotada,
+      eager_input_streaming: true,
+      run: ({ entidad, nombre, tipo, saldo, pago_mensual, dia_de_pago, tcea_dicha, anotar: si }) => {
+        const total = leerMonto(saldo);
+        const cuota = leerMonto(pago_mensual);
+        if (!total || !cuota) return error(SIN_MONTO);
+        return registrar(
+          { tipo: "deuda", entidad, nombre, tipoDeuda: tipo, saldo: total, pagoMensual: cuota, dia: dia_de_pago, tceaBp: leerTcea(tcea_dicha) },
+          si,
+        );
+      },
     }),
   ];
   if (!ruta) return herramientas;
@@ -63,10 +204,10 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
     betaZodTool({
       name: "ver_ruta",
       description:
-        "La ruta que el motor trazó para esta persona (estar en verde, construir historial o hacer crecer su plata): por qué le toca, los pasos en orden, las alternativas generales para comparar con su condición, cuánto le queda libre al mes y cómo va su colchón para imprevistos. Úsala cuando pregunten por dónde empezar, qué les conviene, cómo construir historial, qué hacer con lo que sobra o por productos.",
+        "La ruta que el motor trazó para esta persona (estar en verde, construir historial o hacer crecer su plata): por qué le toca, los pasos en orden y cuáles ya marcó como hechos, el siguiente paso, las alternativas generales para comparar con su condición, cuánto le queda libre al mes y cómo va su colchón para imprevistos. Úsala cuando pregunten por dónde empezar, cómo van o qué sigue, qué les conviene, cómo construir historial, qué hacer con lo que sobra o por productos.",
       inputSchema: SinDatos,
       eager_input_streaming: true,
-      run: () => comoTexto(datosRuta(ruta)),
+      run: () => comoTexto(datosRuta(ruta, opciones.avance)),
     }),
   ];
 }

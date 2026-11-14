@@ -7,10 +7,10 @@ import { formatoSoles, type Centimos, type FechaISO } from "../motor";
 import { leerSoles } from "../datos/formulario";
 import { ErrorDatos } from "../datos/validar";
 import type { TipoDeudaDebo } from "../datos/tipos";
-import type { Atraso, Cobro, Respuestas } from "./entrada";
+import type { Atraso, Cobro, Respuestas, Trabajo } from "./entrada";
 
 export type Paso =
-  | "nombre" | "cobro" | "ingreso" | "saldo" | "fijos" | "diaADia" | "deudas"
+  | "nombre" | "trabajo" | "cobro" | "diaPago" | "ingreso" | "flojo" | "gratificacion" | "saldo" | "fijos" | "diaADia" | "deudas"
   | "tipoDeuda" | "saldoDeuda" | "cuotaDeuda" | "atraso" | "tuvoCredito" | "permiso";
 
 export type TieneDeudas = "no" | "al_dia" | "atraso";
@@ -18,8 +18,12 @@ export type TieneDeudas = "no" | "al_dia" | "atraso";
 /** Lo respondido hasta ahora. Un campo sin valor es una pregunta todavía no hecha. */
 export interface Borrador {
   nombre?: string;
+  trabajo?: Trabajo;
   cobro?: Cobro;
+  diaPago?: number;
   ingreso?: Centimos;
+  flojo?: Centimos;
+  gratificacion?: boolean;
   saldo?: Centimos;
   fijos?: Centimos;
   diaADia?: Centimos;
@@ -36,7 +40,7 @@ export interface Pregunta {
   paso: Paso;
   texto: string;
   ayuda?: string;
-  clase: "texto" | "soles" | "opciones";
+  clase: "texto" | "soles" | "dia" | "opciones";
   opciones?: Opcion[];
   marcador?: string;
 }
@@ -45,10 +49,32 @@ export interface Pregunta {
 export const MONTO_MAXIMO: Centimos = 1_000_000_000;
 export const LARGO_MAXIMO_DE_NOMBRE = 40;
 
+export const TRABAJOS: Opcion[] = [
+  { valor: "dependiente", texto: "Dependiente: tengo sueldo en planilla" },
+  { valor: "independiente", texto: "Independiente: trabajo por mi cuenta" },
+];
+/** Antes de saber cómo trabaja (casos y pruebas antiguas): las tres de siempre. */
 const COBROS: Opcion[] = [
   { valor: "fin_de_mes", texto: "A fin de mes" },
   { valor: "quincena", texto: "En quincenas" },
   { valor: "semanal", texto: "Cada semana" },
+];
+/** Un sueldo en planilla se paga al mes o por quincenas. */
+const COBROS_DEPENDIENTE: Opcion[] = [
+  { valor: "fin_de_mes", texto: "Una vez al mes" },
+  { valor: "quincena", texto: "En quincenas" },
+];
+/** Por su cuenta, la plata entra a otro ritmo, a veces sin fecha fija. */
+const COBROS_INDEPENDIENTE: Opcion[] = [
+  { valor: "semanal", texto: "Cada semana" },
+  { valor: "quincena", texto: "Cada quincena" },
+  { valor: "fin_de_mes", texto: "Una vez al mes" },
+  { valor: "variable", texto: "Cuando termino un trabajo" },
+];
+const cobrosDe = (b: Borrador) => (b.trabajo === "dependiente" ? COBROS_DEPENDIENTE : b.trabajo === "independiente" ? COBROS_INDEPENDIENTE : COBROS);
+const SI_NO_GRATI: Opcion[] = [
+  { valor: "si", texto: "Sí" },
+  { valor: "no", texto: "No" },
 ];
 const DEUDAS: Opcion[] = [
   { valor: "no", texto: "No tengo deudas" },
@@ -77,7 +103,17 @@ export const PERMISOS: Opcion[] = [
 
 /** Los pasos que tocan con lo respondido hasta ahora. Antes de saber si hay deudas es una estimación. */
 export function pasosPrevistos(b: Borrador): Paso[] {
-  const pasos: Paso[] = ["nombre", "cobro", "ingreso", "saldo", "fijos", "diaADia", "deudas"];
+  const pasos: Paso[] = ["nombre", "trabajo", "cobro"];
+  // Desde aquí las preguntas dependen de cómo trabaja: no se le pregunta lo mismo a quien tiene sueldo que a quien no.
+  if (b.trabajo === "dependiente") {
+    if (b.cobro === undefined || b.cobro === "fin_de_mes") pasos.push("diaPago");
+    pasos.push("ingreso", "gratificacion");
+  } else if (b.trabajo === "independiente") {
+    pasos.push("ingreso", "flojo");
+  } else {
+    pasos.push("ingreso");
+  }
+  pasos.push("saldo", "fijos", "diaADia", "deudas");
   if (b.deudas !== undefined && b.deudas !== "no") {
     pasos.push("tipoDeuda", "saldoDeuda", "cuotaDeuda");
     if (b.deudas === "atraso") pasos.push("atraso");
@@ -90,8 +126,12 @@ export function pasosPrevistos(b: Borrador): Paso[] {
 
 const RESPONDIDO: Record<Exclude<Paso, "permiso">, (b: Borrador) => boolean> = {
   nombre: b => b.nombre !== undefined,
+  trabajo: b => b.trabajo !== undefined,
   cobro: b => b.cobro !== undefined,
+  diaPago: b => b.diaPago !== undefined,
   ingreso: b => b.ingreso !== undefined,
+  flojo: b => b.flojo !== undefined,
+  gratificacion: b => b.gratificacion !== undefined,
   saldo: b => b.saldo !== undefined,
   fijos: b => b.fijos !== undefined,
   diaADia: b => b.diaADia !== undefined,
@@ -118,10 +158,30 @@ export function pregunta(paso: Paso, b: Borrador): Pregunta {
   switch (paso) {
     case "nombre":
       return { paso, clase: "texto", texto: "Hola, soy tu copiloto. Te hago unas preguntas cortas para armar tu caso. ¿Cómo te llamo?", ayuda: "Usa un apodo, no tu nombre completo.", marcador: "Por ejemplo: Lucho" };
+    case "trabajo":
+      return {
+        paso, clase: "opciones", opciones: TRABAJOS,
+        texto: `Mucho gusto, ${b.nombre ?? ""}. ¿Trabajas como dependiente o independiente?`.replace(" .", "."),
+        ayuda: "Dependiente: una empresa te paga un sueldo. Independiente: cachuelos, negocio propio o recibos por honorarios.",
+      };
     case "cobro":
-      return { paso, clase: "opciones", texto: `Mucho gusto, ${b.nombre ?? ""}. ¿Cuándo te entra la plata?`.replace(" .", "."), opciones: COBROS };
+      if (b.trabajo === "dependiente") return { paso, clase: "opciones", texto: "¿Cada cuánto te pagan el sueldo?", opciones: COBROS_DEPENDIENTE };
+      if (b.trabajo === "independiente") return { paso, clase: "opciones", texto: "¿Cada cuánto te entra la plata?", opciones: COBROS_INDEPENDIENTE };
+      return { paso, clase: "opciones", texto: "¿Cuándo te entra la plata?", opciones: COBROS };
+    case "diaPago":
+      return { paso, clase: "dia", texto: "¿Qué día del mes te depositan?", ayuda: "Un número del 1 al 31. Si cae a fin de mes, escribe 30.", marcador: "30" };
     case "ingreso":
+      if (b.trabajo === "dependiente") {
+        return { paso, clase: "soles", texto: "¿Cuánto te depositan de sueldo al mes?", ayuda: "Lo que te llega a la cuenta, ya con descuentos (AFP u ONP). Aproximado o inventado.", marcador: "2500" };
+      }
+      if (b.trabajo === "independiente") {
+        return { paso, clase: "soles", texto: "En un mes normal, ¿cuánto te entra?", ayuda: "Suma lo que cobras en un mes típico. Aproximado o inventado.", marcador: "2500" };
+      }
       return { paso, clase: "soles", texto: "¿Cuánto te entra al mes, más o menos?", ayuda: "Suma todo lo de un mes. Usa una cifra aproximada o inventada.", marcador: "2500" };
+    case "flojo":
+      return { paso, clase: "soles", texto: "¿Y en un mes flojo, cuánto te entra?", ayuda: "El peor de los últimos meses. Te proyecto con ese monto, por prudencia: si te va mejor, te sobra.", marcador: "1500" };
+    case "gratificacion":
+      return { paso, clase: "opciones", texto: "¿Te pagan gratificación en julio y diciembre?", ayuda: "Lo uso para orientarte; no lo sumo a tu proyección.", opciones: SI_NO_GRATI };
     case "saldo":
       return { paso, clase: "soles", texto: "¿Cuánto tienes hoy, entre tu cuenta y tu efectivo?", ayuda: "Si no tienes nada, escribe 0.", marcador: "600" };
     case "fijos":
@@ -179,12 +239,33 @@ export function responder(b: Borrador, paso: Paso, valor: string): Respondido {
       if (/\d/.test(nombre)) throw new ErrorDatos("Usa un apodo sin números: aquí no se piden documentos ni teléfonos.");
       return { borrador: { ...b, nombre }, dicho: nombre };
     }
+    case "trabajo": {
+      const o = elegida<Trabajo>(TRABAJOS, valor);
+      return { borrador: { ...b, trabajo: o.valor }, dicho: o.valor === "dependiente" ? "Dependiente" : "Independiente" };
+    }
     case "cobro": {
-      const o = elegida<Cobro>(COBROS, valor);
+      const o = elegida<Cobro>(cobrosDe(b), valor);
       return { borrador: { ...b, cobro: o.valor }, dicho: o.texto };
     }
+    case "diaPago": {
+      const limpio = valor.trim();
+      const dia = Number(limpio);
+      if (!/^\d{1,2}$/.test(limpio) || dia < 1 || dia > 31) throw new ErrorDatos("Escribe un día del 1 al 31.");
+      return { borrador: { ...b, diaPago: dia }, dicho: `El ${dia}` };
+    }
     case "ingreso":
-      return conMonto("ingreso", "lo que te entra al mes", "positivo");
+      return conMonto("ingreso", b.trabajo === "dependiente" ? "tu sueldo" : "lo que te entra al mes", "positivo");
+    case "flojo": {
+      const r = conMonto("flojo", "lo que te entra en un mes flojo", "cero");
+      if (b.ingreso !== undefined && (r.borrador.flojo ?? 0) > b.ingreso) {
+        throw new ErrorDatos("Un mes flojo no puede dejarte más que un mes normal.");
+      }
+      return r;
+    }
+    case "gratificacion": {
+      const o = elegida<"si" | "no">(SI_NO_GRATI, valor);
+      return { borrador: { ...b, gratificacion: o.valor === "si" }, dicho: o.texto };
+    }
     case "saldo":
       return conMonto("saldo", "lo que tienes hoy", "cero");
     case "fijos":
@@ -229,8 +310,12 @@ export function aRespuestas(b: Borrador, hoy: FechaISO): Respuestas {
   const hayDeuda = b.deudas !== "no";
   return {
     nombre: b.nombre!,
+    ...(b.trabajo !== undefined && { trabajo: b.trabajo }),
     cobro: b.cobro!,
+    ...(b.trabajo === "dependiente" && b.cobro === "fin_de_mes" && b.diaPago !== undefined && { diaPago: b.diaPago }),
     ingresoMensual: b.ingreso!,
+    ...(b.trabajo === "independiente" && b.flojo !== undefined && { ingresoFlojo: b.flojo }),
+    ...(b.trabajo === "dependiente" && b.gratificacion !== undefined && { gratificacion: b.gratificacion }),
     saldo: b.saldo!,
     fijosMensual: b.fijos!,
     diaADiaMensual: b.diaADia!,

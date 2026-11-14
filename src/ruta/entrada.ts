@@ -4,11 +4,13 @@
  * Las fechas son aproximadas a propósito (la entrada pregunta «cuándo te entra la plata», no el día exacto);
  * después se corrigen en Mi dinero y en Deudas.
  */
-import type { Centimos, FechaISO } from "../motor";
+import { formatoSoles, type Centimos, type FechaISO } from "../motor";
 import { datosVacios } from "../datos/semilla";
 import type { Datos, DeudaGuardada, Fijo, TipoDeudaDebo } from "../datos/tipos";
 
-export type Cobro = "fin_de_mes" | "quincena" | "semanal";
+export type Cobro = "fin_de_mes" | "quincena" | "semanal" | "variable";
+/** Cómo trabaja: en planilla con sueldo (dependiente) o por su cuenta (independiente). */
+export type Trabajo = "dependiente" | "independiente";
 export type Atraso = "al_dia" | "menos_de_un_mes" | "uno_a_dos_meses" | "mas_de_dos_meses";
 
 export interface RespuestaDeuda {
@@ -22,8 +24,17 @@ export interface RespuestaDeuda {
 
 export interface Respuestas {
   nombre: string;
+  /** Si falta (casos antiguos), se deduce de cómo cobra: cada semana es independiente. */
+  trabajo?: Trabajo;
   cobro: Cobro;
+  /** Dependiente que cobra a fin de mes: el día del mes en que le depositan (1 a 31). */
+  diaPago?: number;
+  /** Dependiente: sueldo neto. Independiente: lo que le entra en un mes normal. */
   ingresoMensual: Centimos;
+  /** Independiente: lo que le entra en un mes flojo. La proyección usa este monto, por prudencia. */
+  ingresoFlojo?: Centimos;
+  /** Dependiente: si recibe gratificación en julio y diciembre. Solo da contexto; no entra en la proyección. */
+  gratificacion?: boolean;
   saldo: Centimos;
   /** Alquiler y servicios. */
   fijosMensual: Centimos;
@@ -38,13 +49,16 @@ export interface Respuestas {
 /** Días aproximados de atraso según la opción elegida. Son el punto medio del tramo, no una medida. */
 export const DIAS_DE_ATRASO: Record<Atraso, number> = { al_dia: 0, menos_de_un_mes: 20, uno_a_dos_meses: 45, mas_de_dos_meses: 90 };
 
-const DIAS_DE_COBRO: Record<Cobro, number[]> = { fin_de_mes: [30], quincena: [15, 30], semanal: [7, 14, 21, 28] };
+const DIAS_DE_COBRO: Record<Cobro, number[]> = { fin_de_mes: [30], quincena: [15, 30], semanal: [7, 14, 21, 28], variable: [7, 14, 21, 28] };
 const NOMBRES_DE_INGRESO: Record<Cobro, string[]> = {
   fin_de_mes: ["Ingreso del mes"],
   quincena: ["Ingreso de la primera quincena", "Ingreso de la segunda quincena"],
   semanal: ["Ingreso de la primera semana", "Ingreso de la segunda semana", "Ingreso de la tercera semana", "Ingreso de la cuarta semana"],
+  variable: ["Ingreso de trabajos, primera semana", "Ingreso de trabajos, segunda semana", "Ingreso de trabajos, tercera semana", "Ingreso de trabajos, cuarta semana"],
 };
-const TEXTO_DE_COBRO: Record<Cobro, string> = { fin_de_mes: "cobra a fin de mes", quincena: "cobra por quincenas", semanal: "cobra cada semana" };
+const TEXTO_DE_COBRO: Record<Cobro, string> = {
+  fin_de_mes: "cobra a fin de mes", quincena: "cobra por quincenas", semanal: "cobra cada semana", variable: "cobra cuando termina un trabajo",
+};
 
 // Los nombres se distinguen por letras, no por números: el motor ignora los dígitos al agrupar cobros que se repiten.
 const DIAS_DE_GASTO = [5, 12, 19, 26];
@@ -80,18 +94,52 @@ function deudaGuardada(d: RespuestaDeuda): DeudaGuardada {
   };
 }
 
+export function trabajoSegun(r: Respuestas): Trabajo {
+  return r.trabajo ?? (r.cobro === "semanal" || r.cobro === "variable" ? "independiente" : "dependiente");
+}
+
+/** Días del mes en que entra la plata. Un dependiente que cobra a fin de mes puede decir su día exacto. */
+export function diasDeCobro(r: Respuestas): number[] {
+  if (r.cobro === "fin_de_mes" && r.diaPago !== undefined) return [r.diaPago];
+  return DIAS_DE_COBRO[r.cobro];
+}
+
+/**
+ * Cuánto se proyecta como ingreso del mes. Para un independiente, el mes flojo (si lo dijo y es menor):
+ * el copiloto anticipa con lo peor razonable, y si le va mejor, le sobra. Para un dependiente, su sueldo neto.
+ */
+export function ingresoProyectado(r: Respuestas): Centimos {
+  if (trabajoSegun(r) === "independiente" && r.ingresoFlojo !== undefined) return Math.min(r.ingresoFlojo, r.ingresoMensual);
+  return r.ingresoMensual;
+}
+
+function descripcion(r: Respuestas): string {
+  const trabajo = trabajoSegun(r);
+  const partes = [`Caso de simulación armado en la entrada: trabaja como ${trabajo} y ${TEXTO_DE_COBRO[r.cobro]}.`];
+  if (trabajo === "dependiente") {
+    if (r.cobro === "fin_de_mes" && r.diaPago !== undefined) partes.push(`Le depositan el sueldo el día ${r.diaPago}.`);
+    if (r.gratificacion !== undefined) partes.push(r.gratificacion ? "Recibe gratificación en julio y diciembre." : "No recibe gratificación.");
+  } else if (r.ingresoFlojo !== undefined) {
+    partes.push(
+      `Ingreso variable: en un mes normal le entran ${formatoSoles(r.ingresoMensual)} y en uno flojo ${formatoSoles(Math.min(r.ingresoFlojo, r.ingresoMensual))}; la proyección usa el mes flojo, por prudencia.`,
+    );
+  }
+  return partes.join(" ");
+}
+
 /** El caso completo, listo para cargar en el repositorio. */
 export function armarCaso(r: Respuestas): Datos {
+  const dias = diasDeCobro(r);
   const datos = datosVacios({
     nombre: r.nombre.trim().slice(0, 40),
-    tipo: r.cobro === "semanal" ? "independiente" : "dependiente",
+    tipo: trabajoSegun(r),
     saldo: r.saldo,
     ingresoAprox: r.ingresoMensual,
     hoy: r.hoy,
   });
-  datos.perfil.descripcion = `Caso de simulación armado en la entrada: ${TEXTO_DE_COBRO[r.cobro]}.`;
-  datos.perfil.diasCobro = DIAS_DE_COBRO[r.cobro];
-  datos.ingresosFijos = fijos("ingreso", NOMBRES_DE_INGRESO[r.cobro], DIAS_DE_COBRO[r.cobro], r.ingresoMensual, "sueldo");
+  datos.perfil.descripcion = descripcion(r);
+  datos.perfil.diasCobro = dias;
+  datos.ingresosFijos = fijos("ingreso", NOMBRES_DE_INGRESO[r.cobro], dias, ingresoProyectado(r), "sueldo");
   datos.gastosFijos = [
     ...fijos("gasto-alquiler", ["Alquiler y servicios"], [5], r.fijosMensual, "alquiler"),
     ...fijos("gasto-dia", NOMBRES_DE_GASTO, DIAS_DE_GASTO, r.diaADiaMensual, "comida"),

@@ -87,6 +87,20 @@ export function colchon(saldo: Centimos, flujo: FlujoMensual): Colchon {
 
 export type IdRuta = "estar_en_verde" | "construir_historial" | "hacer_crecer";
 
+/**
+ * Identificador estable de cada paso. El texto de un paso cambia con las cifras (fechas, montos); el id no,
+ * y por eso es lo único que se guarda cuando la persona marca un paso como hecho. Cada ruta tiene los suyos.
+ */
+export const IDS_PASO = [
+  "verde_ponerse_al_dia", "verde_tapar_hueco", "verde_pagar_minimos", "verde_bajar_gasto", "verde_adelantar_deuda", "verde_empezar_colchon",
+  "historial_anotar", "historial_liberar", "historial_producto_pequeno", "historial_usar_poco", "historial_pagos_puntuales",
+  "crecer_cancelar_deuda", "crecer_anotar", "crecer_revisar_gastos", "crecer_mantener_colchon", "crecer_completar_colchon", "crecer_plazo_largo",
+] as const;
+export type IdPaso = (typeof IDS_PASO)[number];
+
+/** Pasos que la persona marcó como hechos. Viaja al servidor validado: solo ids de la lista, nunca texto libre. */
+export const EsquemaAvances = z.array(z.enum(IDS_PASO)).max(IDS_PASO.length);
+
 export interface Alternativa {
   entrada: EntradaCatalogo;
   porQue: string;
@@ -101,6 +115,8 @@ export interface Ruta {
   motivos: string[];
   /** Qué hacer, en orden. */
   pasos: string[];
+  /** El id de cada paso, en el mismo orden que `pasos`. */
+  idsPasos: IdPaso[];
   /** Alternativas genéricas del catálogo que aplican (sin entidades ni cifras de mercado). */
   alternativas: Alternativa[];
   flujo: FlujoMensual;
@@ -118,6 +134,19 @@ const alternativa = (id: EntradaCatalogo["id"], porQue: string): Alternativa => 
 const minuscula = (texto: string) => texto.charAt(0).toLowerCase() + texto.slice(1);
 const plural = (n: number, uno: string, varios: string) => (n === 1 ? uno : `${n} ${varios}`);
 const sinRegistro = (f: FlujoMensual) => f.ingresos === 0 && f.gastos === 0 && f.cuotas === 0;
+
+type Cuerpo = Omit<Ruta, "id" | "titulo" | "flujo" | "colchon" | "aviso">;
+
+/** Arma la lista de pasos con su id al lado, para que texto e id nunca se desordenen. */
+function listaDePasos() {
+  const pasos: string[] = [];
+  const idsPasos: IdPaso[] = [];
+  const paso = (id: IdPaso, texto: string) => {
+    idsPasos.push(id);
+    pasos.push(texto);
+  };
+  return { pasos, idsPasos, paso };
+}
 
 /** «Al mes te entran X y salen Y: te quedan Z libres.» */
 export function fraseLibre(f: FlujoMensual): string {
@@ -140,13 +169,13 @@ function clasificar(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: F
   return hechos.tuvoCredito ? "hacer_crecer" : "construir_historial";
 }
 
-function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: FlujoMensual, c: Colchon): Omit<Ruta, "id" | "titulo" | "flujo" | "colchon" | "aviso"> {
+function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: FlujoMensual, c: Colchon): Cuerpo {
   const { deficit } = analisis.proyeccion;
   const atraso = hechos.diasAtrasoMax > 0;
   const deudas = perfil.deudas;
   const totalDeuda = sumar(deudas.map(d => d.saldo));
   const motivos: string[] = [];
-  const pasos: string[] = [];
+  const { pasos, idsPasos, paso } = listaDePasos();
   const alternativas: Alternativa[] = [];
 
   if (deficit) motivos.push(`Tu proyección deja el saldo bajo cero el ${formatoLargo(deficit.fecha)}: ese día faltarían ${formatoSoles(deficit.faltante)}.`);
@@ -154,23 +183,23 @@ function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: 
   if (deudas.length > 0) motivos.push(`Debes ${formatoSoles(totalDeuda)} en ${plural(deudas.length, "una deuda", "deudas")}.`);
   motivos.push(fraseLibre(flujo));
 
-  if (atraso) pasos.push("Ponte al día con la deuda atrasada antes que nada. Si no llegas, pide un nuevo plan de pago a quien le debes antes de que el atraso crezca.");
+  if (atraso) paso("verde_ponerse_al_dia", "Ponte al día con la deuda atrasada antes que nada. Si no llegas, pide un nuevo plan de pago a quien le debes antes de que el atraso crezca.");
   if (deficit) {
     const jugada = analisis.jugadas.find(j => j.resuelve);
     const dia = formatoLargo(deficit.fecha);
-    if (jugada) pasos.push(`Tapa el hueco del ${dia}: ${minuscula(jugada.titulo)}, que ${jugada.costo > 0 ? `cuesta ${formatoSoles(jugada.costo)}` : "no cuesta dinero"}.`);
-    else if (analisis.jugadas.length > 0) pasos.push(`Tapa el hueco del ${dia}: ninguna jugada alcanza sola, así que combina dos de las que ves en Inicio.`);
-    else pasos.push(`Tapa el hueco del ${dia}: aplaza un gasto que no sea urgente o adelanta un ingreso, porque hoy no hay un pago que se pueda mover.`);
-    if (deudas.length > 0) pasos.push("Mientras haya un día en negativo, paga solo el mínimo de cada deuda y no adelantes pagos.");
-    else if (flujo.libre <= 0 && !sinRegistro(flujo)) pasos.push("Cada mes te sale más de lo que te entra: elige un gasto fijo que puedas bajar este mismo mes.");
+    if (jugada) paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: ${minuscula(jugada.titulo)}, que ${jugada.costo > 0 ? `cuesta ${formatoSoles(jugada.costo)}` : "no cuesta dinero"}.`);
+    else if (analisis.jugadas.length > 0) paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: ninguna jugada alcanza sola, así que combina dos de las que ves en Inicio.`);
+    else paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: aplaza un gasto que no sea urgente o adelanta un ingreso, porque hoy no hay un pago que se pueda mover.`);
+    if (deudas.length > 0) paso("verde_pagar_minimos", "Mientras haya un día en negativo, paga solo el mínimo de cada deuda y no adelantes pagos.");
+    else if (flujo.libre <= 0 && !sinRegistro(flujo)) paso("verde_bajar_gasto", "Cada mes te sale más de lo que te entra: elige un gasto fijo que puedas bajar este mismo mes.");
   } else if (deudas.length > 0) {
     const primera = analisis.deudas?.primera ?? null;
-    if (flujo.libre <= 0) pasos.push("Hoy no te sobra para adelantar pagos: busca un gasto que puedas recortar y no tomes una deuda nueva para pagar la vieja.");
-    else if (deudas.length === 1) pasos.push(`Pon lo que te sobra (${formatoSoles(flujo.libre)} al mes) en adelantar ${deudas[0].nombre}: cada sol que adelantas deja de generar intereses.`);
-    else if (primera && primera.tceaBp > 0) pasos.push(`Paga el mínimo de todas y pon lo que te sobra (${formatoSoles(flujo.libre)} al mes) en ${primera.nombre}, la de tasa más alta.`);
-    else pasos.push(`Paga el mínimo de todas y anota la tasa (TCEA) de cada una en Deudas: lo que te sobra (${formatoSoles(flujo.libre)} al mes) va a la más cara.`);
+    if (flujo.libre <= 0) paso("verde_bajar_gasto", "Hoy no te sobra para adelantar pagos: busca un gasto que puedas recortar y no tomes una deuda nueva para pagar la vieja.");
+    else if (deudas.length === 1) paso("verde_adelantar_deuda", `Pon lo que te sobra (${formatoSoles(flujo.libre)} al mes) en adelantar ${deudas[0].nombre}: cada sol que adelantas deja de generar intereses.`);
+    else if (primera && primera.tceaBp > 0) paso("verde_adelantar_deuda", `Paga el mínimo de todas y pon lo que te sobra (${formatoSoles(flujo.libre)} al mes) en ${primera.nombre}, la de tasa más alta.`);
+    else paso("verde_adelantar_deuda", `Paga el mínimo de todas y anota la tasa (TCEA) de cada una en Deudas: lo que te sobra (${formatoSoles(flujo.libre)} al mes) va a la más cara.`);
   }
-  if (c.gastoMensual > 0) pasos.push(`Cuando el mes cierre en positivo, empieza un colchón: un mes de tus gastos son ${formatoSoles(c.gastoMensual)}.`);
+  if (c.gastoMensual > 0) paso("verde_empezar_colchon", `Cuando el mes cierre en positivo, empieza un colchón: un mes de tus gastos son ${formatoSoles(c.gastoMensual)}.`);
 
   if (deficit) alternativas.push(alternativa("reprogramar", `Tu proyección deja el saldo bajo cero el ${formatoLargo(deficit.fecha)}: conviene preguntarlo antes de caer en atraso.`));
   else if (atraso) alternativas.push(alternativa("reprogramar", "Tienes una deuda con atraso: conversar un nuevo plan de pago a tiempo evita que crezca."));
@@ -179,18 +208,16 @@ function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: 
     : atraso ? "Lo primero es ponerte al día con lo atrasado."
     : flujo.libre <= 0 ? "Tus gastos y cuotas se llevan todo lo que te entra: primero hay que liberar algo cada mes."
     : "Vas al día: ahora toca bajar la deuda más rápido para pagar menos intereses.";
-  return { resumen, motivos, pasos, alternativas };
+  return { resumen, motivos, pasos, idsPasos, alternativas };
 }
 
-function rutaHistorial(flujo: FlujoMensual): Omit<Ruta, "id" | "titulo" | "flujo" | "colchon" | "aviso"> {
-  const pasos: string[] = [];
-  if (sinRegistro(flujo)) pasos.push("Anota tus ingresos y tus gastos fijos en Mi dinero: con eso afino esta ruta.");
-  else if (flujo.libre <= 0) pasos.push("Antes de pedir un producto, haz que te sobre algo cada mes: revisa qué gasto puedes bajar.");
-  pasos.push(
-    "Empieza con un producto de crédito pequeño, uno cuyo pago completo puedas cubrir todos los meses.",
-    "Úsalo poco y paga el total antes de la fecha de vencimiento: así no pagas intereses.",
-    "Mantén los pagos puntuales durante varios meses y no pidas varios productos a la vez.",
-  );
+function rutaHistorial(flujo: FlujoMensual): Cuerpo {
+  const { pasos, idsPasos, paso } = listaDePasos();
+  if (sinRegistro(flujo)) paso("historial_anotar", "Anota tus ingresos y tus gastos fijos en Mi dinero: con eso afino esta ruta.");
+  else if (flujo.libre <= 0) paso("historial_liberar", "Antes de pedir un producto, haz que te sobre algo cada mes: revisa qué gasto puedes bajar.");
+  paso("historial_producto_pequeno", "Empieza con un producto de crédito pequeño, uno cuyo pago completo puedas cubrir todos los meses.");
+  paso("historial_usar_poco", "Úsalo poco y paga el total antes de la fecha de vencimiento: así no pagas intereses.");
+  paso("historial_pagos_puntuales", "Mantén los pagos puntuales durante varios meses y no pidas varios productos a la vez.");
   return {
     resumen: "Lo primero es que las entidades puedan ver que pagas a tiempo.",
     motivos: [
@@ -199,6 +226,7 @@ function rutaHistorial(flujo: FlujoMensual): Omit<Ruta, "id" | "titulo" | "flujo
       "No se proyecta ningún día en negativo en los próximos 30 días.",
     ],
     pasos,
+    idsPasos,
     alternativas: [
       alternativa("tarjeta-con-garantia", "Todavía no tienes historial: es una forma común de empezar a construirlo."),
       alternativa("tarjeta-inicio", "Está pensada para quien aún no tuvo una tarjeta de crédito."),
@@ -206,22 +234,22 @@ function rutaHistorial(flujo: FlujoMensual): Omit<Ruta, "id" | "titulo" | "flujo
   };
 }
 
-function rutaCrecer(perfil: Perfil, flujo: FlujoMensual, c: Colchon): Omit<Ruta, "id" | "titulo" | "flujo" | "colchon" | "aviso"> {
+function rutaCrecer(perfil: Perfil, flujo: FlujoMensual, c: Colchon): Cuerpo {
   const totalDeuda = sumar(perfil.deudas.map(d => d.saldo));
   const completo = c.meta > 0 && c.falta === 0;
   const motivos = ["No se proyecta ningún día en negativo en los próximos 30 días.", fraseLibre(flujo)];
   if (c.gastoMensual > 0) motivos.push(`Tu saldo de hoy (${formatoSoles(perfil.saldoActual)}) cubre unos ${c.diasCubiertos} días de tus gastos.`);
 
-  const pasos: string[] = [];
-  if (totalDeuda > 0) pasos.push(`Cancela primero tu deuda (${formatoSoles(totalDeuda)}): con lo que tienes hoy te alcanza y te sigue quedando tu colchón.`);
-  if (sinRegistro(flujo)) pasos.push("Anota tus ingresos y tus gastos fijos en Mi dinero: con eso calculo de cuánto debe ser tu colchón.");
-  else if (flujo.libre <= 0) pasos.push("Hoy no te sobra plata al mes: antes de buscar dónde ponerla, revisa tus gastos.");
-  if (completo) pasos.push(`Tu colchón de tres meses de gastos (${formatoSoles(c.meta)}) ya está completo: mantenlo aparte y no lo toques salvo emergencia.`);
+  const { pasos, idsPasos, paso } = listaDePasos();
+  if (totalDeuda > 0) paso("crecer_cancelar_deuda", `Cancela primero tu deuda (${formatoSoles(totalDeuda)}): con lo que tienes hoy te alcanza y te sigue quedando tu colchón.`);
+  if (sinRegistro(flujo)) paso("crecer_anotar", "Anota tus ingresos y tus gastos fijos en Mi dinero: con eso calculo de cuánto debe ser tu colchón.");
+  else if (flujo.libre <= 0) paso("crecer_revisar_gastos", "Hoy no te sobra plata al mes: antes de buscar dónde ponerla, revisa tus gastos.");
+  if (completo) paso("crecer_mantener_colchon", `Tu colchón de tres meses de gastos (${formatoSoles(c.meta)}) ya está completo: mantenlo aparte y no lo toques salvo emergencia.`);
   else if (c.meta > 0) {
     const plazo = c.mesesParaCompletar === null ? "" : ` y, guardando lo que te sobra, llegarías en ${plural(c.mesesParaCompletar, "un mes", "meses")}`;
-    pasos.push(`Completa tu colchón de tres meses de gastos (${formatoSoles(c.meta)}): te faltan ${formatoSoles(c.falta)}${plazo}.`);
+    paso("crecer_completar_colchon", `Completa tu colchón de tres meses de gastos (${formatoSoles(c.meta)}): te faltan ${formatoSoles(c.falta)}${plazo}.`);
   }
-  pasos.push("Lo que pase del colchón puede ir a un plazo más largo. Compara alternativas por plazo y por riesgo, y no pongas ahí plata que vayas a necesitar pronto.");
+  paso("crecer_plazo_largo", "Lo que pase del colchón puede ir a un plazo más largo. Compara alternativas por plazo y por riesgo, y no pongas ahí plata que vayas a necesitar pronto.");
 
   const alternativas = [
     alternativa("cuenta-de-ahorro", "Para tener tu colchón aparte de la plata del día a día."),
@@ -230,7 +258,7 @@ function rutaCrecer(perfil: Perfil, flujo: FlujoMensual, c: Colchon): Omit<Ruta,
   if (completo) alternativas.push(alternativa("fondo-mutuo", "Tu colchón ya está completo: lo que pase de ahí puede ir a más plazo, sabiendo que su valor sube y baja."));
   return {
     resumen: completo ? "Ya tienes tu colchón: ahora toca decidir con calma qué hacer con lo que te sobra." : "Lo primero es completar tu colchón de emergencia.",
-    motivos, pasos, alternativas,
+    motivos, pasos, idsPasos, alternativas,
   };
 }
 
@@ -245,13 +273,60 @@ export function trazarRuta(perfil: Perfil, analisis: Analisis, hechos: Hechos = 
   return { id, titulo: TITULOS[id], ...cuerpo, flujo, colchon: c, aviso: AVISO_SIMULACION };
 }
 
-/** Versión corta para decir en voz alta o abrir la conversación. */
-export function rutaHablada(ruta: Ruta): string {
-  return `Tu ruta es: ${minuscula(ruta.titulo)}. ${ruta.resumen} Primer paso: ${minuscula(ruta.pasos[0])}`;
+export interface PasoDeAvance {
+  id: IdPaso;
+  texto: string;
+  hecho: boolean;
 }
 
-/** Lo primero que dice el asistente: saludo, ruta y primer paso. Texto armado por código, no por la IA. */
-export function saludoDeRuta(nombre: string, ruta: Ruta, propio: boolean): string {
+/** Cómo va la persona en su ruta: qué pasos marcó, cuántos son y cuál sigue. */
+export interface Avance {
+  cumplidos: number;
+  total: number;
+  pasos: PasoDeAvance[];
+  /** Texto del primer paso sin marcar; null si ya marcó todos. */
+  siguiente: string | null;
+}
+
+/**
+ * Cruza la ruta de hoy con lo que la persona marcó. Pura. Las marcas de pasos que ya no están en la ruta
+ * (porque cambiaron sus datos o su ruta) simplemente no cuentan.
+ */
+export function avanceDe(ruta: Ruta, avances: readonly IdPaso[] = []): Avance {
+  const marcados = new Set<IdPaso>(avances);
+  const pasos = ruta.pasos.map((texto, i) => ({ id: ruta.idsPasos[i], texto, hecho: marcados.has(ruta.idsPasos[i]) }));
+  return {
+    cumplidos: pasos.filter(p => p.hecho).length,
+    total: pasos.length,
+    pasos,
+    siguiente: pasos.find(p => !p.hecho)?.texto ?? null,
+  };
+}
+
+/** «2 de 4 pasos hechos». */
+export function contadorDeAvance(a: Avance): string {
+  return `${a.cumplidos} de ${a.total} ${a.total === 1 ? "paso hecho" : "pasos hechos"}`;
+}
+
+/** Una frase completa sobre el avance, para el asistente con o sin IA. */
+export function fraseAvance(a: Avance): string {
+  if (a.total === 0) return "Tu ruta todavía no tiene pasos.";
+  if (!a.siguiente) return `Ya marcaste como hechos todos los pasos de tu ruta (${contadorDeAvance(a)}). Si cambian tus datos, la ruta se vuelve a calcular.`;
+  if (a.cumplidos === 0) return `Todavía no marcas ningún paso de tu ruta como hecho. Tu primer paso: ${minuscula(a.siguiente)}`;
+  return `Llevas ${contadorDeAvance(a)} en tu ruta. Tu siguiente paso: ${minuscula(a.siguiente)}`;
+}
+
+/** Versión corta para decir en voz alta o abrir la conversación. Con avance, retoma donde quedó la persona. */
+export function rutaHablada(ruta: Ruta, avance?: Avance): string {
+  const base = `Tu ruta es: ${minuscula(ruta.titulo)}. ${ruta.resumen}`;
+  if (!avance || avance.cumplidos === 0) return `${base} Primer paso: ${minuscula(ruta.pasos[0])}`;
+  if (!avance.siguiente) return `${base} Ya marcaste como hechos todos sus pasos (${contadorDeAvance(avance)}).`;
+  return `${base} Llevas ${contadorDeAvance(avance)}. Siguiente paso: ${minuscula(avance.siguiente)}`;
+}
+
+/** Lo primero que dice el asistente: saludo, ruta y paso que toca. Texto armado por código, no por la IA. */
+export function saludoDeRuta(nombre: string, ruta: Ruta, propio: boolean, avance?: Avance): string {
+  if (avance && avance.cumplidos > 0) return `Hola de nuevo, ${nombre}. ${rutaHablada(ruta, avance)} ¿Qué quieres saber?`;
   const inicio = propio ? `Hola, ${nombre}. Con lo que me contaste armé tu caso.` : `Hola, ${nombre}.`;
   const fechas = propio ? " Puse fechas aproximadas a tus pagos: puedes corregirlas en Mi dinero y en Deudas." : "";
   return `${inicio} ${rutaHablada(ruta)}${fechas} ¿Qué quieres saber?`;

@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatoSoles, type Perfil, type Analisis, type PlanDeudas } from "@/motor";
 import { avisos } from "@/explica/explica";
-import { tarjeta, TarjetaAviso, Portada, unido, Encabezado, Icono, botonPrincipal, botonSecundario, desplazar } from "@/componentes/ui";
+import { tarjeta, TarjetaAviso, unido, Encabezado, Icono, botonPrincipal, botonSecundario, desplazar } from "@/componentes/ui";
 import { Adjuntar } from "@/componentes/documento";
 import { useDatos } from "@/componentes/datos";
 import { OrdenDePago } from "@/componentes/orden-pago";
@@ -24,13 +24,13 @@ function Carrera({
   const ancho = plan.noTermina ? 100 : Math.max(8, (plan.meses / tope) * 100);
   return (
     <div>
-      <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
+      <div className="mb-1 flex items-baseline justify-between gap-3 text-[13px] md:text-sm">
         <span className={bueno ? "font-semibold text-noche" : "text-gris"}>{nombre}</span>
-        <span className={`font-semibold tabular-nums ${bueno ? "text-electrico" : "text-gris"}`}>
-          {plan.noTermina ? "No termina" : `${plan.meses} meses`}
+        <span className={`tabular-nums ${bueno ? "font-semibold text-electrico" : "text-gris"}`}>
+          {plan.noTermina ? "No termina" : <>{plan.meses} meses · {unido(formatoSoles(plan.interesTotal))}</>}
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-niebla">
+      <div className="h-2 overflow-hidden rounded-full bg-niebla md:h-3">
         <div
           className={`barra h-full origin-left rounded-full ${bueno ? "bg-electrico" : "bg-linea-fuerte"}`}
           style={{ width: `${ancho}%`, animationName: "estirar" }}
@@ -39,47 +39,28 @@ function Carrera({
     </div>
   );
 }
-function Plan({ titulo, plan, bueno }: { titulo: string; plan: PlanDeudas; bueno?: boolean }) {
-  return (
-    <div className={`min-w-0 rounded-2xl p-4 ${bueno ? "bg-agua-suave" : "bg-papel"}`}>
-      <h3 className="font-semibold">{titulo}</h3>
-      {bueno && <p className="mt-1 text-sm text-gris">Lo mismo que ya pagas cada mes</p>}
-      {plan.noTermina ? (
-        <p className="mt-4 font-bold">Nunca termina</p>
-      ) : (
-        <>
-          <p className="mt-4 text-2xl font-bold tabular-nums">
-            {plan.meses}
-            <span className="block text-base font-normal">meses</span>
-          </p>
-          <p className="mt-4 font-semibold tabular-nums">{unido(formatoSoles(plan.interesTotal))}</p>
-          <p className="text-sm text-gris">en intereses</p>
-        </>
-      )}
-    </div>
-  );
-}
+
 export type PestanaDeudas = "debo" | "medeben" | "sbs";
 type Pestana = PestanaDeudas;
 
 function Pestanas({ actual, cambiar, debo, medeben }: { actual: Pestana; cambiar: (p: Pestana) => void; debo: number; medeben: number }) {
-  const una = (id: Pestana, texto: string, n?: number) => (
+  const una = (id: Pestana, texto: ReactNode, n?: number) => (
     <button
       role="tab"
       id={`pestana-${id}`}
       aria-selected={actual === id}
       aria-controls="panel-deudas"
       onClick={() => cambiar(id)}
-      className={`min-h-11 shrink-0 whitespace-nowrap rounded-full px-4 text-sm font-semibold transition-colors sm:flex-auto xl:text-[15px] ${actual === id ? "bg-electrico text-white" : "text-gris hover:text-noche"}`}
+      className={`min-h-10 min-w-0 whitespace-nowrap rounded-full px-2 text-[13px] font-semibold transition-colors md:min-h-11 md:px-4 md:text-sm xl:text-[15px] ${actual === id ? "bg-electrico text-white" : "text-gris hover:text-noche"}`}
     >
       {texto} {n !== undefined && <span className="tabular-nums opacity-80">({n})</span>}
     </button>
   );
   return (
-    <div role="tablist" aria-label="Deudas" className="-mx-1 flex gap-1 overflow-x-auto rounded-full bg-niebla p-1 [scrollbar-width:none]">
+    <div role="tablist" aria-label="Deudas" className="grid grid-cols-3 gap-1 rounded-full bg-niebla p-1">
       {una("debo", "Debo", debo)}
       {una("medeben", "Me deben", medeben)}
-      {una("sbs", "Simulación de clasificación")}
+      {una("sbs", <><span className="md:hidden">Clasificación</span><span className="hidden md:inline">Simulación de clasificación</span></>)}
     </div>
   );
 }
@@ -119,47 +100,52 @@ export function Deudas({
   const tope = comparacion ? Math.max(comparacion.avalancha.meses, comparacion.minimos.meses, 1) : 1;
 
   const resumen = (
-    <Portada>
+    <section className={`${tarjeta} aparecer`} aria-labelledby="resumen-deudas">
       {!comparacion ? (
         <>
-          <p className="text-[15px] text-gris">Tus deudas</p>
-          <h2 className="mt-1 text-[1.5rem] font-semibold tracking-[-0.02em] text-noche text-balance">Nada pendiente</h2>
-          <p className="mt-3 text-gris">Tu mes depende solo de tus ingresos y tus gastos. Si debes algo, agrégalo y el copiloto arma tu plan.</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gris">Tus deudas</p>
+          <h2 id="resumen-deudas" className="mt-1 text-lg font-semibold text-noche md:text-[1.5rem]">Nada pendiente</h2>
+          <p className="mt-1.5 text-sm text-gris md:text-base">Tu mes depende solo de tus ingresos y tus gastos. Si debes algo, agrégalo y el copiloto arma tu plan.</p>
         </>
       ) : (
         <>
-          <p className="text-[15px] text-gris">Que tus deudas bajen</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gris">Que tus deudas bajen</p>
           {comparacion.avalancha.noTermina ? (
-            <h2 className="mt-1 text-[1.375rem] font-semibold leading-tight tracking-[-0.02em] text-noche text-balance">
+            <h2 id="resumen-deudas" className="mt-1 text-lg font-semibold leading-tight text-noche text-balance md:text-[1.375rem]">
               Con lo que pagas hoy, tus deudas no bajan
             </h2>
           ) : (
-            <>
-              <p className="mt-1 text-[15px] text-noche">Pagando en orden, terminarías de pagar en unos</p>
-              <p className="mt-1 text-[2.25rem] font-semibold leading-none tracking-[-0.03em] text-noche tabular-nums">
-                {comparacion.avalancha.meses}
-                <span className="ml-2 text-lg font-medium tracking-normal text-gris">meses</span>
-              </p>
-            </>
+            <div className="mt-1 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+              <h2 id="resumen-deudas" className="text-sm font-normal text-noche md:text-[15px]">
+                Pagando en orden terminas en
+                <span className="block text-[2rem] font-semibold leading-none tracking-[-0.03em] tabular-nums md:text-[2.25rem]">
+                  {comparacion.avalancha.meses}
+                  <span className="ml-1.5 text-base font-medium tracking-normal text-gris md:text-lg">meses</span>
+                </span>
+              </h2>
+              {comparacion.ahorroVsMinimos > 0 && (
+                <p className="rounded-xl bg-verde-suave px-3 py-1.5 text-[13px] font-semibold leading-snug text-verde-fuerte md:text-sm">
+                  Te ahorrarías cerca de {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses (estimado)
+                </p>
+              )}
+            </div>
           )}
-          <div className="mt-7 hidden space-y-4 border-t border-linea pt-6 md:block">
+          <div className="mt-4 space-y-3 border-t border-linea pt-4 md:mt-6 md:space-y-4 md:pt-5">
             <Carrera nombre="Pagando en orden" plan={comparacion.avalancha} tope={tope} bueno />
             <Carrera nombre="Pagando solo el mínimo" plan={comparacion.minimos} tope={tope} />
           </div>
-          {comparacion.ahorroVsMinimos > 0 && (
-            <p className="mt-6 inline-flex flex-wrap items-center gap-2 rounded-full bg-verde-suave px-4 py-2 text-[15px] font-semibold text-verde-fuerte">
-              Te ahorrarías cerca de {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses (estimado)
-            </p>
-          )}
+          <p className="mt-3 text-[11px] leading-snug text-gris md:text-xs">
+            Meses e intereses estimados por el código con las tasas y los pagos del caso, si no cambian. Tu entidad puede cobrar distinto.
+          </p>
         </>
       )}
-    </Portada>
+    </section>
   );
 
   const lista = (
     <section className={`${tarjeta} aparecer`}>
       <Pestanas actual={pestana} cambiar={setPestana} debo={debo.n} medeben={meDeben.n} />
-      <p className="mt-5 text-gris">
+      <p className="mt-3 text-sm text-gris md:mt-5 md:text-base">
         {pestana === "sbs"
           ? "Clasificación simulada según los días de atraso del caso y en qué orden conviene pagar."
           : pestana === "debo"
@@ -177,19 +163,10 @@ export function Deudas({
   );
 
   const orden = prioridadDePagos(datos, analisis);
-  const resto = comparacion && (
-    <div className="order-4 space-y-5">
-      {avisoDeuda && <TarjetaAviso aviso={avisoDeuda} />}
-      <section className={`${tarjeta} aparecer`}>
-        <h2 className="text-lg font-semibold text-noche">La diferencia está en cómo pagas</h2>
-        <p className="mb-4 mt-1 text-sm leading-relaxed text-gris">
-          Estimación del código con las tasas y los pagos del caso, suponiendo que no cambian. No es una promesa: tu entidad puede cobrar distinto.
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <Plan titulo="Pagando en orden" plan={comparacion.avalancha} bueno />
-          <Plan titulo="Pagando solo el mínimo" plan={comparacion.minimos} />
-        </div>
-      </section>
+  // El aviso repite lo que ya dicen el resumen y «Qué pagar primero»: en el celular sobra; en escritorio acompaña.
+  const resto = avisoDeuda && (
+    <div className="order-4 hidden md:block">
+      <TarjetaAviso aviso={avisoDeuda} />
     </div>
   );
 
@@ -199,22 +176,23 @@ export function Deudas({
     <>
       <Encabezado
         titulo="Deudas"
-        bajada="Lo que debes, lo que te deben y una simulación de cómo se clasificarían tus deudas. Agrégalas a mano o carga el reporte de ejemplo."
+        bajada="Lo que debes, lo que te deben y en qué orden pagar."
         acciones={
-          <>
+          <div className="grid w-full grid-cols-2 gap-2 lg:flex lg:w-auto">
             <button onClick={agregar} className={botonPrincipal}>
               <Icono nombre="mas" />
               Agregar deuda
             </button>
             <button onClick={() => setEscaner(e => !e)} aria-expanded={escaner} aria-controls="escaner" className={botonSecundario}>
               <Icono nombre="camara" />
-              Cargar reporte de ejemplo
+              <span className="md:hidden">Ver ejemplo</span>
+              <span className="hidden md:inline">Cargar reporte de ejemplo</span>
             </button>
-          </>
+          </div>
         }
       />
       {escaner && (
-        <div id="escaner" ref={refEscaner} className="relative mb-6 scroll-mt-6">
+        <div id="escaner" ref={refEscaner} className="relative mb-4 scroll-mt-6 md:mb-6">
           <button
             onClick={() => setEscaner(false)}
             aria-label="Cerrar el reporte de ejemplo"
@@ -232,15 +210,15 @@ export function Deudas({
       )}
       <div className="flex flex-col xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8">
         <div className="contents xl:col-span-7 xl:col-start-1 xl:block">
-          <div className="order-2 mb-6">{lista}</div>
+          <div className="order-2 mb-3 md:mb-6">{lista}</div>
           {comparacion && pestana !== "sbs" && (
-            <div className="order-3 mb-6 xl:mb-0">
+            <div className="order-3 mb-3 md:mb-6 xl:mb-0">
               <OrdenDePago r={orden} />
             </div>
           )}
         </div>
         <div className={`contents xl:col-span-5 xl:col-start-8 xl:block ${pestana === "sbs" ? "xl:sticky xl:top-6" : ""}`}>
-          <div className="order-1">{resumen}</div>
+          <div className="order-1 mb-3 md:mb-6">{resumen}</div>
           {resto}
         </div>
       </div>

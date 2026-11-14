@@ -1,7 +1,7 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { formatoSoles, sumar, type Analisis, type Categoria } from "@/motor";
-import { Encabezado, Kpi, tarjeta, unido } from "@/componentes/ui";
+import { Cifras, Encabezado, tarjeta, unido } from "@/componentes/ui";
 import { ListaEditable, useEnvio, type Fila } from "@/componentes/lista-editable";
 import { Acciones, Seleccion, Texto } from "@/componentes/formularios";
 import { useDatos } from "@/componentes/datos";
@@ -130,15 +130,20 @@ export function MiDinero({ analisis }: { analisis: Analisis }) {
         titulo="Mi dinero"
         bajada="Lo que tienes hoy y lo que entra y sale fijo cada mes. Cada cambio recalcula tu proyección al instante."
       />
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Kpi
-          icono="dinero"
-          etiqueta="Hoy tienes"
-          valor={formatoSoles(perfil.saldoActual)}
-          nota={n === 0 ? "Agrega una cuenta" : n === 1 ? "En tu cuenta, al cierre del día" : `Sumando tus ${n} cuentas`}
+      <div className="mb-6">
+        <Cifras
+          etiqueta="Tu dinero de un vistazo"
+          items={[
+            {
+              icono: "dinero",
+              etiqueta: "Hoy tienes",
+              valor: formatoSoles(perfil.saldoActual),
+              nota: n === 0 ? "Agrega una cuenta" : n === 1 ? "Al cierre del día" : `Sumando tus ${n} cuentas`,
+            },
+            { icono: "tendencia", etiqueta: "Te entra al mes", valor: formatoSoles(entran), tono: "verde", nota: `${datos.ingresosFijos.length} ${datos.ingresosFijos.length === 1 ? "ingreso" : "ingresos"}` },
+            { icono: "calendario", etiqueta: "Te sale al mes", valor: formatoSoles(salen), tono: "ambar", nota: `${datos.gastosFijos.length} ${datos.gastosFijos.length === 1 ? "gasto" : "gastos"}` },
+          ]}
         />
-        <Kpi icono="tendencia" etiqueta="Te entra fijo al mes" valor={formatoSoles(entran)} tono="verde" nota={`${datos.ingresosFijos.length} ${datos.ingresosFijos.length === 1 ? "ingreso" : "ingresos"}`} />
-        <Kpi icono="calendario" etiqueta="Te sale fijo al mes" valor={formatoSoles(salen)} tono="ambar" nota={`${datos.gastosFijos.length} ${datos.gastosFijos.length === 1 ? "gasto" : "gastos"}`} />
       </div>
       <section className={`${tarjeta} aparecer mb-6`}>
         <ListaEditable

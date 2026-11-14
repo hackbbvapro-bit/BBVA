@@ -1,4 +1,5 @@
 import { aCentimos } from "../motor/dinero";
+import { leerMonto } from "../motor/numeros";
 import type { Centimos } from "../motor/tipos";
 import { ErrorDatos } from "./validar";
 
@@ -8,7 +9,10 @@ export function leerSoles(texto: string, campo: string): Centimos {
   try {
     return aCentimos(texto);
   } catch {
-    throw new ErrorDatos(`Revisa ${campo}: escríbelo en soles, por ejemplo 180 o 180.50.`);
+    // También en palabras o con puntos de miles: «doscientos cincuenta», «mil quinientos», «1.000», «2 mil».
+    const leido = leerMonto(texto);
+    if (leido !== null) return leido;
+    throw new ErrorDatos(`Revisa ${campo}: escríbelo en soles con números o letras, por ejemplo 180, 180.50 o «ciento ochenta».`);
   }
 }
 
