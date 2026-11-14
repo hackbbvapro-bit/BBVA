@@ -9,6 +9,23 @@ Fecha de consulta: 2026-11-13. Stack: Next.js (App Router) + TS en Vercel, Supab
 - Los fragmentos de código son plantillas basadas en esos hechos; **ninguno se ejecutó**. Prueba cada uno con una clave real esta noche.
 - Antes de codificar, abre una vez `https://docs.fish.audio/api-reference/openapi.json` (esquema autoritativo de campos y valores por defecto) [SIN VERIFICAR su contenido; la URL la citó el buscador].
 
+## Corrección del 13-nov por la noche: Fish Audio comprobado contra su OpenAPI
+
+Se descargó `https://docs.fish.audio/api-reference/openapi.json` y se leyó entero [MEDIDO]. Lo que
+vale (y lo que usa el código de `src/app/api/voz` y `src/app/api/transcribir`):
+
+- **Texto a voz:** `POST https://api.fish.audio/v1/tts`, cuerpo JSON con `text`, `reference_id`
+  (id de la voz), `format` (`mp3` por defecto; también `wav`, `pcm`, `opus`), `language`,
+  `mp3_bitrate` (64, 128 o 192). **El modelo va en la cabecera `model`, no en el cuerpo**
+  (por defecto `s2.1-pro`; también `s1`, `s2-pro`, `s2.1-pro-free`, `drama-3`). Responde con los
+  bytes del audio; los errores 401/402/503 llegan como JSON.
+- **Voz a texto:** `POST https://api.fish.audio/v1/asr`, `multipart/form-data` con el campo
+  **`audio`**; cabecera `model` = `transcribe-1` o `transcribe-1-pro`. Responde
+  `{ text, duration, segments, language_code }`.
+- Se llama con `fetch` y `Authorization: Bearer`; no hace falta su SDK.
+- **Sigue sin probarse con una clave real** [SIN VERIFICAR]: la plantilla de la sección 1.6 pone
+  `model` en el cuerpo; el código real lo manda en la cabecera.
+
 ---
 
 ## 1. Fish Audio
