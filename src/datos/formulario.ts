@@ -21,7 +21,7 @@ export function leerDia(texto: string, campo: string): number {
 export function leerTasa(texto: string, campo: string): number | null {
   if (!texto.trim()) return null;
   try {
-    return aCentimos(texto.replace("%", ""));
+    return aCentimos(texto.trim().replace(/\s*%+\s*$/, ""));
   } catch {
     throw new ErrorDatos(`Revisa ${campo}: escríbela en porcentaje, por ejemplo 55 o 89.99.`);
   }
