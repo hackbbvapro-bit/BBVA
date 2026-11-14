@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { analizar, type Perfil } from "@/motor";
-import { avisos } from "@/explica/explica";
+import { avisosDelCentro, pendientesSinLeer, type Destino } from "@/avisos/centro";
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
 import { Hoy } from "@/componentes/hoy";
 import { Adjuntar } from "@/componentes/documento";
@@ -38,13 +38,15 @@ function Contenido() {
 }
 function Sesion({ perfil }: { perfil: Perfil }) {
   const analisis = useMemo(() => analizar(perfil), [perfil]);
-  const lista = useMemo(() => avisos(perfil, analisis), [perfil, analisis]);
+  const { aviso, datos, cambiar } = useDatos();
+  const lista = useMemo(() => avisosDelCentro(datos, perfil, analisis), [datos, perfil, analisis]);
   const [pestana, setPestana] = useState<Pestana>("hoy"),
     [hoja, setHoja] = useState(false),
     [deudasInicial, setDeudasInicial] = useState<PestanaDeudas>("debo"),
-    [sonando, setSonando] = useState(false);
-  const pendientes = lista.filter(a => a.nivel !== "bien").length;
-  const { aviso } = useDatos();
+    [saltos, setSaltos] = useState(0),
+    [sonando, setSonando] = useState(false),
+    [nuevos, setNuevos] = useState<string[]>([]);
+  const pendientes = pendientesSinLeer(lista, datos.avisosLeidos);
   const turno = useRef(0);
   useEffect(
     () => () => {
@@ -74,6 +76,23 @@ function Sesion({ perfil }: { perfil: Perfil }) {
     setPestana(p);
     window.scrollTo({ top: 0, behavior: "instant" });
   }
+  function abrirAvisos() {
+    const sinLeer = lista.filter(a => !datos.avisosLeidos.includes(a.clave)).map(a => a.clave);
+    setNuevos(sinLeer);
+    setHoja(true);
+    if (sinLeer.length > 0) {
+      void cambiar(async repo => {
+        for (const clave of sinLeer) await repo.marcarAvisoLeido(clave);
+      }).catch(() => undefined);
+    }
+  }
+  function irA(destino: Destino) {
+    setHoja(false);
+    navegar(destino === "hoy" ? "hoy" : "deudas");
+    if (destino === "cobros") setDeudasInicial("medeben");
+    if (destino === "reporte") setDeudasInicial("sbs");
+    setSaltos(n => n + 1);
+  }
   return (
     <>
       <aside
@@ -97,7 +116,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
               </button>
             ))}
             <button
-              onClick={() => setHoja(true)}
+              onClick={abrirAvisos}
               className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-[15px] font-medium text-gris transition-colors duration-150 hover:bg-niebla hover:text-noche"
             >
               <Icono nombre="campana" />
@@ -120,7 +139,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
           <div className="flex items-center gap-2">
             <button
               aria-label={`Abrir avisos: ${pendientes} pendientes`}
-              onClick={() => setHoja(true)}
+              onClick={abrirAvisos}
               className="relative flex size-11 items-center justify-center rounded-full border border-linea bg-white text-noche transition-transform active:scale-95"
             >
               <Icono nombre="campana" />
@@ -150,7 +169,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
         )}
         {pestana === "deudas" && (
           <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10 xl:max-w-[1360px] xl:px-10">
-            <Deudas perfil={perfil} analisis={analisis} pestanaInicial={deudasInicial} />
+            <Deudas key={`${deudasInicial}-${saltos}`}perfil={perfil} analisis={analisis} pestanaInicial={deudasInicial} />
           </div>
         )}
         {pestana === "perfil" && (
@@ -193,7 +212,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
           ))}
         </div>
       </nav>
-      {hoja && <HojaAvisos lista={lista} perfilId={perfil.id} cerrar={() => setHoja(false)} />}
+      {hoja && <HojaAvisos lista={lista} nuevos={nuevos} perfilId={perfil.id} ir={irA} cerrar={() => setHoja(false)} />}
     </>
   );
 }
