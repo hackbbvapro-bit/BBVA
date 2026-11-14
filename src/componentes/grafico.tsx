@@ -58,8 +58,8 @@ export function Grafico({
           <rect x="80" y="0" width={der - 80} height={y(0)} />
         </clipPath>
         <linearGradient id={`${id}-agua`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--color-agua)" stopOpacity="0.32" />
-          <stop offset="100%" stopColor="var(--color-agua)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--color-azul)" stopOpacity={oscuro ? 0.75 : 0.32} />
+          <stop offset="100%" stopColor="var(--color-azul)" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`${id}-coral`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="var(--color-coral)" stopOpacity="0.08" />
@@ -110,7 +110,7 @@ export function Grafico({
             pathLength={1}
             d={linea(despues)}
             fill="none"
-            stroke="var(--color-agua)"
+            stroke={oscuro ? "var(--color-agua)" : "var(--color-agua-fuerte)"}
             strokeWidth="3.5"
             strokeLinejoin="round"
             strokeLinecap="round"

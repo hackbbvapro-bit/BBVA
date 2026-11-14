@@ -9,7 +9,6 @@ import { Deudas } from "@/componentes/deudas";
 import { Chat } from "@/componentes/chat";
 import { HojaAvisos } from "@/componentes/avisos";
 import { Icono } from "@/componentes/ui";
-import type { Direccion } from "@/componentes/tablero";
 type Pestana = "hoy" | "deudas" | "hablar";
 /** Un solo perfil en la interfaz: Rosa (independiente), el del guion de la demo. */
 const ROSA = PERFILES.find(p => p.id === "independiente") ?? PERFILES[0];
@@ -18,16 +17,16 @@ const PESTANAS = [
   ["deudas", "Deudas"],
   ["hablar", "Hablar"],
 ] as const;
-export function Copiloto({ direccion = "a" }: { direccion?: Direccion }) {
+export function Copiloto() {
   return (
     <div
-      className={`mx-auto min-h-dvh w-full max-w-md bg-papel text-base text-tinta [overflow-wrap:anywhere] lg:max-w-none lg:pl-[248px] [&_button]:cursor-pointer [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-4 [&_:focus-visible]:outline-agua-fuerte ${direccion === "b" ? "lg:bg-noche lg:[&_:focus-visible]:outline-agua" : ""}`}
+      className="relative mx-auto min-h-dvh w-full max-w-md bg-papel text-base text-tinta [overflow-wrap:anywhere] lg:max-w-none lg:pl-[248px] [&_button]:cursor-pointer [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-4 [&_:focus-visible]:outline-agua-fuerte lg:bg-noche lg:[&_:focus-visible]:outline-agua"
     >
-      <Sesion perfil={ROSA} direccion={direccion} />
+      <Sesion perfil={ROSA} />
     </div>
   );
 }
-function Sesion({ perfil, direccion }: { perfil: Perfil; direccion: Direccion }) {
+function Sesion({ perfil }: { perfil: Perfil }) {
   const analisis = useMemo(() => analizar(perfil), [perfil]);
   const lista = useMemo(() => avisos(perfil, analisis), [perfil, analisis]);
   const [pestana, setPestana] = useState<Pestana>("hoy"),
@@ -66,8 +65,9 @@ function Sesion({ perfil, direccion }: { perfil: Perfil; direccion: Direccion })
     <>
       <aside
         aria-label="Navegación principal"
-        className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-white/8 bg-noche px-4 py-6 text-white lg:flex"
+        className="absolute inset-y-0 left-0 z-30 hidden w-[248px] border-r border-white/8 bg-noche-honda text-white lg:block"
       >
+        <div className="sticky top-0 flex h-dvh flex-col px-4 py-6">
         <div className="flex items-center gap-2.5 px-3">
           <span className="flex size-8 items-center justify-center rounded-lg bg-agua text-noche">
             <Icono nombre="rumbo" />
@@ -108,11 +108,12 @@ function Sesion({ perfil, direccion }: { perfil: Perfil; direccion: Direccion })
             <span className="block text-white/62">Datos de demostración</span>
           </span>
         </div>
+        </div>
       </aside>
       <header className="fixed inset-x-0 top-0 z-30 mx-auto max-w-md border-b border-white/10 bg-noche/75 px-5 pb-3 pt-[calc(.75rem+env(safe-area-inset-top))] text-white backdrop-blur-xl backdrop-saturate-150 lg:hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-linear-to-br from-agua to-[#3d7bff] text-noche shadow-[0_0_20px_rgb(20_200_180/.45)]">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-linear-to-br from-agua to-[#1464a5] text-noche shadow-[0_0_20px_rgb(133_200_255/.45)]">
               <Icono nombre="rumbo" />
             </span>
             <span className="text-xl font-bold tracking-tight">Copiloto</span>
@@ -133,7 +134,7 @@ function Sesion({ perfil, direccion }: { perfil: Perfil; direccion: Direccion })
       </header>
       <main className="px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5.25rem+env(safe-area-inset-top))] lg:p-0">
         {pestana === "hoy" && (
-          <Hoy perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} direccion={direccion} />
+          <Hoy perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} />
         )}
         {pestana === "deudas" && (
           <div className="lg:mx-auto lg:max-w-3xl lg:py-10">
@@ -160,7 +161,7 @@ function Sesion({ perfil, direccion }: { perfil: Perfil; direccion: Direccion })
             >
               {pestana === id && (
                 <span
-                  className="pestana-activa absolute inset-0 rounded-[1.35rem] bg-agua shadow-[0_0_24px_rgb(20_200_180/.45)]"
+                  className="pestana-activa absolute inset-0 rounded-[1.35rem] bg-agua shadow-[0_0_24px_rgb(133_200_255/.45)]"
                   aria-hidden="true"
                 />
               )}

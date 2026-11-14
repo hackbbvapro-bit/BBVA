@@ -1,16 +1,24 @@
 @import "tailwindcss";
 
-/* Paleta propia del copiloto (no es la de ningún banco). Un solo tema claro con cabina oscura. */
+/* Paleta BBVA Perú (medida en bbva.pe, 14-nov-2026), sin logo ni tipografía propietaria.
+   «agua» es el acento: celeste #85c8ff sobre marino, azul medio #1464a5 sobre claro.
+   «verde» es solo para lo que sale bien (resuelve, sin rojo). */
 @theme {
-  --color-tinta: #0b1626;
-  --color-tinta-suave: #16263d;
-  --color-noche: #060d18;
-  --color-papel: #f3f5f9;
-  --color-linea: #e1e7ef;
-  --color-gris: #5b6b80;
-  --color-agua: #14c8b4;
-  --color-agua-fuerte: #0a7d74;
-  --color-agua-suave: #e0f7f4;
+  --color-tinta: #070e46;
+  --color-tinta-suave: #0a2a5c;
+  --color-noche: #072146;
+  --color-noche-honda: #051a38;
+  --color-papel: #f3f5f7;
+  --color-linea: #dfe9f0;
+  --color-gris: #4f5f75;
+  --color-agua: #85c8ff;
+  --color-agua-fuerte: #1464a5;
+  --color-agua-suave: #e6f2ff;
+  --color-azul: #1464a5;
+  --color-celeste: #009ee5;
+  --color-verde: #5fe39a;
+  --color-verde-fuerte: #0b7a40;
+  --color-verde-suave: #e2f6ea;
   --color-ambar: #f5a524;
   --color-ambar-fuerte: #8a5300;
   --color-ambar-suave: #fef3dc;
@@ -35,15 +43,15 @@ body {
 /* ---------- Cabina (parte superior oscura) ---------- */
 .cabina {
   background:
-    radial-gradient(120% 70% at 85% 0%, rgb(20 200 180 / 0.22), transparent 60%),
-    radial-gradient(90% 60% at 0% 100%, rgb(64 110 255 / 0.18), transparent 65%),
-    linear-gradient(180deg, var(--color-noche), var(--color-tinta) 70%);
+    radial-gradient(120% 70% at 85% 0%, rgb(133 200 255 / 0.20), transparent 60%),
+    radial-gradient(90% 60% at 0% 100%, rgb(20 100 165 / 0.35), transparent 65%),
+    linear-gradient(180deg, var(--color-noche-honda), var(--color-noche) 70%);
 }
 .cabina[data-alerta="si"] {
   background:
     radial-gradient(110% 70% at 90% 5%, rgb(255 90 95 / 0.26), transparent 60%),
-    radial-gradient(90% 60% at 0% 100%, rgb(20 200 180 / 0.16), transparent 65%),
-    linear-gradient(180deg, var(--color-noche), var(--color-tinta) 70%);
+    radial-gradient(90% 60% at 0% 100%, rgb(20 100 165 / 0.30), transparent 65%),
+    linear-gradient(180deg, var(--color-noche-honda), var(--color-noche) 70%);
 }
 .aurora {
   position: absolute;

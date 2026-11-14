@@ -25,7 +25,7 @@ function Carrera({
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-white/10">
         <div
-          className={`barra h-full origin-left rounded-full ${bueno ? "bg-agua shadow-[0_0_16px_rgb(20_200_180/.6)]" : "bg-white/35"}`}
+          className={`barra h-full origin-left rounded-full ${bueno ? "bg-agua shadow-[0_0_16px_rgb(133_200_255/.6)]" : "bg-white/35"}`}
           style={{ width: `${ancho}%`, animationName: "estirar" }}
         />
       </div>
@@ -96,7 +96,7 @@ export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisi
           <Carrera nombre="Pagando solo el mínimo" plan={minimos} tope={tope} />
         </div>
         {comparacion.ahorroVsMinimos > 0 && (
-          <p className="aparecer mt-5 inline-flex items-center gap-2 rounded-full bg-agua px-4 py-2 font-bold text-noche shadow-[0_0_24px_rgb(20_200_180/.45)] [animation-delay:.3s]">
+          <p className="aparecer mt-5 inline-flex items-center gap-2 rounded-full bg-agua px-4 py-2 font-bold text-noche shadow-[0_0_24px_rgb(133_200_255/.45)] [animation-delay:.3s]">
             Te ahorras {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses
           </p>
         )}

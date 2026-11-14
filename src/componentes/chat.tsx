@@ -131,7 +131,7 @@ export function Chat({
     <section className="pb-44">
       <Portada>
         <div className="flex items-start justify-between gap-3">
-          <span className="flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-agua to-[#3d7bff] text-noche shadow-[0_0_32px_rgb(20_200_180/.5)]">
+          <span className="flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-agua to-[#1464a5] text-noche shadow-[0_0_32px_rgb(133_200_255/.5)]">
             <span className={`flex items-end gap-1 ${sonando ? "" : "opacity-90"}`} aria-hidden="true">
               {[0, 1, 2, 3].map(i => (
                 <span
@@ -233,7 +233,7 @@ export function Chat({
             type="submit"
             aria-label="Enviar pregunta"
             disabled={ocupado || escuchando || !texto.trim()}
-            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-agua text-noche shadow-[0_0_20px_rgb(20_200_180/.45)] transition-transform active:scale-95 disabled:opacity-40 disabled:shadow-none"
+            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-agua text-noche shadow-[0_0_20px_rgb(133_200_255/.45)] transition-transform active:scale-95 disabled:opacity-40 disabled:shadow-none"
           >
             <Icono nombre="enviar" />
           </button>

@@ -63,7 +63,7 @@ export function HojaAvisos({
               <h3 className="flex items-start gap-3 font-bold">
                 <span
                   aria-label={a.nivel}
-                  className={`mt-2 size-2 shrink-0 rounded-full ${a.nivel === "urgente" ? "bg-coral" : a.nivel === "bien" ? "bg-agua" : "bg-ambar"}`}
+                  className={`mt-2 size-2 shrink-0 rounded-full ${a.nivel === "urgente" ? "bg-coral" : a.nivel === "bien" ? "bg-verde-fuerte" : "bg-ambar"}`}
                 />
                 {unido(a.titulo)}
               </h3>
