@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import type { AvisoCentro, Destino } from "@/avisos/centro";
 import type { Aviso } from "@/explica/explica";
 import { estadoAvisos, activarAvisos, enviarAvisoDePrueba, type EstadoAvisos } from "@/cliente/avisos";
 import { boton, Icono, tonos, unido } from "@/componentes/ui";
@@ -9,13 +10,24 @@ const instrucciones = {
   denegado: "Los avisos están bloqueados. Actívalos en los ajustes del navegador.",
   no_soportado: "Este navegador no permite avisos. Los verás aquí dentro.",
 };
+const VER: Record<Destino, string> = {
+  hoy: "Ver en Inicio",
+  deudas: "Ver mis deudas",
+  cobros: "Ver lo que me deben",
+  reporte: "Ver el reporte",
+};
 export function HojaAvisos({
   lista,
+  nuevos,
   perfilId,
+  ir,
   cerrar,
 }: {
-  lista: Aviso[];
+  lista: AvisoCentro[];
+  /** Claves de los avisos que la persona aún no había abierto. */
+  nuevos: string[];
   perfilId: string;
+  ir: (destino: Destino) => void;
   cerrar: () => void;
 }) {
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -59,17 +71,28 @@ export function HojaAvisos({
         </div>
         <div className="space-y-4">
           {lista.map(a => (
-            <article key={a.id} className="aparecer rounded-2xl bg-white p-4 ring-1 ring-linea/80">
+            <article key={a.clave} className="aparecer rounded-2xl bg-white p-4 ring-1 ring-linea/80">
               <h3 className="flex items-start gap-3 font-semibold text-noche">
                 <span
                   aria-label={a.nivel}
                   className={`mt-2 size-2 shrink-0 rounded-full ${a.nivel === "urgente" ? "bg-coral" : a.nivel === "bien" ? "bg-verde-fuerte" : "bg-ambar"}`}
                 />
                 {unido(a.titulo)}
+                {nuevos.includes(a.clave) && a.nivel !== "bien" && (
+                  <span className="ml-auto shrink-0 rounded-full bg-agua-suave px-2 py-0.5 text-xs font-semibold text-electrico">Nuevo</span>
+                )}
               </h3>
               <p className="mt-2 leading-relaxed text-gris">{unido(a.cuerpo)}</p>
               {a.cuerpo.includes("TCEA") && (
                 <p className="mt-2 text-sm text-gris">TCEA: lo que te cuesta al año.</p>
+              )}
+              {a.destino !== "hoy" && (
+                <button
+                  onClick={() => ir(a.destino)}
+                  className="mt-3 flex min-h-11 items-center rounded-full border border-linea px-4 text-[15px] font-semibold text-electrico hover:bg-niebla"
+                >
+                  {VER[a.destino]}
+                </button>
               )}
             </article>
           ))}
