@@ -4,6 +4,7 @@ import { responderSinIA } from "../explica/explica";
 import { analizar } from "../motor";
 import { limpiarMensajes, responder, ultimaPregunta, type EventoAgente } from "./conversar";
 import { crearHerramientas } from "./herramientas";
+import { SIN_HECHOS, trazarRuta } from "../ruta/ruta";
 import { comoDato, promptSistema } from "./prompt";
 
 const perfil = PERFILES[0];
@@ -85,5 +86,36 @@ describe("herramientas e instrucciones", () => {
   it("con un día en negativo, las instrucciones prohíben sugerir pagar de más a una deuda", () => {
     const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
     expect(texto).toContain("no sugieras pagar más que la cuota mínima");
+  });
+});
+
+describe("herramientas e instrucciones cuando hay ruta", () => {
+  it("se suma ver_ruta a las cinco de siempre y devuelve la ruta del motor en JSON", async () => {
+    const ruta = trazarRuta(perfil, analisis, SIN_HECHOS);
+    const herramientas = crearHerramientas(perfil, analisis, ruta);
+    expect(herramientas.map(h => h.name)).toHaveLength(6);
+    expect(new Set(herramientas.map(h => h.name)).size).toBe(6);
+    const verRuta = herramientas.find(h => h.name === "ver_ruta");
+    const salida = JSON.parse(String(await verRuta?.run({} as never)));
+    expect(salida).toMatchObject({ ruta: ruta.titulo, pasos: ruta.pasos, aviso: ruta.aviso });
+  });
+
+  it("sin ruta no existe ver_ruta", () => {
+    expect(crearHerramientas(perfil, analisis).some(h => h.name === "ver_ruta")).toBe(false);
+  });
+
+  it("las instrucciones con ruta siguen sin montos, sin marcas y con una sola etiqueta de perfil", () => {
+    for (const p of PERFILES) {
+      const a = analizar(p);
+      const texto = promptSistema(p, a, trazarRuta(p, a, SIN_HECHOS));
+      expect(texto).not.toMatch(/S\/\s?\d/);
+      expect(texto).not.toMatch(/BBVA/i);
+      expect(texto).toContain("ver_ruta");
+      expect(texto.match(/<\/perfil>/g)).toHaveLength(1);
+    }
+  });
+
+  it("sin ruta las instrucciones no mencionan ver_ruta", () => {
+    expect(promptSistema(perfil, analisis)).not.toContain("ver_ruta");
   });
 });

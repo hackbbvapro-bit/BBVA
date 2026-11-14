@@ -4,6 +4,8 @@ import { analizar, type Perfil } from "@/motor";
 import { avisosDelCentro, pendientesSinLeer, type Destino } from "@/avisos/centro";
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
 import { fijarSalidas } from "@/cliente/salidas";
+import { guardarSituacion, leerSituacion } from "@/cliente/situacion";
+import { hechosDe, saludoDeRuta, trazarRuta } from "@/ruta/ruta";
 import { Hoy, type IrDesdeInicio } from "@/componentes/hoy";
 import { Deudas, type AbrirDeudas, type PestanaDeudas } from "@/componentes/deudas";
 import { MiDinero } from "@/componentes/mi-dinero";
@@ -68,34 +70,44 @@ function Contenido() {
   // Solo se pinta en el navegador (ProveedorDatos espera a abrir la base), así que se puede leer el almacenamiento aquí.
   // Quien ya guardó sus datos entra directo; quien nunca eligió ve la bienvenida.
   const [modo, setModo] = useState<Modo | null>(() => leerModo() ?? (perfil.id === ID_PROPIO ? "propio" : null));
+  // Recién armado el caso: la sesión abre en el asistente, que saluda con la ruta.
+  const [reciente, setReciente] = useState(false);
   if (modo === null) {
     // Sin caso elegido no hay nada que enviar: la compuerta vuelve a cerrarse al regresar a la bienvenida.
     fijarSalidas(false);
-    return <Bienvenida alListo={setModo} />;
+    return (
+      <Bienvenida
+        alListo={(m, extra) => {
+          setReciente(extra?.reciente === true);
+          setModo(m);
+        }}
+      />
+    );
   }
   function cambiarModo() {
-    if (perfil.id === ID_PROPIO && !window.confirm("Vas a volver a la pantalla de inicio. Si eliges el caso de Rosa o empiezas de nuevo, se reemplaza el caso de práctica guardado en este equipo. ¿Continuar?")) return;
+    if (perfil.id === ID_PROPIO && !window.confirm("Vas a volver a la pantalla de inicio. Si eliges el caso de Rosa o empiezas de nuevo, se reemplaza el caso que armaste, guardado en este equipo. ¿Continuar?")) return;
     guardarModo(null);
+    setReciente(false);
     setModo(null);
   }
   return (
     <div className="relative min-h-dvh w-full bg-papel text-base text-tinta [overflow-wrap:anywhere] md:pl-[232px] [&_button]:cursor-pointer [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-4 [&_:focus-visible]:outline-electrico">
-      <Sesion perfil={perfil} cambiarModo={cambiarModo} />
+      <Sesion perfil={perfil} cambiarModo={cambiarModo} reciente={reciente} />
     </div>
   );
 }
 
-/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo (Rosa) o un caso de práctica. */
-function TarjetaModo({ demo, cambiar }: { demo: boolean; cambiar: () => void }) {
+/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo (Rosa) o el caso que armó la persona, y si algo sale del equipo. */
+function TarjetaModo({ demo, externo, cambiar }: { demo: boolean; externo: boolean; cambiar: () => void }) {
   return (
     <div className="rounded-xl border border-linea bg-papel p-3">
       <p className="flex items-center gap-2 text-[13px] font-semibold text-noche">
         <span aria-hidden="true" className={`size-2 rounded-full ${demo ? "bg-ambar" : "bg-verde"}`} />
-        {demo ? "Caso de Rosa (ejemplo)" : "Caso de práctica"}
+        {demo ? "Caso de Rosa (ejemplo)" : "Tu caso (simulación)"}
       </p>
-      <p className="mt-1 text-xs leading-snug text-gris">{demo ? "Rosa es una persona inventada." : "Simulación: nada sale de este equipo."}</p>
+      <p className="mt-1 text-xs leading-snug text-gris">{demo ? "Rosa es una persona inventada." : externo ? "IA y voz activadas: tu caso se envía para responderte." : "Sin IA ni voz: nada sale de este equipo."}</p>
       <button onClick={cambiar} className="mt-1 min-h-9 text-[13px] font-semibold text-electrico hover:text-marino">
-        {demo ? "Armar un caso de práctica" : "Ver el caso de Rosa"}
+        {demo ? "Empezar con mi situación" : "Volver al inicio"}
       </button>
     </div>
   );
@@ -157,11 +169,11 @@ function HojaAgregar({ elegir, cerrar }: { elegir: (opcion: string) => void; cer
   );
 }
 
-function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => void }) {
+function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo: () => void; reciente: boolean }) {
   const analisis = useMemo(() => analizar(perfil), [perfil]);
   const { aviso, datos, cambiar } = useDatos();
   const lista = useMemo(() => avisosDelCentro(datos, perfil, analisis), [datos, perfil, analisis]);
-  const [pestana, setPestana] = useState<Pestana>("hoy"),
+  const [pestana, setPestana] = useState<Pestana>(reciente ? "asistente" : "hoy"),
     [hoja, setHoja] = useState(false),
     [agregar, setAgregar] = useState(false),
     [deudasInicial, setDeudasInicial] = useState<PestanaDeudas>("debo"),
@@ -171,9 +183,21 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
     [nuevos, setNuevos] = useState<string[]>([]);
   const pendientes = pendientesSinLeer(lista, datos.avisosLeidos);
   const demo = perfil.id !== ID_PROPIO;
-  // Compuerta de privacidad: se fija en el render (antes que los efectos de los hijos). Solo el caso de ejemplo puede usar servicios externos.
-  fijarSalidas(demo);
-  const pasos = demo ? undefined : { deudas: datos.deudas.length > 0, fijos: datos.ingresosFijos.length + datos.gastosFijos.length > 0 };
+  // Lo que la persona contó al entrar y no está en sus datos: si tuvo crédito y si aceptó usar IA y voz.
+  const [situacion, setSituacion] = useState(() => leerSituacion());
+  const externo = demo || situacion.externo;
+  // Compuerta de privacidad: se fija en el render (antes que los efectos de los hijos). IA y voz: en el ejemplo,
+  // o en un caso propio si la persona lo aceptó. Subir documentos y avisos remotos: solo en el ejemplo.
+  fijarSalidas(externo, demo);
+  const hechos = useMemo(() => hechosDe(datos, situacion.tuvoCredito), [datos, situacion.tuvoCredito]);
+  const ruta = useMemo(() => trazarRuta(perfil, analisis, hechos), [perfil, analisis, hechos]);
+  const saludo = saludoDeRuta(perfil.nombre, ruta, !demo);
+  function cambiarExterno(activo: boolean) {
+    const nueva = { ...situacion, externo: activo };
+    guardarSituacion(nueva);
+    setSituacion(nueva);
+  }
+  const pasos = demo ? undefined : { deudas: datos.deudas.length > 0 || situacion.sinDeudas, fijos: datos.ingresosFijos.length + datos.gastosFijos.length > 0 };
   const turno = useRef(0);
   useEffect(
     () => () => {
@@ -197,6 +221,12 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
       if (motor === "ninguna" && actual === turno.current) setSonando(false);
     });
   }
+  // Recién armado el caso y con permiso: el asistente saluda en voz alta al entrar.
+  const saludoInicial = useRef(reciente && externo ? saludo : undefined);
+  useEffect(() => {
+    if (saludoInicial.current) leer(saludoInicial.current);
+    // Solo al montar: `leer` cambia en cada render y no debe repetir el saludo.
+  }, []);
   function navegar(p: Pestana) {
     detener();
     setDeudasInicial("debo");
@@ -291,7 +321,7 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
             ))}
           </nav>
           <div className="mt-auto grid gap-3 pt-6">
-            <TarjetaModo demo={demo} cambiar={cambiarModo} />
+            <TarjetaModo demo={demo} externo={externo} cambiar={cambiarModo} />
             <MenuUsuario nombre={perfil.nombre} variante="lateral" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} demo={demo} />
           </div>
         </div>
@@ -321,7 +351,7 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
           <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl border border-ambar/40 bg-ambar-suave px-4 py-2 text-sm text-ambar-fuerte md:hidden">
             <span>Estás viendo el caso de ejemplo.</span>
             <button onClick={cambiarModo} className="min-h-9 font-semibold underline underline-offset-2">
-              Armar un caso de práctica
+              Empezar con mi situación
             </button>
           </div>
         )}
@@ -340,6 +370,8 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
             sonando={sonando}
             ir={desdeInicio}
             demo={demo}
+            externo={externo}
+            ruta={ruta}
             pasos={pasos}
           />
         )}
@@ -364,7 +396,7 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
           </div>
         )}
         {pestana === "asistente" && (
-          <Chat perfil={perfil} analisis={analisis} demo={demo} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} />
+          <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} />
         )}
       </main>
       <nav

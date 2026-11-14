@@ -5,6 +5,7 @@
 import { salidasPermitidas } from "./salidas";
 import { responderSinIA } from "../explica/explica";
 import type { Analisis, Perfil } from "../motor";
+import type { Hechos, Ruta } from "../ruta/ruta";
 
 export type Rol = "usuario" | "asistente";
 export interface MensajeChat { rol: Rol; texto: string }
@@ -20,6 +21,12 @@ interface Peticion {
   /** Se llama con cada trozo de texto según llega. */
   alTexto?: (trozo: string) => void;
   senal?: AbortSignal;
+  /** Hechos que el motor no puede deducir del perfil (si tuvo crédito, atraso máximo). El servidor traza la ruta con ellos. */
+  hechos?: Hechos;
+  /** En un caso propio: la persona aceptó enviar su simulación a la IA. Sin esto el servidor rechaza la petición. */
+  consentimiento?: boolean;
+  /** Ruta ya trazada en el equipo: solo se usa para responder sin IA; nunca se envía. */
+  ruta?: Ruta;
 }
 
 const MAX_MENSAJES = 20;
@@ -64,12 +71,12 @@ async function leerFlujo(respuesta: Response, alTexto?: (trozo: string) => void)
   return { texto, origen };
 }
 
-export async function conversar({ perfil, analisis, mensajes, alTexto, senal }: Peticion): Promise<RespuestaAgente> {
+export async function conversar({ perfil, analisis, mensajes, alTexto, senal, hechos, consentimiento, ruta }: Peticion): Promise<RespuestaAgente> {
   const recientes = mensajes.slice(-MAX_MENSAJES).map(m => ({ rol: m.rol, texto: m.texto.slice(0, MAX_CARACTERES) }));
   const pregunta = [...mensajes].reverse().find(m => m.rol === "usuario")?.texto ?? "";
   if (!salidasPermitidas()) {
-    // Caso de práctica: nada sale del equipo; responde el motor local.
-    const texto = responderSinIA(pregunta, perfil, analisis);
+    // Sin permiso para IA: nada sale del equipo; responde el motor local.
+    const texto = responderSinIA(pregunta, perfil, analisis, ruta);
     alTexto?.(texto);
     return { texto, origen: "respaldo" };
   }
@@ -78,7 +85,7 @@ export async function conversar({ perfil, analisis, mensajes, alTexto, senal }: 
     const respuesta = await fetch("/api/agente", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ perfil, mensajes: recientes }),
+      body: JSON.stringify({ perfil, mensajes: recientes, hechos, consentimiento: consentimiento || undefined }),
       signal: senal,
     });
     if (!respuesta.ok) throw new Error(`http_${respuesta.status}`);
@@ -88,7 +95,7 @@ export async function conversar({ perfil, analisis, mensajes, alTexto, senal }: 
   } catch (error) {
     if (senal?.aborted) throw error;
     if (recibido.trim()) return { texto: recibido, origen: "ia" };
-    const texto = responderSinIA(pregunta, perfil, analisis);
+    const texto = responderSinIA(pregunta, perfil, analisis, ruta);
     alTexto?.(texto);
     return { texto, origen: "respaldo" };
   }

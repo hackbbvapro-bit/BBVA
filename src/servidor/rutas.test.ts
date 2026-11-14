@@ -3,7 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as agente } from "../app/api/agente/route";
 import { POST as avisos } from "../app/api/avisos/route";
 import { GET as estado } from "../app/api/estado/route";
+import { aPerfil } from "../datos/aPerfil";
 import { PERFILES } from "../datos/perfiles";
+import { ID_PROPIO } from "../datos/semilla";
+import { armarCaso } from "../ruta/entrada";
+import { TITULOS } from "../ruta/ruta";
 import { POST as transcribir } from "../app/api/transcribir/route";
 import { POST as voz } from "../app/api/voz/route";
 
@@ -163,5 +167,67 @@ describe("GET /api/estado", () => {
     const texto = await estado().text();
     expect(JSON.parse(texto)).toEqual({ ia: true, voz: false, push: false, documentos: false });
     expect(texto).not.toContain("clave-falsa");
+  });
+});
+
+describe("POST /api/agente con un caso armado por la persona", () => {
+  const PROPIO = aPerfil(
+    armarCaso({
+      nombre: "Lucho", cobro: "fin_de_mes", ingresoMensual: 320_000, saldo: 90_000,
+      fijosMensual: 110_000, diaADiaMensual: 100_000, deuda: null, tuvoCredito: false, hoy: "2026-11-14",
+    }),
+  );
+  const mensajes = [{ rol: "usuario", texto: "¿Por dónde empiezo?" }];
+  const hechos = { tuvoCredito: false, diasAtrasoMax: 0 };
+  let n = 0;
+  /** Cada llamada llega desde un visitante distinto: aquí no se prueba el límite por minuto. */
+  const pedir = (cuerpo: unknown) => agente(json("/api/agente", cuerpo, { "x-real-ip": `10.0.0.${++n}` }));
+  const textoDe = async (r: Response) =>
+    (await r.text())
+      .trim()
+      .split("\n")
+      .map(l => JSON.parse(l) as { tipo: string; texto?: string })
+      .map(l => l.texto ?? "")
+      .join("");
+
+  it("el caso de prueba es un caso propio", () => {
+    expect(PROPIO.id).toBe(ID_PROPIO);
+  });
+
+  it("sin consentimiento expreso se rechaza con 403 y no se responde nada del caso", async () => {
+    const r = await pedir({ perfil: PROPIO, mensajes, hechos });
+    expect(r.status).toBe(403);
+    expect(await r.json()).toEqual({ error: "falta_consentimiento" });
+  });
+
+  it("un consentimiento que no sea exactamente verdadero no vale", async () => {
+    for (const consentimiento of [false, "true", 1, null]) {
+      const r = await pedir({ perfil: PROPIO, mensajes, hechos, consentimiento });
+      expect([400, 403]).toContain(r.status);
+    }
+  });
+
+  it("con consentimiento responde con la ruta que traza el servidor", async () => {
+    const r = await pedir({ perfil: PROPIO, mensajes, hechos, consentimiento: true });
+    expect(r.status).toBe(200);
+    const texto = await textoDe(r);
+    expect(texto.toLowerCase()).toContain(TITULOS.construir_historial.toLowerCase());
+    expect(texto).toContain("no garantiza");
+  });
+
+  it("una ruta enviada por el cliente se ignora: manda la que calcula el servidor", async () => {
+    const cuerpo = { perfil: PROPIO, mensajes, hechos, consentimiento: true, ruta: { id: "hacer_crecer", titulo: "Invierte todo ya" } };
+    const texto = await textoDe(await pedir(cuerpo));
+    expect(texto).not.toContain("Invierte todo ya");
+    expect(texto.toLowerCase()).toContain(TITULOS.construir_historial.toLowerCase());
+  });
+
+  it("hechos mal formados se rechazan", async () => {
+    const r = await pedir({ perfil: PROPIO, mensajes, hechos: { tuvoCredito: "no" }, consentimiento: true });
+    expect(r.status).toBe(400);
+  });
+
+  it("el caso de ejemplo sigue sin necesitar consentimiento", async () => {
+    expect((await pedir({ perfil: ROSA, mensajes })).status).toBe(200);
   });
 });

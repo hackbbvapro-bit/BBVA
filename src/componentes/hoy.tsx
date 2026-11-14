@@ -18,6 +18,9 @@ import { Encabezado, Icono, Kpi, botonPrincipal, botonSecundario, desplazar, uni
 import { cifras, pulso } from "@/componentes/tablero";
 
 /** A dónde puede mandar el Inicio (lo resuelve el armazón). */
+import { TuRuta } from "@/componentes/tu-ruta";
+import type { Ruta } from "@/ruta/ruta";
+
 export type IrDesdeInicio = "agregar-deuda" | "dinero" | "deudas" | "asistente";
 
 const ICONOS_KPI: NombreIcono[] = ["dinero", "deudas", "calendario", "tendencia"];
@@ -31,6 +34,8 @@ export function Hoy({
   detener,
   ir,
   demo = true,
+  externo = demo,
+  ruta,
   pasos,
 }: {
   cobros?: CobroPendiente[];
@@ -40,9 +45,13 @@ export function Hoy({
   leer: (texto: string) => void;
   detener: () => void;
   ir?: (a: IrDesdeInicio) => void;
-  /** Caso de ejemplo (Rosa, inventada) o caso de práctica (simulación que no sale del equipo). */
+  /** Caso de ejemplo (Rosa, inventada) o caso propio (simulación armada por la persona). */
   demo?: boolean;
-  /** Solo en el caso de práctica: qué pasos de la guía ya hizo. La guía se muestra hasta completar los dos. */
+  /** Hay permiso para IA y voz: siempre en el ejemplo; en un caso propio, solo si la persona lo aceptó. */
+  externo?: boolean;
+  /** Ruta trazada por el motor; si llega, se pinta la tarjeta «Tu ruta». */
+  ruta?: Ruta;
+  /** Solo en el caso propio: qué pasos de la guía ya hizo. La guía se muestra hasta completar los dos. */
   pasos?: { deudas: boolean; fijos: boolean };
 }) {
   const [jugada, seleccionar] = useState<Jugada>();
@@ -58,8 +67,8 @@ export function Hoy({
     <div className="space-y-6">
       <Encabezado
         titulo={`Hola, ${perfil.nombre}`}
-        bajada={demo ? `Caso de ejemplo (datos sintéticos) al ${formatoLargo(analisis.hoy)}` : `Caso de práctica al ${formatoLargo(analisis.hoy)}`}
-        acciones={demo ? (
+        bajada={demo ? `Caso de ejemplo (datos sintéticos) al ${formatoLargo(analisis.hoy)}` : `Tu caso (simulación) al ${formatoLargo(analisis.hoy)}`}
+        acciones={externo ? (
           <button className={botonSecundario} onClick={alternarVoz} aria-pressed={sonando}>
             {sonando ? (
               <span className="flex items-center gap-[3px]" aria-hidden="true">
@@ -113,6 +122,8 @@ export function Hoy({
           </>
         )}
       </section>
+
+      {ruta && <TuRuta ruta={ruta} alConversar={ir ? () => ir("asistente") : undefined} />}
 
       {/* Cifras de un vistazo. */}
       <section aria-label="Cifras del mes" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -184,7 +195,7 @@ export function Hoy({
           </div>
         </section>
       )}
-      <Pie demo={demo} />
+      <Pie demo={demo} externo={externo} />
     </div>
   );
 }
@@ -318,11 +329,11 @@ function Pagos({ analisis }: { analisis: Analisis }) {
   );
 }
 
-function Pie({ demo }: { demo: boolean }) {
+function Pie({ demo, externo }: { demo: boolean; externo: boolean }) {
   const [estado, setEstado] = useState<EstadoServicios>();
   useEffect(() => {
-    // En el caso de práctica no se consulta nada al servidor: los servicios externos no se usan.
-    if (!demo) return;
+    // Sin permiso para IA y voz no se consulta nada al servidor: los servicios externos no se usan.
+    if (!externo) return;
     let activo = true;
     void consultarEstado().then(e => {
       if (activo) setEstado(e);
@@ -330,18 +341,21 @@ function Pie({ demo }: { demo: boolean }) {
     return () => {
       activo = false;
     };
-  }, [demo]);
+  }, [externo]);
   return (
     <footer className="flex flex-col items-center gap-3 border-t border-linea pt-5 text-xs text-gris sm:flex-row sm:justify-between">
       <div className="flex gap-2">
-        {!demo && <span className="rounded-full bg-white px-3 py-1.5 ring-1 ring-linea">Sin servicios externos</span>}
-        {demo && (
+        {!externo && <span className="rounded-full bg-white px-3 py-1.5 ring-1 ring-linea">Sin servicios externos</span>}
+        {externo && (
           [
             ["ia", "IA"],
             ["voz", "Voz"],
             ["push", "Avisos"],
           ] as const
-        ).map(([clave, etiqueta]) => (
+        )
+          // Los avisos remotos solo existen en el caso de ejemplo.
+          .filter(([clave]) => demo || clave !== "push")
+          .map(([clave, etiqueta]) => (
           <span key={clave} className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 ring-1 ring-linea" title={estado?.[clave] ? "Activo" : "En respaldo"}>
             <span className={`size-1.5 rounded-full ${estado?.[clave] ? "bg-agua" : "bg-gris/50"}`} />
             {etiqueta}
@@ -349,7 +363,7 @@ function Pie({ demo }: { demo: boolean }) {
           </span>
         ))}
       </div>
-      <p>{demo ? "Datos sintéticos de ejemplo. " : "Caso de práctica: nada sale de este equipo. "}Simulación educativa, no asesoría financiera.</p>
+      <p>{demo ? "Datos sintéticos de ejemplo. " : externo ? "Tu caso de simulación: IA y voz activadas con tu permiso. " : "Tu caso de simulación: nada sale de este equipo. "}Simulación educativa, no asesoría financiera.</p>
     </footer>
   );
 }

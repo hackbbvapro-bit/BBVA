@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { PERFILES } from "../datos/perfiles";
 import { analizar, simularGasto } from "../motor";
-import { datosDeudas, datosJugadas, datosProximosPagos, datosResumen, datosSimulacion } from "./datos";
+import { aPerfil } from "../datos/aPerfil";
+import { armarCaso, tuvoCreditoSegun, type Respuestas } from "../ruta/entrada";
+import { AVISO_SIMULACION, hechosDe, trazarRuta } from "../ruta/ruta";
+import { datosDeudas, datosJugadas, datosProximosPagos, datosResumen, datosRuta, datosSimulacion } from "./datos";
 
 const porId = (id: string) => {
   const perfil = PERFILES.find(p => p.id === id);
@@ -92,5 +95,46 @@ describe("simular un gasto", () => {
     const manana = datosSimulacion(analisis, 80, analisis.proyeccion.desde);
     expect(hoy).toMatchObject({ dia_del_gasto: "viernes 13 de noviembre", alcanza: true });
     expect({ ...hoy, dia_del_gasto: "" }).toEqual({ ...manana, dia_del_gasto: "" });
+  });
+});
+
+describe("la ruta que ve el agente", () => {
+  const base: Respuestas = {
+    nombre: "Lucho", cobro: "fin_de_mes", ingresoMensual: 320_000, saldo: 90_000,
+    fijosMensual: 110_000, diaADiaMensual: 100_000, deuda: null, tuvoCredito: false, hoy: "2026-11-14",
+  };
+  const rutaDe = (r: Respuestas) => {
+    const datos = armarCaso(r);
+    const perfil = aPerfil(datos);
+    return trazarRuta(perfil, analizar(perfil), hechosDe(datos, tuvoCreditoSegun(r)));
+  };
+  const rutas = [
+    rutaDe(base),
+    rutaDe({ ...base, deuda: { tipo: "tarjeta", saldo: 300_000, cuota: 25_000, atraso: "uno_a_dos_meses" } }),
+    rutaDe({ ...base, tuvoCredito: true, saldo: 2_000_000 }),
+    rutaDe({ ...base, ingresoMensual: 100_000 }),
+  ];
+
+  it("cubre las tres rutas", () => {
+    expect(new Set(rutas.map(r => r.id))).toEqual(new Set(["construir_historial", "estar_en_verde", "hacer_crecer"]));
+  });
+
+  it("no deja pasar NaN, undefined ni montos sin formato, y siempre lleva el aviso de simulación", () => {
+    for (const ruta of rutas) {
+      const d = datosRuta(ruta);
+      const todo = JSON.stringify(d);
+      expect(todo).not.toMatch(/NaN|undefined|Infinity|null/);
+      expect(todo).not.toMatch(/BBVA/i);
+      expect(d.aviso).toBe(AVISO_SIMULACION);
+      expect(d.pasos).toEqual(ruta.pasos);
+      for (const monto of [...Object.values(d.flujo_mensual).slice(0, 4), d.colchon_para_imprevistos.meta, d.colchon_para_imprevistos.falta]) {
+        expect(monto).toMatch(/^-?S\/ [\d,]+\.\d{2}$/);
+      }
+    }
+  });
+
+  it("si no queda nada libre al mes lo dice con palabras en vez de inventar un plazo", () => {
+    const sinLibre = rutas.find(r => r.colchon.mesesParaCompletar === undefined || r.colchon.mesesParaCompletar === null);
+    if (sinLibre) expect(typeof datosRuta(sinLibre).colchon_para_imprevistos.meses_para_completarlo).toBe("string");
   });
 });

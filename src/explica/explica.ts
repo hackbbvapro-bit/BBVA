@@ -7,6 +7,7 @@ import {
   aCentimos, formatoLargo, formatoSoles, formatoTasa, simularGasto, sumarDias,
 } from "../motor";
 import type { Analisis, EventoProyectado, FechaISO, Jugada, Perfil } from "../motor";
+import { fraseLibre, rutaExplicada, type Ruta } from "../ruta/ruta";
 
 export type NivelAviso = "urgente" | "atencion" | "bien";
 
@@ -169,13 +170,26 @@ function responderJugada(texto: string, analisis: Analisis): string | undefined 
   return mayor ? `Tu mayor gasto del día a día es ${mayor.categoria}: ${formatoSoles(mayor.mensual)} al mes.` : undefined;
 }
 
-/** Respuesta armada solo con cálculos del motor, para cuando la IA no está disponible. */
-export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Analisis): string {
+/** Preguntas sobre la ruta: por dónde empezar, historial, colchón, cuánto queda libre. */
+function responderRuta(texto: string, ruta: Ruta): string | undefined {
+  if (/libre|queda al mes/.test(texto)) return fraseLibre(ruta.flujo);
+  if (/historial|invert|crecer|ruta|empiez|empez|por donde|colchon|garantia/.test(texto)) return rutaExplicada(ruta);
+  if (ruta.id === "construir_historial" && /tarjeta|credito|prestamo/.test(texto)) return rutaExplicada(ruta);
+  return undefined;
+}
+
+/**
+ * Respuesta armada solo con cálculos del motor, para cuando la IA no está disponible.
+ * Con `ruta`, también responde por dónde empezar y qué alternativas comparar; sin ella, se comporta igual que antes.
+ */
+export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Analisis, ruta?: Ruta): string {
   const texto = normalizar(pregunta);
   const gasto = responderGasto(texto, perfil, analisis);
   if (gasto) return gasto;
   const jugada = responderJugada(texto, analisis);
   if (jugada) return jugada;
+  const deRuta = ruta && responderRuta(texto, ruta);
+  if (deRuta) return deRuta;
   if (/deuda|tarjeta|primero|tcea|interes|prestamo/.test(texto)) {
     const deuda = avisos(perfil, analisis).find(a => a.id === "deuda");
     if (!deuda) return "No tienes deudas registradas.";
@@ -185,6 +199,7 @@ export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Anali
       : "";
     return `${deuda.titulo}. ${deuda.cuerpo}${ojo}`;
   }
+  if (ruta && /conviene|recomiend|que hago|producto|opcion|sobra|guardo/.test(texto)) return rutaExplicada(ruta);
   return resumenHablado(perfil, analisis);
 }
 
