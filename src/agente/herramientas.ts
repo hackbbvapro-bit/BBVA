@@ -2,7 +2,8 @@
 import { betaZodTool } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import type { Analisis, Perfil } from "../motor";
-import { datosDeudas, datosJugadas, datosProximosPagos, datosResumen, datosSimulacion } from "./datos";
+import type { Ruta } from "../ruta/ruta";
+import { datosDeudas, datosJugadas, datosProximosPagos, datosResumen, datosRuta, datosSimulacion } from "./datos";
 
 const SinDatos = z.object({});
 const DiasPagos = z.object({
@@ -13,9 +14,9 @@ const Gasto = z.object({
   fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("Día del gasto en formato AAAA-MM-DD, dentro del periodo proyectado."),
 });
 
-export function crearHerramientas(perfil: Perfil, analisis: Analisis) {
+export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Ruta) {
   const comoTexto = (datos: unknown): string => JSON.stringify(datos);
-  return [
+  const herramientas = [
     betaZodTool({
       name: "ver_resumen",
       description:
@@ -54,6 +55,18 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis) {
       inputSchema: Gasto,
       eager_input_streaming: true,
       run: ({ monto_soles, fecha }) => comoTexto(datosSimulacion(analisis, monto_soles, fecha)),
+    }),
+  ];
+  if (!ruta) return herramientas;
+  return [
+    ...herramientas,
+    betaZodTool({
+      name: "ver_ruta",
+      description:
+        "La ruta que el motor trazó para esta persona (estar en verde, construir historial o hacer crecer su plata): por qué le toca, los pasos en orden, las alternativas generales para comparar con su condición, cuánto le queda libre al mes y cómo va su colchón para imprevistos. Úsala cuando pregunten por dónde empezar, qué les conviene, cómo construir historial, qué hacer con lo que sobra o por productos.",
+      inputSchema: SinDatos,
+      eager_input_streaming: true,
+      run: () => comoTexto(datosRuta(ruta)),
     }),
   ];
 }

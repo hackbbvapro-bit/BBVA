@@ -36,7 +36,7 @@ const MAX_GRABACION_MS = 20_000;
 let dictadoFallo = false;
 
 function constructorDictado(): ConstructorDictado | undefined {
-  // El dictado del navegador puede mandar el audio a un servidor externo: en práctica no se usa.
+  // El dictado del navegador puede mandar el audio a un servidor externo: sin permiso para IA y voz no se usa.
   if (typeof window === "undefined" || dictadoFallo || !salidasPermitidas()) return undefined;
   const w = window as unknown as { SpeechRecognition?: ConstructorDictado; webkitSpeechRecognition?: ConstructorDictado };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;

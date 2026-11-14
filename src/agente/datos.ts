@@ -5,6 +5,7 @@
 import { mejorJugada, proximosPagos } from "../explica/explica";
 import { formatoLargo, formatoSoles, formatoTasa, redondear, simularGasto } from "../motor";
 import type { Analisis, Centimos, EventoProyectado, Perfil, PlanDeudas } from "../motor";
+import { fraseLibre, MESES_DE_COLCHON, type Ruta } from "../ruta/ruta";
 
 const MAXIMO_SOLES = 1_000_000;
 
@@ -144,4 +145,36 @@ export function datosSimulacion(analisis: Analisis, montoSoles: number, fecha: s
   } catch (error) {
     return { error: error instanceof Error ? error.message : "No se pudo simular ese gasto." };
   }
+}
+
+/** La ruta que el motor trazó para esta persona: pasos y alternativas generales, sin marcas ni tasas. */
+export function datosRuta(ruta: Ruta) {
+  const { flujo, colchon } = ruta;
+  return {
+    ruta: ruta.titulo,
+    resumen: ruta.resumen,
+    por_que_esta_ruta: ruta.motivos,
+    pasos: ruta.pasos,
+    alternativas_para_comparar: ruta.alternativas.map(a => ({
+      nombre: a.entrada.titulo,
+      para_quien: a.entrada.paraQuien,
+      condicion: a.entrada.condicion,
+      por_que_aparece: a.porQue,
+    })),
+    flujo_mensual: {
+      entra: formatoSoles(flujo.ingresos),
+      gastos_fijos_y_del_dia_a_dia: formatoSoles(flujo.gastos),
+      cuotas_de_deuda: formatoSoles(flujo.cuotas),
+      queda_libre: formatoSoles(flujo.libre),
+      en_una_frase: fraseLibre(flujo),
+    },
+    colchon_para_imprevistos: {
+      meses_de_gastos_que_cubre_la_meta: MESES_DE_COLCHON,
+      meta: formatoSoles(colchon.meta),
+      falta: formatoSoles(colchon.falta),
+      dias_de_gastos_que_cubre_hoy: colchon.diasCubiertos,
+      meses_para_completarlo: colchon.mesesParaCompletar ?? "no se puede calcular: hoy no queda nada libre al mes",
+    },
+    aviso: ruta.aviso,
+  };
 }

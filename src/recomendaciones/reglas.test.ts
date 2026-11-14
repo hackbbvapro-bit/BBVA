@@ -19,8 +19,8 @@ function rosaHolgada(): { datos: Datos; analisis: Analisis } {
 }
 
 describe("catálogo", () => {
-  it("tiene tres entradas genéricas: sin marcas, sin enlaces y sin cifras de mercado", () => {
-    expect(CATALOGO.map(e => e.id)).toEqual(["tarjeta-con-garantia", "tarjeta-inicio", "reprogramar"]);
+  it("tiene seis entradas genéricas: sin marcas, sin enlaces y sin cifras de mercado", () => {
+    expect(CATALOGO.map(e => e.id)).toEqual(["tarjeta-con-garantia", "tarjeta-inicio", "reprogramar", "cuenta-de-ahorro", "deposito-a-plazo", "fondo-mutuo"]);
     for (const e of CATALOGO) {
       const texto = `${e.titulo} ${e.paraQuien} ${e.condicion}`;
       expect(texto).not.toMatch(/S\/|\d|%/);

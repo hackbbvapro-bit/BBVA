@@ -2,6 +2,7 @@ import { z } from "zod";
 import { responder, ultimaPregunta, type EventoAgente } from "@/agente/conversar";
 import { analizar } from "@/motor";
 import { ID_PROPIO } from "@/datos/semilla";
+import { EsquemaHechos, SIN_HECHOS, trazarRuta } from "@/ruta/ruta";
 import { errorJson, leerJson, mismoOrigen, visitante } from "@/servidor/http";
 import { crearLimite } from "@/servidor/limite";
 import { EsquemaPerfil, MAX_BYTES_PERFIL } from "@/servidor/perfil";
@@ -20,6 +21,10 @@ const Peticion = z.object({
     .array(z.object({ rol: z.enum(["usuario", "asistente"]), texto: z.string().min(1).max(1000) }))
     .min(1)
     .max(20),
+  /** Hechos que el perfil no trae (si tuvo crédito, atraso máximo). La ruta se traza aquí, nunca se acepta del cliente. */
+  hechos: EsquemaHechos.optional(),
+  /** Obligatorio en un caso propio: la persona aceptó enviar su simulación al proveedor de IA. */
+  consentimiento: z.literal(true).optional(),
 });
 
 /** Convierte los eventos del agente en líneas JSON (una por evento) que el celular va leyendo según llegan. */
@@ -50,12 +55,14 @@ export async function POST(req: Request): Promise<Response> {
   const datos = Peticion.safeParse(await leerJson(req, MAX_BYTES_PERFIL));
   if (!datos.success) return errorJson("peticion_invalida", 400);
   const perfil = datos.data.perfil;
-  // Defensa en profundidad: el caso de práctica se calcula en el equipo y nunca llega al proveedor de IA.
-  if (perfil.id === ID_PROPIO) return errorJson("solo_caso_de_ejemplo", 403);
+  // Defensa en profundidad: un caso propio solo llega al proveedor de IA si la persona lo aceptó de forma expresa.
+  if (perfil.id === ID_PROPIO && datos.data.consentimiento !== true) return errorJson("falta_consentimiento", 403);
   if (!ultimaPregunta(datos.data.mensajes)) return errorJson("peticion_invalida", 400);
   let analisis;
+  let ruta;
   try {
     analisis = analizar(perfil);
+    ruta = trazarRuta(perfil, analisis, datos.data.hechos ?? SIN_HECHOS);
   } catch {
     return errorJson("peticion_invalida", 400);
   }
@@ -64,7 +71,7 @@ export async function POST(req: Request): Promise<Response> {
   if (!topeGlobal.permite("todos")) return errorJson("demasiadas_peticiones", 429);
   const corte = new AbortController();
   const senal = AbortSignal.any([req.signal, corte.signal]);
-  const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal });
+  const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal, ruta });
   return new Response(comoFlujo(eventos, () => corte.abort()), {
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",
