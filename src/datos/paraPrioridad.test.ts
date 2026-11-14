@@ -13,6 +13,20 @@ describe("puente base → prioridad de pagos", () => {
     expect(entrada.disponible).toBeGreaterThanOrEqual(0);
     expect(Number.isInteger(entrada.disponible)).toBe(true);
   });
+  it("con la semilla de Rosa lo disponible es S/ 400.00: el mínimo del saldo sin pagar deudas (no suma el pago de diciembre al día más bajo de noviembre)", () => {
+    const datos = datosDeRosa();
+    expect(disponibleParaDeudas(analizar(aPerfil(datos)))).toBe(40000);
+  });
+  it("pagar justo lo disponible, a destiempo, no deja el saldo en rojo ningún día", () => {
+    const datos = datosDeRosa();
+    const a = analizar(aPerfil(datos));
+    const disponible = disponibleParaDeudas(a);
+    let pagado = 0;
+    for (const dia of a.proyeccion.dias) {
+      pagado += dia.eventos.filter(e => e.categoria === "deuda" && e.monto < 0).reduce((s, e) => s - e.monto, 0);
+      expect(dia.saldo + pagado - disponible).toBeGreaterThanOrEqual(0);
+    }
+  });
   it("una deuda pagada no entra y no hay deudas sin decisiones", () => {
     const datos = datosDeRosa();
     datos.deudas = datos.deudas.map(d => ({ ...d, pagada: true }));

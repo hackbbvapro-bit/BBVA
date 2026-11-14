@@ -1,0 +1,95 @@
+{
+  "metricas": {
+    "inicio-390x844": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "mi-dinero-390x844": {
+      "scrollHorizontal": 0,
+      "hayRosa": false,
+      "otrosPerfiles": false
+    },
+    "deudas-390x844": {
+      "scrollHorizontal": 0,
+      "hayRosa": false,
+      "otrosPerfiles": false
+    },
+    "reporte-sbs-390x844": {
+      "scrollHorizontal": 0,
+      "hayRosa": false,
+      "otrosPerfiles": false
+    },
+    "hablar-documento-390x844": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "avisos-390x844": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "inicio-1024x768": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "mi-dinero-1024x768": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "deudas-1024x768": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "reporte-sbs-1024x768": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "hablar-documento-1024x768": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "avisos-1024x768": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "inicio-1440x900": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "mi-dinero-1440x900": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "deudas-1440x900": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "reporte-sbs-1440x900": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "hablar-documento-1440x900": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    },
+    "avisos-1440x900": {
+      "scrollHorizontal": 0,
+      "hayRosa": true,
+      "otrosPerfiles": false
+    }
+  },
+  "errores": []
+}
