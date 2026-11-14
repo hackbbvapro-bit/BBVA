@@ -10,14 +10,20 @@ export function exigirCentimos(valor: number, nombre = "monto"): Centimos {
 
 /**
  * Convierte texto en soles a céntimos sin pasar por decimales de máquina.
- * Acepta "1234.56", "1,234.56", "S/ 180", "-45.5".
+ * Acepta "1234.56", "1,234.56", "S/ 180", "-45.5" y también la coma decimal de los teclados en
+ * español: "12,50" y "1.234,56". Un separador seguido de 1 o 2 dígitos al final es el decimal; el otro
+ * solo vale como separador de miles en grupos de 3. Sin decimales, los miles van con coma ("1,250");
+ * "1.250" es ambiguo y se rechaza.
  */
 export function aCentimos(texto: string): Centimos {
-  const limpio = texto.replace(/S\/\.?/i, "").replace(/[\s,]/g, "");
-  const m = /^(-)?(\d+)(?:\.(\d{1,2}))?$/.exec(limpio);
+  const limpio = texto.replace(/S\/\.?/i, "").replace(/\s/g, "");
+  const m = /^(-)?([\d.,]+?)(?:([.,])(\d{1,2}))?$/.exec(limpio);
   if (!m) throw new Error(`Monto no válido: "${texto}"`);
-  const enteros = Number(m[2]);
-  const decimales = Number((m[3] ?? "").padEnd(2, "0"));
+  const separadorMiles = m[3] === "," ? "." : ",";
+  const conMiles = new RegExp(`^\\d{1,3}(?:\\${separadorMiles}\\d{3})+$`);
+  if (!/^\d+$/.test(m[2]) && !conMiles.test(m[2])) throw new Error(`Monto no válido: "${texto}"`);
+  const enteros = Number(m[2].replace(/[.,]/g, ""));
+  const decimales = Number((m[4] ?? "").padEnd(2, "0"));
   const total = enteros * 100 + decimales;
   return m[1] ? -total : total;
 }

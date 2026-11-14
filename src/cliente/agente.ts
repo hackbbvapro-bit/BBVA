@@ -71,7 +71,7 @@ export async function conversar({ perfil, analisis, mensajes, alTexto, senal }: 
     const respuesta = await fetch("/api/agente", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ perfilId: perfil.id, mensajes: recientes }),
+      body: JSON.stringify({ perfil, mensajes: recientes }),
       signal: senal,
     });
     if (!respuesta.ok) throw new Error(`http_${respuesta.status}`);

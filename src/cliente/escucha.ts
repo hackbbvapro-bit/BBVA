@@ -39,6 +39,19 @@ function constructorDictado(): ConstructorDictado | undefined {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
 }
 
+/** true si el navegador trae dictado propio (SpeechRecognition): necesario para el modo manos libres. */
+export function puedeConversar(): boolean {
+  return constructorDictado() !== undefined;
+}
+
+/** Dictado continuo para el modo manos libres. Devuelve undefined si el navegador no lo trae. */
+export function crearDictado(): Dictado | undefined {
+  const Constructor = constructorDictado();
+  return Constructor ? new Constructor() : undefined;
+}
+
+export type { Dictado, EventoDictado };
+
 export function puedeGrabar(): boolean {
   return typeof window !== "undefined" && "MediaRecorder" in window && !!navigator.mediaDevices?.getUserMedia;
 }

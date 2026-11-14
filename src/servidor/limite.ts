@@ -24,7 +24,12 @@ export function crearLimite(maximo: number, ventanaMs: number): Limite {
     for (const [clave, v] of ventanas) {
       if (ahora - v.inicio >= ventanaMs) ventanas.delete(clave);
     }
-    if (ventanas.size >= MAXIMO_DE_CLAVES) ventanas.clear();
+    // Si todas siguen vigentes se expulsa la más antigua (el Map conserva el orden de alta), nunca todo el mapa.
+    while (ventanas.size >= MAXIMO_DE_CLAVES) {
+      const masAntigua = ventanas.keys().next().value;
+      if (masAntigua === undefined) break;
+      ventanas.delete(masAntigua);
+    }
   }
 
   return {
@@ -32,6 +37,7 @@ export function crearLimite(maximo: number, ventanaMs: number): Limite {
       const actual = ventanas.get(clave);
       if (!actual || ahora - actual.inicio >= ventanaMs) {
         if (ventanas.size >= MAXIMO_DE_CLAVES) limpiar(ahora);
+        ventanas.delete(clave);
         ventanas.set(clave, { inicio: ahora, usadas: 1 });
         return true;
       }

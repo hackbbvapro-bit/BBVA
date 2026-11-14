@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import type { AvisoCentro, Destino } from "@/avisos/centro";
 import type { Aviso } from "@/explica/explica";
 import { estadoAvisos, activarAvisos, enviarAvisoDePrueba, type EstadoAvisos } from "@/cliente/avisos";
 import { boton, Icono, tonos, unido } from "@/componentes/ui";
@@ -9,13 +10,24 @@ const instrucciones = {
   denegado: "Los avisos están bloqueados. Actívalos en los ajustes del navegador.",
   no_soportado: "Este navegador no permite avisos. Los verás aquí dentro.",
 };
+const VER: Record<Destino, string> = {
+  hoy: "Ver en Inicio",
+  deudas: "Ver mis deudas",
+  cobros: "Ver lo que me deben",
+  reporte: "Ver el reporte",
+};
 export function HojaAvisos({
   lista,
+  nuevos,
   perfilId,
+  ir,
   cerrar,
 }: {
-  lista: Aviso[];
+  lista: AvisoCentro[];
+  /** Claves de los avisos que la persona aún no había abierto. */
+  nuevos: string[];
   perfilId: string;
+  ir: (destino: Destino) => void;
   cerrar: () => void;
 }) {
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -45,7 +57,7 @@ export function HojaAvisos({
       <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[85dvh] max-w-md overflow-y-auto rounded-t-3xl bg-papel px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-3">
         <div aria-hidden="true" className="mx-auto mb-4 h-1 w-10 rounded-full bg-linea" />
         <div className="mb-5 flex items-center justify-between">
-          <h2 id="titulo-avisos" className="text-2xl font-bold">
+          <h2 id="titulo-avisos" className="text-2xl font-semibold tracking-[-0.025em] text-noche">
             Tus avisos
           </h2>
           <button
@@ -59,17 +71,28 @@ export function HojaAvisos({
         </div>
         <div className="space-y-4">
           {lista.map(a => (
-            <article key={a.id} className="aparecer rounded-2xl bg-white p-4 ring-1 ring-linea/80">
-              <h3 className="flex items-start gap-3 font-bold">
+            <article key={a.clave} className="aparecer rounded-2xl bg-white p-4 ring-1 ring-linea/80">
+              <h3 className="flex items-start gap-3 font-semibold text-noche">
                 <span
                   aria-label={a.nivel}
-                  className={`mt-2 size-2 shrink-0 rounded-full ${a.nivel === "urgente" ? "bg-coral" : a.nivel === "bien" ? "bg-agua" : "bg-ambar"}`}
+                  className={`mt-2 size-2 shrink-0 rounded-full ${a.nivel === "urgente" ? "bg-coral" : a.nivel === "bien" ? "bg-verde-fuerte" : "bg-ambar"}`}
                 />
                 {unido(a.titulo)}
+                {nuevos.includes(a.clave) && a.nivel !== "bien" && (
+                  <span className="ml-auto shrink-0 rounded-full bg-agua-suave px-2 py-0.5 text-xs font-semibold text-electrico">Nuevo</span>
+                )}
               </h3>
               <p className="mt-2 leading-relaxed text-gris">{unido(a.cuerpo)}</p>
               {a.cuerpo.includes("TCEA") && (
                 <p className="mt-2 text-sm text-gris">TCEA: lo que te cuesta al año.</p>
+              )}
+              {a.destino !== "hoy" && (
+                <button
+                  onClick={() => ir(a.destino)}
+                  className="mt-3 flex min-h-11 items-center rounded-full border border-linea px-4 text-[15px] font-semibold text-electrico hover:bg-niebla"
+                >
+                  {VER[a.destino]}
+                </button>
               )}
             </article>
           ))}
@@ -106,7 +129,7 @@ function AvisosCelular({ perfilId, aviso }: { perfilId: string; aviso: Aviso }) 
   }
   return (
     <section className="mt-6 border-t border-linea pt-5">
-      <h3 className="mb-3 text-lg font-bold">Avisos en tu celular</h3>
+      <h3 className="mb-3 text-lg font-semibold text-noche">Avisos en tu celular</h3>
       {!estado && <p className="text-gris">Comprobando disponibilidad…</p>}
       {estado === "sin_permiso" && (
         <button disabled={ocupado} className={`${boton} w-full ${tonos.bien}`} onClick={() => void activar()}>
@@ -116,7 +139,7 @@ function AvisosCelular({ perfilId, aviso }: { perfilId: string; aviso: Aviso }) 
       {estado === "activo" && (
         <button
           disabled={ocupado}
-          className={`${boton} w-full bg-tinta text-white`}
+          className={`${boton} w-full rounded-full bg-electrico text-white hover:bg-marino`}
           onClick={() => void probar()}
         >
           Enviarme un aviso de prueba

@@ -11,6 +11,7 @@ export * from './proyeccion';
 export * from './jugadas';
 export * from './deudas';
 export * from './simular';
+export * from './cobros';
 
 export function analizar(perfil: Perfil): Analisis {
   const proyeccion = proyectar(perfil);
