@@ -44,14 +44,36 @@ pantalla debe salir de una función con test.
 | `investigacion/02-que-hace-bbva-y-que-no.md` | Qué ya tiene la app de BBVA Perú y dónde están los huecos |
 | `investigacion/03-benchmark-asesores-ia-top.md` | Qué hacen los mejores asesores con IA del mundo (Cleo, Monarch, Rocket Money, Plum…) |
 | `conocimiento/metodo-asesor.md` | Método de un asesor financiero: gastos, prioridades, deuda, escáner de estados de cuenta, errores a evitar |
+| `investigacion/04` a `09` | Deuda y tarjetas, acceso al crédito, BBVA a fondo, cómo se gana una hackathon, voz del usuario y competencia |
+| `conocimiento/asesorfi/` | Conocimiento incorporado de AsesorFi |
 | `docs/PLAN-MVP.md` | Alcance del MVP, reparto del equipo y guion de la demo |
+| `docs/IDEAS.md` | Las ideas planteadas para la final |
+| `docs/INFRAESTRUCTURA.md` | Qué está montado, qué no y por qué; variables de entorno y plan B |
+| `src/motor/`, `src/datos/`, `src/explica/` | El motor que calcula (con tests), los tres perfiles sintéticos y los textos sin IA |
+| `src/componentes/`, `src/app/`, `src/cliente/` | La app para celular: Hoy, Deudas, Hablar y avisos |
+| `src/agente/`, `src/servidor/`, `src/app/api/` | El agente de IA, la voz, los avisos y sus protecciones |
 | `CLAUDE.md` | Reglas para trabajar con Claude Code en este proyecto |
+
+## Cómo probarlo en tu computadora
+```bash
+npm install
+cp .env.example .env.local   # las claves son opcionales: sin ellas la app usa sus respaldos
+npm run dev                  # abre http://localhost:3000
+```
+Antes de dar algo por bueno: `npm run typecheck`, `npm run lint`, `npm test` y `npm run build`.
+El formato del código lo pone Prettier (`npx prettier --write <archivo>`).
+
+Sin claves, la app funciona completa con datos de demostración: el chat responde con textos del
+motor y la voz es la del propio celular. Con `ANTHROPIC_API_KEY` conversa el agente de IA y con
+`FISH_API_KEY` + `FISH_VOICE_ID` habla con voz de Fish Audio. Detalle en `docs/INFRAESTRUCTURA.md`.
 
 ## Estado
 - [x] Investigación y método
 - [x] Confirmar si se permite código previo (sí)
-- [ ] Confirmar stack, datos y formato de presentación
-- [ ] Datos sintéticos
-- [ ] Motor de proyección + tests
-- [ ] Interfaz y explicación con IA
+- [x] Stack: Next.js + TypeScript + Tailwind + Vitest
+- [x] Datos sintéticos (Rosa, Carlos y Lucía)
+- [x] Motor de proyección + tests
+- [x] Interfaz para celular, chat con respaldo sin IA y avisos dentro de la app
+- [ ] Probar el agente con clave real de Anthropic y la voz con clave real de Fish Audio
+- [ ] Publicar en Vercel y probar micrófono y notificaciones en un celular real
 - [ ] Demo y pitch
