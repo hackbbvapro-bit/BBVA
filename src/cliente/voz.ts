@@ -2,6 +2,7 @@
  * Voz del copiloto. Primero intenta la voz de Fish Audio (vía /api/voz);
  * si no está disponible, usa la voz del propio celular.
  */
+import { salidasPermitidas } from "./salidas";
 import { paraVoz } from "../explica/explica";
 
 export type MotorVoz = "fish" | "navegador" | "ninguna";
@@ -69,7 +70,7 @@ function hablarConNavegador(texto: string, alTerminar?: () => void): MotorVoz {
 }
 
 async function pedirAudio(texto: string): Promise<Blob | undefined> {
-  if (!fishDisponible) return undefined;
+  if (!fishDisponible || !salidasPermitidas()) return undefined;
   try {
     const respuesta = await fetch("/api/voz", {
       method: "POST",
@@ -90,6 +91,11 @@ export async function hablar(texto: string, alTerminar?: () => void): Promise<Mo
   if (typeof window === "undefined") return "ninguna";
   callar();
   const miTurno = turno;
+  // Caso de práctica: sin voz. Hasta las voces del navegador pueden mandar el texto fuera.
+  if (!salidasPermitidas()) {
+    alTerminar?.();
+    return "ninguna";
+  }
   const limpio = paraVoz(texto).slice(0, MAX_TEXTO);
   if (!limpio) { alTerminar?.(); return "ninguna"; }
   const audio = await pedirAudio(limpio);

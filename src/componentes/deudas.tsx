@@ -79,7 +79,7 @@ function Pestanas({ actual, cambiar, debo, medeben }: { actual: Pestana; cambiar
     <div role="tablist" aria-label="Deudas" className="-mx-1 flex gap-1 overflow-x-auto rounded-full bg-niebla p-1 [scrollbar-width:none]">
       {una("debo", "Debo", debo)}
       {una("medeben", "Me deben", medeben)}
-      {una("sbs", "Reporte de deudas (SBS)")}
+      {una("sbs", "Simulación de clasificación")}
     </div>
   );
 }
@@ -95,7 +95,7 @@ export function Deudas({
   perfil: Perfil;
   analisis: Analisis;
   pestanaInicial?: PestanaDeudas;
-  /** Abre al entrar el formulario de nueva deuda o el escáner (desde Inicio o el botón «Agregar» del celular). */
+  /** Abre al entrar el formulario de nueva deuda o el reporte de ejemplo (desde Inicio o el botón «Agregar» del celular). */
   abrirAlEntrar?: AbrirDeudas;
 }) {
   const { datos } = useDatos();
@@ -135,7 +135,7 @@ export function Deudas({
             </h2>
           ) : (
             <>
-              <p className="mt-1 text-[15px] text-noche">Pagando en orden, quedas libre en</p>
+              <p className="mt-1 text-[15px] text-noche">Pagando en orden, terminarías de pagar en unos</p>
               <p className="mt-1 text-[2.25rem] font-semibold leading-none tracking-[-0.03em] text-noche tabular-nums">
                 {comparacion.avalancha.meses}
                 <span className="ml-2 text-lg font-medium tracking-normal text-gris">meses</span>
@@ -148,7 +148,7 @@ export function Deudas({
           </div>
           {comparacion.ahorroVsMinimos > 0 && (
             <p className="mt-6 inline-flex flex-wrap items-center gap-2 rounded-full bg-verde-suave px-4 py-2 text-[15px] font-semibold text-verde-fuerte">
-              Te ahorras {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses
+              Te ahorrarías cerca de {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses (estimado)
             </p>
           )}
         </>
@@ -161,7 +161,7 @@ export function Deudas({
       <Pestanas actual={pestana} cambiar={setPestana} debo={debo.n} medeben={meDeben.n} />
       <p className="mt-5 text-gris">
         {pestana === "sbs"
-          ? "Cómo te ve el sistema financiero y en qué orden conviene pagar."
+          ? "Clasificación simulada según los días de atraso del caso y en qué orden conviene pagar."
           : pestana === "debo"
           ? debo.n === 0
             ? "No tienes deudas abiertas."
@@ -181,7 +181,10 @@ export function Deudas({
     <div className="order-4 space-y-5">
       {avisoDeuda && <TarjetaAviso aviso={avisoDeuda} />}
       <section className={`${tarjeta} aparecer`}>
-        <h2 className="mb-4 text-lg font-semibold text-noche">La diferencia está en cómo pagas</h2>
+        <h2 className="text-lg font-semibold text-noche">La diferencia está en cómo pagas</h2>
+        <p className="mb-4 mt-1 text-sm leading-relaxed text-gris">
+          Estimación del código con las tasas y los pagos del caso, suponiendo que no cambian. No es una promesa: tu entidad puede cobrar distinto.
+        </p>
         <div className="grid grid-cols-2 gap-3">
           <Plan titulo="Pagando en orden" plan={comparacion.avalancha} bueno />
           <Plan titulo="Pagando solo el mínimo" plan={comparacion.minimos} />
@@ -196,7 +199,7 @@ export function Deudas({
     <>
       <Encabezado
         titulo="Deudas"
-        bajada="Lo que debes, lo que te deben y cómo te ve el sistema financiero. Agrégalas a mano o sube una captura de tu banco."
+        bajada="Lo que debes, lo que te deben y una simulación de cómo se clasificarían tus deudas. Agrégalas a mano o carga el reporte de ejemplo."
         acciones={
           <>
             <button onClick={agregar} className={botonPrincipal}>
@@ -205,7 +208,7 @@ export function Deudas({
             </button>
             <button onClick={() => setEscaner(e => !e)} aria-expanded={escaner} aria-controls="escaner" className={botonSecundario}>
               <Icono nombre="camara" />
-              Escanear captura o PDF
+              Cargar reporte de ejemplo
             </button>
           </>
         }
@@ -214,7 +217,7 @@ export function Deudas({
         <div id="escaner" ref={refEscaner} className="relative mb-6 scroll-mt-6">
           <button
             onClick={() => setEscaner(false)}
-            aria-label="Cerrar el escáner"
+            aria-label="Cerrar el reporte de ejemplo"
             className="absolute right-3 top-3 z-10 flex size-10 items-center justify-center rounded-full text-gris transition-colors hover:bg-niebla hover:text-noche"
           >
             <Icono nombre="cerrar" />

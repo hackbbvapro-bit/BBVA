@@ -19,19 +19,14 @@ function rosaHolgada(): { datos: Datos; analisis: Analisis } {
 }
 
 describe("catálogo", () => {
-  it("tiene tres entradas, con cifra solo donde hay fuente", () => {
-    expect(CATALOGO.map(e => e.id)).toEqual(["garantia-liquida", "tarjeta-start", "reprogramar"]);
+  it("tiene tres entradas genéricas: sin marcas, sin enlaces y sin cifras de mercado", () => {
+    expect(CATALOGO.map(e => e.id)).toEqual(["tarjeta-con-garantia", "tarjeta-inicio", "reprogramar"]);
     for (const e of CATALOGO) {
-      if (e.fuente) {
-        expect(e.fuente.url).toMatch(/^https:\/\/www\.bbva\.pe\//);
-        expect(e.fuente.consultadoEl).toBe("2026-11-14");
-      } else {
-        expect(e.condicion).not.toMatch(/S\/|\d/);
-      }
+      const texto = `${e.titulo} ${e.paraQuien} ${e.condicion}`;
+      expect(texto).not.toMatch(/S\/|\d|%/);
+      expect(texto).not.toMatch(/BBVA|bbva|https?:|www\./);
+      expect(Object.keys(e).sort()).toEqual(["condicion", "id", "paraQuien", "titulo"]);
     }
-    expect(CATALOGO.find(e => e.id === "garantia-liquida")?.condicion).toBe("Depósito mínimo S/ 500 como garantía");
-    expect(CATALOGO.find(e => e.id === "tarjeta-start")?.condicion).toBe("Depósito de respaldo de S/ 500 a S/ 15,000, igual a tu línea");
-    expect(CATALOGO.find(e => e.id === "reprogramar")?.fuente).toBeNull();
   });
 });
 
@@ -41,9 +36,9 @@ describe("recomendar", () => {
     const analisis = analisisDe(datos);
     const r = recomendar(datos, analisis);
     expect(recomendar(datos, analisis)).toEqual(r);
-    // Rosa tiene «Tarjeta Azul» abierta y cero días de atraso: ni garantía ni Start.
-    expect(r.map(x => x.entrada.id)).not.toContain("garantia-liquida");
-    expect(r.map(x => x.entrada.id)).not.toContain("tarjeta-start");
+    // Rosa tiene «Tarjeta Azul» abierta y cero días de atraso: ni tarjeta con garantía ni tarjeta de inicio.
+    expect(r.map(x => x.entrada.id)).not.toContain("tarjeta-con-garantia");
+    expect(r.map(x => x.entrada.id)).not.toContain("tarjeta-inicio");
     for (const x of r) {
       expect(x.porQue.length).toBeGreaterThan(10);
       expect(x.porQue).not.toMatch(/NaN|undefined|Infinity/);
@@ -59,26 +54,26 @@ describe("recomendar", () => {
     expect(ids(datos, analisis)).toEqual([]);
   });
 
-  it("deuda con atraso activa la garantía líquida y cita los días reales", () => {
+  it("deuda con atraso activa la tarjeta con garantía y cita los días reales", () => {
     const { datos, analisis } = rosaHolgada();
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 12 } : d));
-    const r = recomendar(datos, analisis).find(x => x.entrada.id === "garantia-liquida");
+    const r = recomendar(datos, analisis).find(x => x.entrada.id === "tarjeta-con-garantia");
     expect(r?.porQue).toBe("Tienes una deuda con 12 días de atraso.");
   });
 
   it("un atraso corto que aún deja la calificación en Normal no basta para pedir un depósito", () => {
     const { datos, analisis } = rosaHolgada();
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 1 } : d));
-    expect(ids(datos, analisis)).not.toContain("garantia-liquida");
+    expect(ids(datos, analisis)).not.toContain("tarjeta-con-garantia");
   });
 
   it("con un faltante proyectado no propone productos que piden inmovilizar un depósito", () => {
     const { datos } = rosaHolgada();
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 40 } : d));
     const holgado = sinDeficit(analisisDe(datos));
-    expect(ids(datos, holgado)).toContain("garantia-liquida");
+    expect(ids(datos, holgado)).toContain("tarjeta-con-garantia");
     const sinTarjeta = { ...datos, deudas: datos.deudas.filter(d => d.tipo !== "tarjeta") };
-    expect(ids(sinTarjeta, holgado)).toContain("tarjeta-start");
+    expect(ids(sinTarjeta, holgado)).toContain("tarjeta-inicio");
     const conDeficit: Analisis = {
       ...holgado,
       proyeccion: {
@@ -90,7 +85,7 @@ describe("recomendar", () => {
     expect(ids(sinTarjeta, conDeficit)).toEqual(["reprogramar"]);
   });
 
-  it("una calificación no Normal en el último reporte SBS también la activa", () => {
+  it("una calificación no Normal en el último reporte de deudas cargado también la activa", () => {
     const { datos, analisis } = rosaHolgada();
     datos.documentos = [
       {
@@ -101,16 +96,16 @@ describe("recomendar", () => {
         },
       },
     ];
-    const r = recomendar(datos, analisis).find(x => x.entrada.id === "garantia-liquida");
+    const r = recomendar(datos, analisis).find(x => x.entrada.id === "tarjeta-con-garantia");
     expect(r?.porQue).toContain("Tu calificación no es Normal");
   });
 
-  it("sin tarjeta abierta activa Tarjeta Start; una tarjeta pagada no cuenta", () => {
+  it("sin tarjeta abierta activa la tarjeta de inicio; una tarjeta pagada no cuenta", () => {
     const { datos, analisis } = rosaHolgada();
     datos.deudas = datos.deudas.map(d => (d.tipo === "tarjeta" ? { ...d, pagada: true } : d));
-    expect(ids(datos, analisis)).toContain("tarjeta-start");
+    expect(ids(datos, analisis)).toContain("tarjeta-inicio");
     datos.deudas = datos.deudas.filter(d => d.tipo !== "tarjeta");
-    expect(ids(datos, analisis)).toContain("tarjeta-start");
+    expect(ids(datos, analisis)).toContain("tarjeta-inicio");
   });
 
   it("un déficit proyectado activa reprogramar con la fecha y el faltante reales", () => {
@@ -125,7 +120,7 @@ describe("recomendar", () => {
     };
     const r = recomendar(datos, con).find(x => x.entrada.id === "reprogramar");
     expect(r?.porQue).toContain("S/ 150.50");
-    expect(r?.entrada.fuente).toBeNull();
+    expect(r?.entrada.condicion).not.toMatch(/S\/|\d/);
   });
 
   it("si los mínimos no alcanzan, reprogramar sale aunque no haya déficit", () => {

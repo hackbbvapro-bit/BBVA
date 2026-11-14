@@ -1,53 +1,32 @@
 /**
- * Catálogo ESTÁTICO de opciones BBVA. Lo activan reglas de código (reglas.ts), nunca la IA.
- * Regla de honestidad: una cifra solo aparece si tiene fuente. Sin fuente, no hay cifra:
- * no se inventan tasas, montos ni requisitos.
+ * Catálogo ESTÁTICO de alternativas genéricas y educativas. Lo activan reglas de código (reglas.ts), nunca la IA.
+ * No nombra productos ni entidades, no enlaza a ningún banco y no trae cifras de mercado:
+ * las condiciones reales cambian según la entidad y aquí solo se explica cómo funciona cada alternativa.
  */
-
-export interface FuenteRecomendacion {
-  url: string;
-  /** Día en que se consultó la página, AAAA-MM-DD. */
-  consultadoEl: string;
-}
-
 export interface EntradaCatalogo {
-  id: "garantia-liquida" | "tarjeta-start" | "reprogramar";
+  id: "tarjeta-con-garantia" | "tarjeta-inicio" | "reprogramar";
   titulo: string;
   paraQuien: string;
-  /** Condición tal como la publica la fuente; sin fuente, solo orientación sin cifras. */
   condicion: string;
-  /** null = no hay cifra que respaldar. */
-  fuente: FuenteRecomendacion | null;
 }
-
-export const CONSULTADO_EL = "2026-11-14";
 
 export const CATALOGO: readonly EntradaCatalogo[] = [
   {
-    id: "garantia-liquida",
-    titulo: "Tarjeta de crédito con garantía líquida BBVA",
-    paraQuien: "Para quien necesita volver a tener una tarjeta y un buen historial, aunque hoy su calificación no sea la mejor.",
-    condicion: "Depósito mínimo S/ 500 como garantía",
-    fuente: {
-      url: "https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-de-credito-garantia-liquida.html",
-      consultadoEl: CONSULTADO_EL,
-    },
+    id: "tarjeta-con-garantia",
+    titulo: "Tarjeta de crédito con garantía (depósito de respaldo)",
+    paraQuien: "Para quien quiere volver a tener una tarjeta y reconstruir su historial, aunque hoy su clasificación no sea la mejor.",
+    condicion: "Funciona dejando un depósito inmovilizado como respaldo de la línea. El monto, la tasa y los requisitos cambian según la entidad: compáralos antes de decidir.",
   },
   {
-    id: "tarjeta-start",
-    titulo: "Tarjeta para construir historial (Tarjeta Start)",
+    id: "tarjeta-inicio",
+    titulo: "Tarjeta de inicio para construir historial",
     paraQuien: "Para quien aún no tiene una tarjeta de crédito y quiere empezar a construir su historial crediticio.",
-    condicion: "Depósito de respaldo de S/ 500 a S/ 15,000, igual a tu línea",
-    fuente: {
-      url: "https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-credito-historial-crediticio.html",
-      consultadoEl: CONSULTADO_EL,
-    },
+    condicion: "Algunas entidades la ofrecen con un depósito de respaldo. Compara costos y requisitos antes de decidir.",
   },
   {
     id: "reprogramar",
     titulo: "Reprogramar o refinanciar con tu entidad",
     paraQuien: "Para quien ve que no le alcanzará para los pagos de sus deudas. Conviene preguntarlo antes de caer en atraso; también puedes preguntar por la compra de deuda.",
-    condicion: "Pregunta qué opciones tiene tu entidad y compara el costo total antes de aceptar. No hay cifras publicadas aquí.",
-    fuente: null,
+    condicion: "Pregunta qué opciones tiene tu entidad y compara el costo total antes de aceptar. Aquí no se muestran cifras.",
   },
 ];

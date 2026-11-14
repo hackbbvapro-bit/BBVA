@@ -45,8 +45,8 @@ describe.each(fabricas)("repositorio %s (mismo contrato)", (_, crear) => {
   it("guarda, edita y borra una cuenta", async () => {
     const repo = await crear();
     await repo.guardarCuenta({ id: "c2", nombre: "Ahorros", saldo: 12345 });
-    await repo.guardarCuenta({ id: "c2", nombre: "Ahorros BBVA", saldo: 20000 });
-    expect((await repo.leerTodo()).cuentas.find(c => c.id === "c2")).toEqual({ id: "c2", nombre: "Ahorros BBVA", saldo: 20000 });
+    await repo.guardarCuenta({ id: "c2", nombre: "Ahorros Demo", saldo: 20000 });
+    expect((await repo.leerTodo()).cuentas.find(c => c.id === "c2")).toEqual({ id: "c2", nombre: "Ahorros Demo", saldo: 20000 });
     await repo.borrarCuenta("c2");
     expect((await repo.leerTodo()).cuentas.some(c => c.id === "c2")).toBe(false);
   });

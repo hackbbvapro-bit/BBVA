@@ -72,7 +72,7 @@ describe("Perfil y menú de usuario", () => {
     expect(html).toContain("Rosa");
     expect(html).not.toMatch(/<input|NaN|undefined/);
     const menu = renderToStaticMarkup(<MenuUsuario nombre="Rosa" variante="lateral" alPerfil={() => undefined} alComoFunciona={() => undefined} />);
-    expect(menu).toContain("Cuenta demo");
+    expect(menu).toContain("Caso de ejemplo");
   });
 });
 describe("Cómo funciona", () => {

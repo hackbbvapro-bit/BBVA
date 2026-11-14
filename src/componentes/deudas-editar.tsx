@@ -56,7 +56,7 @@ function FormularioDeuda({ id, cerrar }: { id: string | null; cerrar: (guardado:
     <form onSubmit={enviar} noValidate aria-label={inicial ? `Editar ${inicial.nombre}` : "Agregar una deuda"}>
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2 md:col-span-1">
-          <Texto etiqueta="¿Con quién la tienes?" valor={entidad} cambiar={setEntidad} enfocar marcador="BBVA, Caja Ejemplo, un familiar…" />
+          <Texto etiqueta="¿Con quién la tienes?" valor={entidad} cambiar={setEntidad} enfocar marcador="Banco Ejemplo, Caja Ejemplo, un familiar…" />
         </div>
         <div className="col-span-2 md:col-span-1">
           <Texto etiqueta="Cómo la llamas" valor={nombre} cambiar={setNombre} marcador="Tarjeta Azul" />

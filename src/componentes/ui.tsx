@@ -59,7 +59,7 @@ export function Marca() {
       </span>
       <span className="leading-tight">
         <span className="block text-[17px] font-semibold tracking-[-0.015em] text-noche">Copiloto</span>
-        <span className="block text-xs text-gris">exclusivo para clientes BBVA</span>
+        <span className="block text-xs text-gris">prototipo · datos sintéticos</span>
       </span>
     </span>
   );

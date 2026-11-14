@@ -1,6 +1,8 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { analizarDocumento, prepararArchivo, TIPOS_ACEPTADOS } from "@/cliente/archivo";
+import { consultarEstado } from "@/cliente/estado";
+import { salidasPermitidas } from "@/cliente/salidas";
 import { nuevoId } from "@/datos/repositorio";
 import { Fecha, mensajeDeError, Seleccion, Texto } from "@/componentes/formularios";
 import { tarjeta, boton } from "@/componentes/ui";
@@ -55,7 +57,11 @@ function RevisarCobro({ p, cambiar }: { p: CobroPropuesta; cambiar: (n: Partial<
   );
 }
 
-/** Subir un documento: la IA solo lee y propone; lo que se guarda lo decide la persona. */
+/**
+ * Reporte de ejemplo: carga una lectura precargada de un reporte inventado (sin red, sin IA en vivo);
+ * lo que se guarda lo decide la persona. Elegir un archivo propio solo aparece si el servidor tiene
+ * encendida la lectura de documentos (apagada por defecto) y el caso es el de ejemplo.
+ */
 export function Adjuntar({ alGuardar }: { alGuardar: () => void }) {
   const { datos, cambiar } = useDatos();
   const [estado, setEstado] = useState<Estado>({ paso: "inicio" });
@@ -63,6 +69,17 @@ export function Adjuntar({ alGuardar }: { alGuardar: () => void }) {
   const [guardando, setGuardando] = useState(false);
   const entrada = useRef<HTMLInputElement>(null);
   const cancelar = useRef<AbortController | null>(null);
+  const [lectura, setLectura] = useState(false);
+  useEffect(() => {
+    if (!salidasPermitidas()) return;
+    let vivo = true;
+    void consultarEstado().then(e => {
+      if (vivo) setLectura(e.documentos);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   function proponer(ext: Extraccion, ejemplo: boolean) {
     setEstado({ paso: "revisar", ext, deudas: propuestaDeudas(ext, datos.deudas), cobros: propuestaCobros(ext), ejemplo });
@@ -115,27 +132,33 @@ export function Adjuntar({ alGuardar }: { alGuardar: () => void }) {
   return (
     <section className={`${tarjeta} aparecer`} aria-labelledby="adjuntar">
       <h2 id="adjuntar" className="text-lg font-semibold text-noche">
-        {estado.paso === "revisar" ? "Esto encontré" : "Súbeme un documento"}
+        {estado.paso !== "revisar" ? "Reporte de ejemplo" : estado.ejemplo ? "Reporte de ejemplo, ya leído" : "Esto encontré"}
       </h2>
 
       {estado.paso === "inicio" && (
         <>
           <p className="mt-1 leading-relaxed text-gris">
-            Tu reporte de deudas de la SBS, un estado de cuenta o una captura de tu app. Lo leo, te muestro lo que encontré y tú decides qué guardar.
+            Carga un reporte de deudas inventado para ver cómo el copiloto arma el plan. La lectura está precargada: no es una IA leyendo en vivo. Te muestro lo que trae y tú decides qué guardar.
           </p>
-          <input ref={entrada} type="file" accept={TIPOS_ACEPTADOS.join(",")} className="sr-only" id="archivo-documento" onChange={e => void elegido(e.target.files?.[0])} />
           <div className="mt-4 flex flex-wrap gap-3">
-            <label htmlFor="archivo-documento" className={`${boton} inline-flex cursor-pointer items-center bg-electrico text-white hover:bg-marino focus-within:outline-2`}>
-              Elegir foto o PDF
-            </label>
-            <button onClick={() => proponer(EXTRACCION_EJEMPLO, true)} className={`${boton} border border-linea-fuerte text-noche hover:bg-niebla`}>
-              Usar reporte SBS de ejemplo
+            <button onClick={() => proponer(EXTRACCION_EJEMPLO, true)} className={`${boton} bg-electrico text-white hover:bg-marino`}>
+              Cargar reporte de ejemplo
             </button>
+            {lectura && (
+              <>
+                <input ref={entrada} type="file" accept={TIPOS_ACEPTADOS.join(",")} className="sr-only" id="archivo-documento" onChange={e => void elegido(e.target.files?.[0])} />
+                <label htmlFor="archivo-documento" className={`${boton} inline-flex cursor-pointer items-center border border-linea-fuerte text-noche hover:bg-niebla focus-within:outline-2`}>
+                  Elegir foto o PDF inventado
+                </label>
+              </>
+            )}
           </div>
-          <p className="mt-3 text-sm text-gris">JPG, PNG, WebP o PDF de hasta 3 MB. No guardo el archivo, solo los datos que tú confirmes.</p>
-          <p className="mt-2 text-sm text-gris">
-            Al elegir un archivo aceptas que se envíe a la IA (Anthropic) solo para leerlo. Es una demo: sube únicamente documentos inventados, no tus datos reales.
-          </p>
+          <p className="mt-3 text-sm text-gris">Datos sintéticos: ninguna entidad ni persona del reporte es real. No se envía nada fuera de este equipo.</p>
+          {lectura && (
+            <p className="mt-2 text-sm text-gris">
+              Si eliges un archivo (JPG, PNG, WebP o PDF de hasta 3 MB), se envía a un servicio externo de IA solo para leerlo y no se guarda. Sube únicamente documentos inventados, nunca datos reales.
+            </p>
+          )}
         </>
       )}
 
@@ -152,9 +175,9 @@ export function Adjuntar({ alGuardar }: { alGuardar: () => void }) {
       {estado.paso === "revisar" && (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {estado.ejemplo && <img src={RUTA_IMAGEN_EJEMPLO} alt="Reporte SBS de ejemplo" width={240} className="mt-3 max-h-40 w-auto rounded-xl border border-linea object-contain object-left" />}
+          {estado.ejemplo && <img src={RUTA_IMAGEN_EJEMPLO} alt="Reporte de deudas de ejemplo, con datos inventados" width={240} className="mt-3 max-h-40 w-auto rounded-xl border border-linea object-contain object-left" />}
           <p className="mt-2 leading-relaxed text-gris">
-            {estado.ejemplo ? "Es un reporte de ejemplo, no el tuyo. " : ""}
+            {estado.ejemplo ? "Es un reporte de ejemplo con datos inventados. Esta lectura viene precargada: no es una IA leyendo en vivo. " : ""}
             {estado.ext.resumen} Corrige lo que esté mal y desmarca lo que no quieras guardar. Todavía no se guardó nada.
           </p>
           {estado.deudas.length === 0 && estado.cobros.length === 0 && <p className="mt-4 font-medium text-noche">No encontré deudas ni cobros en este documento.</p>}

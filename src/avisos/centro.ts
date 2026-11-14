@@ -33,10 +33,10 @@ function avisosDeDeudas(datos: Datos): AvisoCentro[] {
   for (const d of datos.deudas.filter(x => !x.pagada && x.saldo > 0)) {
     if (d.diasAtraso > 0) {
       const calificacion = calificacionPorAtraso(d.diasAtraso);
-      // Solo Dudoso y Pérdida tienen fuente de la SBS (ver motor/sbs.ts): los demás tramos no se nombran.
+      // Simulación, no reporte oficial. Solo Dudoso y Pérdida tienen fuente (ver motor/sbs.ts): los demás tramos no se nombran.
       const sbs = calificacion === "dudoso" || calificacion === "perdida"
-        ? `Por ese atraso la SBS la calificaría como «${ETIQUETA_CALIFICACION[calificacion]}». `
-        : "Cuanto más se atrase, peor queda tu calificación en la SBS. ";
+        ? `En esta simulación, con ese atraso quedaría clasificada como «${ETIQUETA_CALIFICACION[calificacion]}». `
+        : "Cuanto más se atrase, peor quedaría su clasificación. ";
       salida.push({
         id: `atraso-${d.id}`,
         clave: `atraso-${d.id}-${d.diasAtraso}`,

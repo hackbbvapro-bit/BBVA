@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Copiloto · exclusivo para clientes BBVA",
+  title: "Copiloto · prototipo de hackathon",
   description: "Te avisa antes de que te falte dinero y te propone qué hacer, con su costo en soles.",
   applicationName: "Copiloto",
   appleWebApp: { capable: true, title: "Copiloto", statusBarStyle: "default" },

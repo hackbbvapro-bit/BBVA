@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { analizar, type Perfil } from "@/motor";
 import { avisosDelCentro, pendientesSinLeer, type Destino } from "@/avisos/centro";
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
+import { fijarSalidas } from "@/cliente/salidas";
 import { Hoy, type IrDesdeInicio } from "@/componentes/hoy";
 import { Deudas, type AbrirDeudas, type PestanaDeudas } from "@/componentes/deudas";
 import { MiDinero } from "@/componentes/mi-dinero";
@@ -49,7 +50,7 @@ const MOVIL: Enlace[] = [
 
 const OPCIONES_AGREGAR: [string, string, NombreIcono, string][] = [
   ["deuda", "Agregar deuda", "deudas", "Tarjeta, préstamo o a una persona"],
-  ["escanear", "Escanear captura o PDF", "camara", "La IA lee tus deudas por ti"],
+  ["escanear", "Cargar reporte de ejemplo", "camara", "Un reporte inventado, ya leído"],
   ["cobro", "Alguien me debe", "perfil", "Te avisamos cuando venza"],
   ["fijo", "Ingresos y gastos fijos", "dinero", "Sueldo, alquiler, servicios"],
 ];
@@ -67,9 +68,13 @@ function Contenido() {
   // Solo se pinta en el navegador (ProveedorDatos espera a abrir la base), así que se puede leer el almacenamiento aquí.
   // Quien ya guardó sus datos entra directo; quien nunca eligió ve la bienvenida.
   const [modo, setModo] = useState<Modo | null>(() => leerModo() ?? (perfil.id === ID_PROPIO ? "propio" : null));
-  if (modo === null) return <Bienvenida alListo={setModo} />;
+  if (modo === null) {
+    // Sin caso elegido no hay nada que enviar: la compuerta vuelve a cerrarse al regresar a la bienvenida.
+    fijarSalidas(false);
+    return <Bienvenida alListo={setModo} />;
+  }
   function cambiarModo() {
-    if (perfil.id === ID_PROPIO && !window.confirm("Vas a volver a la pantalla de inicio. Si eliges los datos de ejemplo o empiezas de nuevo, se reemplazan los datos guardados en este equipo. ¿Continuar?")) return;
+    if (perfil.id === ID_PROPIO && !window.confirm("Vas a volver a la pantalla de inicio. Si eliges el caso de Rosa o empiezas de nuevo, se reemplaza el caso de práctica guardado en este equipo. ¿Continuar?")) return;
     guardarModo(null);
     setModo(null);
   }
@@ -80,17 +85,17 @@ function Contenido() {
   );
 }
 
-/** Al pie del menú lateral: deja claro si se ven datos de ejemplo o los propios. */
+/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo (Rosa) o un caso de práctica. */
 function TarjetaModo({ demo, cambiar }: { demo: boolean; cambiar: () => void }) {
   return (
     <div className="rounded-xl border border-linea bg-papel p-3">
       <p className="flex items-center gap-2 text-[13px] font-semibold text-noche">
         <span aria-hidden="true" className={`size-2 rounded-full ${demo ? "bg-ambar" : "bg-verde"}`} />
-        {demo ? "Datos de ejemplo" : "Tus datos"}
+        {demo ? "Caso de Rosa (ejemplo)" : "Caso de práctica"}
       </p>
-      <p className="mt-1 text-xs leading-snug text-gris">{demo ? "Rosa es una persona inventada." : "Guardados solo en este equipo."}</p>
+      <p className="mt-1 text-xs leading-snug text-gris">{demo ? "Rosa es una persona inventada." : "Simulación: nada sale de este equipo."}</p>
       <button onClick={cambiar} className="mt-1 min-h-9 text-[13px] font-semibold text-electrico hover:text-marino">
-        {demo ? "Usar mis datos" : "Ver datos de ejemplo"}
+        {demo ? "Armar un caso de práctica" : "Ver el caso de Rosa"}
       </button>
     </div>
   );
@@ -166,6 +171,8 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
     [nuevos, setNuevos] = useState<string[]>([]);
   const pendientes = pendientesSinLeer(lista, datos.avisosLeidos);
   const demo = perfil.id !== ID_PROPIO;
+  // Compuerta de privacidad: se fija en el render (antes que los efectos de los hijos). Solo el caso de ejemplo puede usar servicios externos.
+  fijarSalidas(demo);
   const pasos = demo ? undefined : { deudas: datos.deudas.length > 0, fijos: datos.ingresosFijos.length + datos.gastosFijos.length > 0 };
   const turno = useRef(0);
   useEffect(
@@ -312,9 +319,9 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
       <main className="mx-auto w-full max-w-7xl px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-8 md:pb-12 md:pt-8">
         {demo && (
           <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl border border-ambar/40 bg-ambar-suave px-4 py-2 text-sm text-ambar-fuerte md:hidden">
-            <span>Estás viendo datos de ejemplo.</span>
+            <span>Estás viendo el caso de ejemplo.</span>
             <button onClick={cambiarModo} className="min-h-9 font-semibold underline underline-offset-2">
-              Usar mis datos
+              Armar un caso de práctica
             </button>
           </div>
         )}
@@ -357,7 +364,7 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
           </div>
         )}
         {pestana === "asistente" && (
-          <Chat perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} />
+          <Chat perfil={perfil} analisis={analisis} demo={demo} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} />
         )}
       </main>
       <nav
@@ -368,7 +375,7 @@ function Sesion({ perfil, cambiarModo }: { perfil: Perfil; cambiarModo: () => vo
           {MOVIL.slice(0, 2).map(botonMovil)}
           <div className="flex items-center justify-center">
             <button
-              aria-label="Agregar: deuda, captura, cobro o gasto"
+              aria-label="Agregar: deuda, reporte de ejemplo, cobro o gasto"
               onClick={() => setAgregar(true)}
               className="flex size-12 items-center justify-center rounded-2xl bg-electrico text-white shadow-[0_6px_16px_-6px_rgb(0_19_145/0.6)] transition-transform active:scale-95"
             >

@@ -1,15 +1,15 @@
-/** Extracción ya hecha del reporte de ejemplo `public/ejemplos/reporte-sbs-ejemplo.png` (datos inventados, octubre 2026). */
+/** Lectura precargada del reporte de ejemplo `public/ejemplos/reporte-ejemplo.svg` (datos inventados, octubre 2026; no la hace una IA en vivo). */
 import type { Extraccion } from "./esquema";
 
-export const RUTA_IMAGEN_EJEMPLO = "/ejemplos/reporte-sbs-ejemplo.png";
+export const RUTA_IMAGEN_EJEMPLO = "/ejemplos/reporte-ejemplo.svg";
 
 export const EXTRACCION_EJEMPLO: Extraccion = {
   tipo: "reporte-sbs",
   resumen: "Reporte de deudas de ejemplo (datos inventados), periodo octubre 2026, con 5 deudas.",
   deudas: [
     {
-      entidad: "BBVA",
-      nombre: "Tarjeta de crédito BBVA",
+      entidad: "Banco Demo",
+      nombre: "Tarjeta de crédito clásica",
       producto: "tarjeta",
       saldo: 2350,
       calificacion: "normal",

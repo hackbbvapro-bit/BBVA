@@ -1,7 +1,6 @@
 /**
  * Sesión de la cuenta demo. Es una puerta de prototipo, no autenticación real: la cookie lleva un valor
- * aleatorio sin ningún dato personal y basta con que tenga el formato correcto. En la versión real
- * entraría el inicio de sesión de la app BBVA.
+ * aleatorio sin ningún dato personal y basta con que tenga el formato correcto.
  */
 import { errorJson } from "@/servidor/http";
 
