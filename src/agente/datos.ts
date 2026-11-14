@@ -4,8 +4,9 @@
  */
 import { mejorJugada, proximosPagos } from "../explica/explica";
 import { formatoLargo, formatoSoles, formatoTasa, redondear, simularGasto } from "../motor";
+import { conCobros, type CobroPendiente } from "../motor/cobros";
 import type { Analisis, Centimos, EventoProyectado, Perfil, PlanDeudas } from "../motor";
-import { fraseLibre, MESES_DE_COLCHON, type Ruta } from "../ruta/ruta";
+import { contadorDeAvance, fraseLibre, MESES_DE_COLCHON, type Avance, type Ruta } from "../ruta/ruta";
 
 const MAXIMO_SOLES = 1_000_000;
 
@@ -35,7 +36,24 @@ function deficit(analisis: Analisis) {
   };
 }
 
-export function datosResumen(perfil: Perfil, analisis: Analisis) {
+/** Lo que le deben a la persona y cómo quedaría su mes si se lo pagan a tiempo. null si no hay nada pendiente. */
+function pendientes(analisis: Analisis, cobros: readonly CobroPendiente[]) {
+  const sinCobrar = cobros.filter(c => !c.cobrado);
+  if (sinCobrar.length === 0) return null;
+  const e = conCobros(analisis.proyeccion, sinCobrar);
+  return {
+    cobros_pendientes: sinCobrar.map(c => ({ quien: c.quien, monto: formatoSoles(c.monto), fecha_prometida: formatoLargo(c.fechaPrometida) })),
+    si_te_pagan_lo_pendiente: {
+      nota: "Escenario optimista: el plan prudente no cuenta este dinero hasta que llegue.",
+      saldo_mas_bajo: formatoSoles(e.saldoMinimo),
+      dia_del_saldo_mas_bajo: formatoLargo(e.fechaSaldoMinimo),
+      quedas_en_rojo_desde: e.primerDiaNegativo ? formatoLargo(e.primerDiaNegativo) : null,
+      te_faltaria: formatoSoles(e.faltanteMaximo),
+    },
+  };
+}
+
+export function datosResumen(perfil: Perfil, analisis: Analisis, cobros: readonly CobroPendiente[] = []) {
   const p = analisis.proyeccion;
   return {
     persona: perfil.nombre,
@@ -54,6 +72,7 @@ export function datosResumen(perfil: Perfil, analisis: Analisis) {
       categoria: etiqueta(c.categoria),
       al_mes: formatoSoles(c.mensual),
     })),
+    ...pendientes(analisis, cobros),
   };
 }
 
@@ -148,13 +167,17 @@ export function datosSimulacion(analisis: Analisis, montoSoles: number, fecha: s
 }
 
 /** La ruta que el motor trazó para esta persona: pasos y alternativas generales, sin marcas ni tasas. */
-export function datosRuta(ruta: Ruta) {
+export function datosRuta(ruta: Ruta, avance?: Avance) {
   const { flujo, colchon } = ruta;
   return {
     ruta: ruta.titulo,
     resumen: ruta.resumen,
     por_que_esta_ruta: ruta.motivos,
-    pasos: ruta.pasos,
+    pasos: avance ? avance.pasos.map(p => ({ paso: p.texto, marcado_como_hecho: p.hecho })) : ruta.pasos,
+    ...(avance && {
+      avance: contadorDeAvance(avance),
+      siguiente_paso: avance.siguiente ?? "ya marcó todos los pasos",
+    }),
     alternativas_para_comparar: ruta.alternativas.map(a => ({
       nombre: a.entrada.titulo,
       para_quien: a.entrada.paraQuien,

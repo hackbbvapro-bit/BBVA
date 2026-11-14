@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Analisis, Perfil } from "@/motor";
+import type { CobroPendiente } from "@/motor/cobros";
+import { describir, type Accion } from "@/agente/registro";
+import { ErrorDatos } from "@/datos/validar";
+import { TarjetaAnotado, type Nota } from "@/componentes/anotado";
 import { conversar, type MensajeChat } from "@/cliente/agente";
 import { desbloquearAudio } from "@/cliente/voz";
 import { escuchar, puedeEscuchar, type Escucha, type ErrorEscucha } from "@/cliente/escucha";
@@ -10,8 +14,17 @@ import { ConversacionVoz } from "@/componentes/conversacion-voz";
 import { boton, botonPrincipal, botonSecundario, Icono, desplazar, unido } from "@/componentes/ui";
 import { ElegirArchivo, Fallo, Leyendo, Revision, useLecturaDisponible, useSubida, type Guardado } from "@/componentes/subida";
 import { EXTRACCION_EJEMPLO } from "@/documentos/ejemplo";
-import { AVISO_SIMULACION, preguntasSugeridas, type Hechos, type Ruta } from "@/ruta/ruta";
-type Burbuja = MensajeChat & { respaldo?: boolean };
+import { AVISO_SIMULACION, preguntasSugeridas, type Avance, type Hechos, type Ruta } from "@/ruta/ruta";
+import { borrarHistorial, guardarHistorial, leerHistorial } from "@/cliente/memoria";
+type Burbuja = MensajeChat & {
+  respaldo?: boolean;
+  /** Lo que el asistente anotó con esta respuesta. */
+  notas?: string[];
+  /** Qué modelo respondió («Opus 5.5 · respuesta rápida»). Solo en esta sesión: no se guarda. */
+  cerebro?: string;
+};
+/** Guarda en el panel lo que anotó el asistente y devuelve cómo deshacerlo. */
+export type Anotar = (accion: Accion) => Promise<() => Promise<void>>;
 const preguntas = [
   "¿Cómo llego a fin de mes?",
   "¿Me alcanza para gastar S/ 300?",
@@ -51,6 +64,10 @@ export function Chat({
   detener,
   sonando,
   lateral,
+  cobros,
+  alAnotar,
+  avance,
+  guardar = true,
 }: {
   perfil: Perfil;
   analisis: Analisis;
@@ -70,8 +87,17 @@ export function Chat({
   sonando: boolean;
   /** Panel de la derecha en pantallas anchas (≥1280 px). */
   lateral?: ReactNode;
+  /** Pagos que le deben a la persona: el asistente los cuenta y puede anotar nuevos. */
+  cobros?: readonly CobroPendiente[];
+  /** Guarda en el panel lo que el asistente anotó («me acaban de pagar 1.000»). Sin esto, solo se muestra. */
+  alAnotar?: Anotar;
+  /** Pasos de «Mi ruta» que la persona ya marcó: el asistente sigue desde el siguiente. */
+  avance?: Avance;
+  /** false en una pestaña de solo mirar (otra pestaña tiene la base): muestra lo guardado pero no lo pisa. */
+  guardar?: boolean;
 }) {
-  const [mensajes, setMensajes] = useState<Burbuja[]>([]),
+  // La conversación se guarda en este equipo (por caso) y se recupera al volver.
+  const [mensajes, setMensajes] = useState<Burbuja[]>(() => leerHistorial(perfil.id)),
     [texto, setTexto] = useState("");
   const [ocupado, setOcupado] = useState(false),
     [micro, setMicro] = useState(false),
@@ -81,6 +107,7 @@ export function Chat({
     [pidiendo, setPidiendo] = useState(false);
   const [subiendo, setSubiendo] = useState(false),
     [porExplicar, setPorExplicar] = useState<string | null>(null);
+  const [notas, setNotas] = useState<Record<string, Nota>>({});
   const subida = useSubida();
   const lectura = useLecturaDisponible(externo);
   const paso = subida.estado.paso;
@@ -108,6 +135,11 @@ export function Chat({
     if (mensajes.length > 1 || escuchando) desplazar(fin.current);
   }, [mensajes, escuchando]);
   useEffect(() => {
+    // Guarda la conversación cuando termina cada respuesta (no en cada trozo que llega).
+    if (ocupado || !guardar) return;
+    guardarHistorial(perfil.id, mensajes.map(({ rol, texto, respaldo }) => ({ rol, texto, respaldo })));
+  }, [perfil.id, mensajes, ocupado, guardar]);
+  useEffect(() => {
     // Al abrir el panel o cambiar de paso (elegir, leyendo, revisar) se lleva a la vista su inicio.
     if (subiendo) desplazar(panel.current, "start");
   }, [subiendo, paso]);
@@ -133,6 +165,31 @@ export function Chat({
     faseRef.current = fase;
   }, [fase]);
   const conversando = estaActiva(manos.estado);
+  function fijarNota(id: string, nota: Nota) {
+    if (vivo.current) setNotas(actual => ({ ...actual, [id]: nota }));
+  }
+  async function guardarNota(id: string, accion: Accion) {
+    if (!alAnotar) return fijarNota(id, { estado: "error", accion, mensaje: "En esta vista no se puede guardar." });
+    try {
+      const deshacer = await alAnotar(accion);
+      fijarNota(id, { estado: "listo", accion, deshacer });
+    } catch (e) {
+      const mensaje = e instanceof ErrorDatos ? e.message : "Inténtalo otra vez o agrégalo desde Mi dinero.";
+      fijarNota(id, { estado: "error", accion, mensaje });
+    }
+  }
+  async function deshacerNota(id: string) {
+    const nota = notas[id];
+    if (nota?.estado !== "listo") return;
+    fijarNota(id, { estado: "deshaciendo", accion: nota.accion });
+    try {
+      await nota.deshacer();
+      fijarNota(id, { estado: "deshecho", accion: nota.accion });
+    } catch {
+      fijarNota(id, nota);
+      setError("No pude deshacerlo. Inténtalo otra vez.");
+    }
+  }
   async function enviar(pregunta: string, porVoz = false): Promise<ResultadoEnvio> {
     const limpio = pregunta.trim().slice(0, 300);
     if (!limpio || bloqueo.current || !vivo.current) return "omitido";
@@ -143,18 +200,41 @@ export function Chat({
     setTexto("");
     setError("");
     const historial: Burbuja[] = [...mensajes, { rol: "usuario", texto: limpio }];
+    // El asistente se entera de lo que la persona deshizo con el botón o de lo que no se pudo guardar
+    // (va al inicio porque los mensajes largos se recortan por el final).
+    const conLoDeshecho = (lista: Burbuja[]): Burbuja[] =>
+      lista.map(m => {
+        const avisos = (m.notas ?? []).flatMap(id => {
+          const n = notas[id];
+          if (n?.estado === "deshecho") return [`[La persona lo deshizo con el botón; ya no está en su panel: ${describir(n.accion)}.]`];
+          if (n?.estado === "error") return [`[No se pudo guardar en su panel: ${describir(n.accion)}.]`];
+          return [];
+        });
+        return avisos.length ? { ...m, texto: `${avisos.join(" ")} ${m.texto}` } : m;
+      });
     setMensajes([...historial, { rol: "asistente", texto: "" }]);
     const abortador = new AbortController();
     controlador.current = abortador;
+    const deEsta: string[] = [];
     try {
       const respuesta = await conversar({
         perfil,
         analisis,
-        mensajes: historial,
+        mensajes: conLoDeshecho(historial),
         hechos,
         ruta,
+        avance,
         consentimiento: !demo && externo,
+        cobros,
         senal: abortador.signal,
+        alAccion: accion => {
+          if (!vivo.current || abortador.signal.aborted) return;
+          const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+          deEsta.push(id);
+          fijarNota(id, { estado: "guardando", accion });
+          setMensajes(actual => actual.map((m, i) => (i === actual.length - 1 ? { ...m, notas: [...deEsta] } : m)));
+          void guardarNota(id, accion);
+        },
         alTexto: trozo => {
           if (!vivo.current || abortador.signal.aborted) return;
           setMensajes(actual =>
@@ -165,12 +245,14 @@ export function Chat({
       if (!vivo.current || abortador.signal.aborted) return "omitido";
       setMensajes([
         ...historial,
-        { rol: "asistente", texto: respuesta.texto, respaldo: respuesta.origen === "respaldo" },
+        { rol: "asistente", texto: respuesta.texto, respaldo: respuesta.origen === "respaldo", cerebro: respuesta.cerebro, notas: deEsta.length ? [...deEsta] : undefined },
       ]);
       // Si la conversación se cerró mientras pensaba, la respuesta queda escrita pero no se lee.
       if (vozRef.current && (!porVoz || faseRef.current === "pensando")) leer(respuesta.texto);
       return "ok";
     } catch {
+      // No deja la burbuja «Pensando…» colgada: se queda lo que alcanzó a llegar, o nada.
+      if (vivo.current) setMensajes(actual => (actual.at(-1)?.texto || actual.at(-1)?.notas?.length ? actual : actual.slice(0, -1)));
       if (vivo.current && !abortador.signal.aborted) setError("No pude responder. Inténtalo otra vez.");
       return "error";
     } finally {
@@ -218,41 +300,68 @@ export function Chat({
   return (
     <section className="pb-44 xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8 xl:pb-0">
       <div className="xl:col-span-7 xl:flex xl:min-h-[calc(100dvh-5rem)] xl:flex-col">
-      <header className="aparecer mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-electrico text-white">
-            <span className={`flex items-end gap-1 ${sonando ? "" : "opacity-90"}`} aria-hidden="true">
-              {[0, 1, 2, 3].map(i => (
-                <span
-                  key={i}
-                  className={`w-1 rounded-full bg-white ${sonando || ocupado || escuchando ? "onda" : ""}`}
-                  style={{ height: `${[10, 20, 14, 18][i]}px`, animationDelay: `${i * 120}ms` }}
-                />
-              ))}
-            </span>
+      <header className="aparecer mb-2 flex items-center gap-3 md:mb-3 md:gap-4">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-electrico text-white md:size-12 md:rounded-2xl">
+          <span className={`flex items-end gap-[3px] md:gap-1 ${sonando ? "" : "opacity-90"}`} aria-hidden="true">
+            {[0, 1, 2, 3].map(i => (
+              <span
+                key={i}
+                className={`w-[3px] rounded-full bg-white md:w-1 ${sonando || ocupado || escuchando ? "onda" : ""}`}
+                style={{ height: `${[8, 16, 11, 14][i]}px`, animationDelay: `${i * 120}ms` }}
+              />
+            ))}
           </span>
-          <div className="min-w-0">
-            <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.02em] text-noche md:text-[1.875rem]">Asistente</h1>
-            <p className="mt-1 text-[15px] leading-relaxed text-gris">
-              {externo
-                ? "Pregunta por escrito o por voz. Las cifras las calcula el copiloto; la IA solo las explica."
-                : "Ahora te respondo con reglas, sin IA ni voz: nada sale de este equipo."}
-            </p>
-            {externo && (
-              <p className="mt-1 text-[13px] leading-snug text-gris">
-                {demo ? "El caso de Rosa es inventado. Sus cifras y tu pregunta" : "Tu caso de simulación y tus preguntas"} viajan a servicios externos de IA y de voz (Anthropic, Fish Audio y el dictado del navegador): no escribas ni digas datos personales.
-              </p>
-            )}
-            <p className="mt-1 text-[13px] leading-snug text-gris">{AVISO_SIMULACION}</p>
-          </div>
+        </span>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg font-semibold leading-tight tracking-[-0.01em] text-noche md:text-[1.875rem] md:tracking-[-0.02em]">Asistente</h1>
+          <p className="truncate text-xs text-gris md:text-sm">
+            {externo ? "Escribe o habla · las cifras las calcula el copiloto" : "Sin IA ni voz: nada sale de este equipo"}
+          </p>
         </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {!demo && alCambiarExterno && (
+        <div className="flex shrink-0 items-center gap-2">
+          {!demo && alCambiarExterno && !externo && (
             <button
-              className={`${boton} flex items-center gap-2 rounded-full border text-sm ${externo ? "border-linea-fuerte bg-white text-gris" : "border-electrico bg-electrico text-white"}`}
-              aria-expanded={externo ? undefined : pidiendo}
+              className="inline-flex min-h-10 items-center rounded-full bg-electrico px-3.5 text-sm font-semibold text-white transition-transform duration-150 active:scale-[.97]"
+              aria-expanded={pidiendo}
+              onClick={() => setPidiendo(true)}
+            >
+              Activar IA y voz
+            </button>
+          )}
+          {externo && (
+            <button
+              role="switch"
+              aria-checked={voz}
+              aria-label="Respuestas en voz alta"
+              className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-colors duration-150 ${voz ? "border-electrico bg-agua-suave text-electrico" : "border-linea-fuerte bg-white text-gris"}`}
               onClick={() => {
-                if (!externo) return setPidiendo(true);
+                vozRef.current = !voz;
+                setVoz(!voz);
+                if (voz) detener();
+              }}
+            >
+              <span aria-hidden="true" className={`size-2 rounded-full ${voz ? "bg-electrico" : "bg-linea-fuerte"}`} />
+              Voz {voz ? "sí" : "no"}
+            </button>
+          )}
+        </div>
+      </header>
+      <details className="group mb-4 text-xs leading-snug text-gris md:mb-6">
+        <summary className="inline-flex min-h-8 cursor-pointer list-none items-center gap-1 font-semibold text-gris hover:text-noche [&::-webkit-details-marker]:hidden">
+          Privacidad y datos
+          <span aria-hidden="true" className="transition-transform duration-150 group-open:rotate-180 [&_svg]:size-3.5"><Icono nombre="abajo" /></span>
+        </summary>
+        <div className="mt-1 space-y-1.5 rounded-xl bg-niebla px-3 py-2.5">
+          {externo && (
+            <p>
+              {demo ? "El caso de Rosa es inventado. Sus cifras y tu pregunta" : "Tu caso de simulación y tus preguntas"} viajan a servicios externos de IA y de voz (Anthropic, Fish Audio y el dictado del navegador): no escribas ni digas datos personales.
+            </p>
+          )}
+          <p>{AVISO_SIMULACION}</p>
+          {!demo && alCambiarExterno && externo && (
+            <button
+              className="min-h-9 font-semibold text-electrico underline underline-offset-2"
+              onClick={() => {
                 detener();
                 manos.desactivar();
                 vozRef.current = false;
@@ -260,29 +369,11 @@ export function Chat({
                 alCambiarExterno(false);
               }}
             >
-              {externo ? "Desactivar IA y voz" : "Activar IA y voz"}
+              Desactivar IA y voz
             </button>
           )}
-        {externo && (
-          <button
-            role="switch"
-            aria-checked={voz}
-            className={`${boton} flex items-center gap-2 rounded-full border text-sm ${voz ? "border-electrico bg-agua-suave text-electrico" : "border-linea-fuerte bg-white text-gris"}`}
-            onClick={() => {
-              vozRef.current = !voz;
-              setVoz(!voz);
-              if (voz) detener();
-            }}
-          >
-            <span
-              aria-hidden="true"
-              className={`size-2 rounded-full ${voz ? "bg-electrico" : "bg-linea-fuerte"}`}
-            />
-            Voz {voz ? "sí" : "no"}
-          </button>
-        )}
         </div>
-      </header>
+      </details>
       {pidiendo && !externo && alCambiarExterno && (
         <div role="group" aria-label="Activar IA y voz" className="aparecer mb-5 rounded-2xl border border-electrico/30 bg-agua-suave/50 p-4">
           <p className="font-semibold text-noche">¿Activar el asistente de IA y la voz?</p>
@@ -308,26 +399,45 @@ export function Chat({
           </div>
         </div>
       )}
-      <div className="aparecer flex items-start gap-3">
-        <span className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl bg-agua-suave text-electrico [&_svg]:size-5" aria-hidden="true">
+      <div className="aparecer flex items-start gap-2.5 md:gap-3">
+        <span className="mt-1 flex size-7 md:size-8 shrink-0 items-center justify-center rounded-xl bg-agua-suave text-electrico [&_svg]:size-5" aria-hidden="true">
           <Icono nombre="asistente" />
         </span>
-        <div className="rounded-2xl rounded-tl-md border border-linea bg-white p-4 leading-relaxed">
+        <div className="rounded-2xl rounded-tl-md border border-linea bg-white px-3.5 py-3 text-[15px] leading-relaxed md:p-4 md:text-base">
           {apertura ?? `Hola, ${perfil.nombre}. Te ayudo a entender tu plata y a decidir con tiempo. ¿Qué quieres saber?`}
         </div>
       </div>
       {!mensajes.length && (
-        <div className="my-5 flex flex-wrap gap-2">
+        <div className="-mx-4 my-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:my-5 md:flex-wrap md:overflow-visible md:px-0">
           {(ruta ? preguntasSugeridas(ruta) : preguntas).map((p, i) => (
             <button
               key={p}
               onClick={() => void enviar(p)}
               style={{ animationDelay: `${120 + i * 70}ms` }}
-              className={`${boton} aparecer rounded-full border border-agua/40 bg-agua-suave/60 text-left text-sm font-semibold text-agua-fuerte`}
+              className="aparecer inline-flex min-h-10 shrink-0 items-center whitespace-nowrap rounded-full border border-agua/40 bg-agua-suave/60 px-3.5 text-[13px] font-semibold text-agua-fuerte transition-transform duration-150 active:scale-[.97] md:min-h-11 md:whitespace-normal md:px-4 md:text-sm"
             >
               {unido(p)}
             </button>
           ))}
+        </div>
+      )}
+      {mensajes.length > 0 && !ocupado && (
+        <div className="mt-4 flex items-center justify-between gap-3 text-[13px] text-gris">
+          <p>{guardar ? "Conversación guardada en este equipo." : "En esta pestaña la conversación no se guarda."}</p>
+          {guardar && (
+            <button
+              type="button"
+              className="min-h-11 shrink-0 rounded-full px-3 font-semibold text-electrico hover:bg-agua-suave"
+              onClick={() => {
+                if (!window.confirm("¿Borrar toda la conversación con el asistente? Tus datos y tu ruta no cambian.")) return;
+                borrarHistorial(perfil.id);
+                setMensajes([]);
+                setNotas({});
+              }}
+            >
+              Borrar conversación
+            </button>
+          )}
         </div>
       )}
       <div role="log" aria-live="polite" aria-relevant="additions text" className="mt-5 space-y-4">
@@ -338,7 +448,9 @@ export function Chat({
             >
               {m.texto || "Pensando…"}
             </p>
+            {m.notas?.map(id => notas[id] && <TarjetaAnotado key={id} nota={notas[id]} alDeshacer={() => void deshacerNota(id)} />)}
             {m.respaldo && <p className="mt-2 px-2 text-xs text-gris">Respuesta del motor, sin IA</p>}
+            {m.cerebro && <p className="mt-2 px-2 text-xs text-gris">Respondió {m.cerebro}</p>}
           </div>
         ))}
       </div>
@@ -383,7 +495,7 @@ export function Chat({
         </section>
       )}
       <div ref={fin} className="scroll-mb-72 xl:scroll-mb-24" />
-      <div className="fixed inset-x-0 bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md border-t border-linea bg-papel px-4 pb-3 pt-3 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:border-t-0 xl:bg-linear-to-t xl:from-papel xl:via-papel/95 xl:to-papel/0 xl:px-0 xl:pt-6">
+      <div className="fixed inset-x-0 bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md border-t border-linea/70 bg-papel/80 px-4 pb-3 pt-3 backdrop-blur-2xl backdrop-saturate-150 xl:backdrop-blur-none md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:border-t-0 xl:bg-linear-to-t xl:from-papel xl:via-papel/95 xl:to-papel/0 xl:px-0 xl:pt-6">
         {externo && (
         <ConversacionVoz
           estado={manos.estado}

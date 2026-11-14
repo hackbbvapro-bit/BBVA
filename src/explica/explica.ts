@@ -4,10 +4,11 @@
  * Lo usan la pantalla, las notificaciones, la voz y el respaldo cuando no hay IA.
  */
 import {
-  aCentimos, formatoLargo, formatoSoles, formatoTasa, simularGasto, sumarDias,
+  formatoLargo, formatoSoles, formatoTasa, simularGasto, sumarDias,
 } from "../motor";
 import type { Analisis, EventoProyectado, FechaISO, Jugada, Perfil } from "../motor";
-import { fraseLibre, rutaExplicada, type Ruta } from "../ruta/ruta";
+import { buscarMonto } from "../motor/numeros";
+import { fraseAvance, fraseLibre, rutaExplicada, type Avance, type Ruta } from "../ruta/ruta";
 
 export type NivelAviso = "urgente" | "atencion" | "bien";
 
@@ -143,10 +144,10 @@ function explicarJugada(jugada: Jugada): string {
 
 function responderGasto(texto: string, perfil: Perfil, analisis: Analisis): string | undefined {
   if (!/alcanza|comprar|gastar|puedo/.test(texto)) return undefined;
-  const cifra = /(\d{1,6}(?:\.\d{1,2})?)/.exec(texto.replace(/,/g, ""));
-  if (!cifra) return undefined;
-  const monto = aCentimos(cifra[1]);
-  if (monto <= 0) return undefined;
+  // El monto lo lee el código, en cifras o en palabras («cincuenta», «mil quinientos», «S/ 80.50»).
+  const hallado = buscarMonto(texto);
+  if (!hallado) return undefined;
+  const monto = hallado.monto;
   const r = simularGasto(analisis.proyeccion, sumarDias(perfil.hoy, 1), monto);
   if (r.alcanza) {
     return `Sí te alcanza. Si gastas ${formatoSoles(monto)} mañana, tu día más ajustado sería el ${formatoLargo(r.fechaSaldoMinimoDespues)}, con ${formatoSoles(r.saldoMinimoDespues)} en la cuenta.`;
@@ -182,8 +183,13 @@ function responderRuta(texto: string, ruta: Ruta): string | undefined {
  * Respuesta armada solo con cálculos del motor, para cuando la IA no está disponible.
  * Con `ruta`, también responde por dónde empezar y qué alternativas comparar; sin ella, se comporta igual que antes.
  */
-export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Analisis, ruta?: Ruta): string {
+const PREGUNTA_DE_AVANCE =
+  /\bcomo voy\b|\bmi avance\b|como va mi ruta|siguiente paso|\bque sigue\b|que paso (sigue|me toca|doy)|me falta hacer|\bya hice\b|\bya marque\b/;
+export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Analisis, ruta?: Ruta, avance?: Avance): string {
   const texto = normalizar(pregunta);
+  // «¿Cómo voy?», «¿qué me falta?», «siguiente paso»: lo que la persona marcó en «Mi ruta».
+  // Frases concretas: «avance de efectivo», «¿qué pasó con mi sueldo?» o «¿cuánto me falta para pagar?» no cuentan.
+  if (avance && PREGUNTA_DE_AVANCE.test(texto)) return fraseAvance(avance);
   const gasto = responderGasto(texto, perfil, analisis);
   if (gasto) return gasto;
   const jugada = responderJugada(texto, analisis);

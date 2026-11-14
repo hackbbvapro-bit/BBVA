@@ -5,6 +5,8 @@ import { Entrada } from "@/componentes/entrada";
 import { mensajeDeError } from "@/componentes/formularios";
 import { Icono, Marca } from "@/componentes/ui";
 import { borrarSituacion, guardarSituacion } from "@/cliente/situacion";
+import { borrarAvances, borrarHistorial } from "@/cliente/memoria";
+import { datosDeRosa, ID_PROPIO } from "@/datos/semilla";
 import { desbloquearAudio } from "@/cliente/voz";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "@/ruta/entrada";
 
@@ -53,6 +55,9 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
     if (externo) desbloquearAudio();
     try {
       await cambiar(repo => repo.cargar(armarCaso(r)));
+      // Caso nuevo: la conversación y los pasos marcados del caso anterior ya no corresponden.
+      borrarHistorial(ID_PROPIO);
+      borrarAvances(ID_PROPIO);
       guardarModo("propio");
       guardarSituacion({ tuvoCredito: tuvoCreditoSegun(r), sinDeudas: !r.deuda || r.deuda.saldo <= 0, externo });
       alListo("propio", { reciente: true });
@@ -67,6 +72,10 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
     try {
       await cambiar(r => r.restablecer());
       borrarSituacion();
+      // El ejemplo vuelve a sus datos de fábrica: lo anotado antes ya no está, tampoco su conversación.
+      const idEjemplo = datosDeRosa().perfil.id;
+      borrarHistorial(idEjemplo);
+      borrarAvances(idEjemplo);
       guardarModo("demo");
       alListo("demo");
     } catch (e) {

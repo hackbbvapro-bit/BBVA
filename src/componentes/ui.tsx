@@ -4,7 +4,7 @@ import type { Aviso } from "@/explica/explica";
 export const boton =
   "min-h-11 rounded-2xl px-4 py-3 font-semibold transition-[transform,background-color,color] duration-200 active:scale-[.97] disabled:opacity-50 disabled:cursor-not-allowed";
 export const tarjeta =
-  "rounded-[22px] border border-linea bg-white p-5 md:p-6";
+  "rounded-2xl border border-linea bg-white p-4 md:rounded-[22px] md:p-6";
 /** Evita que «S/» quede en una línea y el monto en la siguiente. Solo cambia el espacio. */
 export function unido(texto: string) {
   return texto.replace(/S\/ /g, "S/ ");
@@ -16,6 +16,7 @@ const trazos = {
   hablar: "M21 11a9 9 0 0 1-9 9H4l-2 2v-11a9 9 0 0 1 19 0ZM7 10h10M7 14h6",
   campana: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4",
   cerrar: "m6 6 12 12M6 18 18 6",
+  check: "m5 12.5 4.5 4.5L19 7.5",
   micro: "M9 5a3 3 0 0 1 6 0v7a3 3 0 0 1-6 0ZM5 10v2a7 7 0 0 0 14 0v-2M12 19v3M9 22h6",
   enviar: "m3 3 18 9-18 9 4-9-4-9ZM7 12h14",
   voz: "m3 9 5 0 5-5v16l-5-5H3ZM17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14",
@@ -71,8 +72,8 @@ export const tonos = {
 };
 export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
   return (
-    <article className={`aparecer rounded-[22px] p-5 ${tonos[aviso.nivel]}`}>
-      <p className="mb-2 flex items-center gap-2 text-sm font-semibold">
+    <article className={`aparecer rounded-2xl p-4 md:rounded-[22px] md:p-5 ${tonos[aviso.nivel]}`}>
+      <p className="mb-1.5 flex items-center gap-2 text-xs font-semibold md:text-sm">
         <span className="size-2 rounded-full bg-current" aria-hidden="true" />
         {aviso.nivel === "urgente"
           ? "Anticípate"
@@ -80,23 +81,23 @@ export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
             ? "Vas por buen camino"
             : "Tenlo presente"}
       </p>
-      <h2 className="text-xl font-bold leading-snug text-balance">{unido(aviso.titulo)}</h2>
-      <p className="mt-3 leading-relaxed text-tinta">{unido(aviso.cuerpo)}</p>
-      {aviso.cuerpo.includes("TCEA") && <p className="mt-2 text-sm">TCEA: lo que te cuesta al año.</p>}
+      <h2 className="text-lg font-bold leading-snug text-balance md:text-xl">{unido(aviso.titulo)}</h2>
+      <p className="mt-2 text-[15px] leading-relaxed text-tinta md:mt-3 md:text-base">{unido(aviso.cuerpo)}</p>
+      {aviso.cuerpo.includes("TCEA") && <p className="mt-1.5 text-xs md:text-sm">TCEA: lo que te cuesta al año.</p>}
     </article>
   );
 }
 /** Cabecera clara de cada pestaña: tarjeta blanca con borde, nunca una superficie azul (ANCLA). */
 export function Portada({ children }: { children: ReactNode }) {
-  return <section className="aparecer mb-6 rounded-[22px] border border-linea bg-white p-6 md:p-8">{children}</section>;
+  return <section className="aparecer mb-4 rounded-2xl border border-linea bg-white p-4 md:mb-6 md:rounded-[22px] md:p-8">{children}</section>;
 }
 /** Encabezado de página: título a escala de producto (no de cartel), bajada y acciones a la derecha. */
 export function Encabezado({ titulo, bajada, acciones }: { titulo: string; bajada?: ReactNode; acciones?: ReactNode }) {
   return (
-    <header className="aparecer mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <header className="aparecer mb-4 flex flex-col gap-3 md:mb-6 md:gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div className="min-w-0 lg:flex-1">
-        <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.02em] text-noche md:text-[1.875rem]">{titulo}</h1>
-        {bajada && <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-gris">{bajada}</p>}
+        <h1 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.02em] text-noche md:text-[1.875rem]">{titulo}</h1>
+        {bajada && <p className="mt-1 max-w-2xl text-sm leading-relaxed text-gris md:mt-1.5 md:text-[15px]">{bajada}</p>}
       </div>
       {acciones && <div className="flex flex-wrap gap-2 lg:shrink-0">{acciones}</div>}
     </header>
@@ -108,26 +109,38 @@ const chips = {
   ambar: "bg-ambar-suave text-ambar-fuerte",
   coral: "bg-coral-suave text-coral-fuerte",
 };
-/** Indicador compacto: chip con icono, etiqueta corta, cifra y una línea de contexto. */
-export function Kpi({ icono, etiqueta, valor, nota, tono = "azul" }: { icono: NombreIcono; etiqueta: string; valor: string; nota?: string; tono?: keyof typeof chips }) {
+export type Cifra = { icono: NombreIcono; etiqueta: string; valor: string; nota?: string; tono?: keyof typeof chips };
+/**
+ * Franja de cifras: una sola tarjeta dividida en celdas con filetes finos (2 por fila en el celular,
+ * todas en fila desde tableta). Ocupa una cuarta parte del alto que tenían las tarjetas sueltas.
+ */
+export function Cifras({ items, etiqueta }: { items: Cifra[]; etiqueta: string }) {
+  const columnas = items.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3";
   return (
-    <div className="flex min-w-0 flex-col rounded-2xl border border-linea bg-white p-5">
-      <div className="flex items-center gap-3">
-        <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl [&_svg]:size-5 ${chips[tono]}`}>
-          <Icono nombre={icono} />
-        </span>
-        <span className="text-[13px] font-medium leading-tight text-gris">{etiqueta}</span>
-      </div>
-      <p className="mt-3 text-[1.5rem] font-semibold tabular-nums leading-tight tracking-[-0.015em] text-noche md:text-[1.625rem]">{unido(valor)}</p>
-      {nota && <p className="mt-1 text-[13px] leading-snug text-gris">{unido(nota)}</p>}
-    </div>
+    <section aria-label={etiqueta} className={`aparecer grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-linea bg-linea ${columnas}`}>
+      {items.map(({ icono, etiqueta, valor, nota, tono = "azul" }, i) => (
+        <div
+          key={etiqueta}
+          className={`flex min-w-0 flex-col bg-white px-4 py-3 md:px-5 md:py-4 ${items.length % 2 === 1 && i === items.length - 1 ? "col-span-2 lg:col-span-1" : ""}`}
+        >
+          <p className="flex items-center gap-1.5 text-xs font-medium leading-tight text-gris">
+            <span className={`flex size-5 shrink-0 items-center justify-center rounded-md [&_svg]:size-3.5 ${chips[tono]}`}>
+              <Icono nombre={icono} />
+            </span>
+            <span className="truncate">{etiqueta}</span>
+          </p>
+          <p className="mt-1.5 text-lg font-semibold leading-tight tracking-[-0.015em] text-noche tabular-nums md:text-xl">{unido(valor)}</p>
+          {nota && <p className="mt-0.5 truncate text-xs leading-snug text-gris" title={nota}>{unido(nota)}</p>}
+        </div>
+      ))}
+    </section>
   );
 }
 /** Botones de acción de página. */
 export const botonPrincipal =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-electrico px-4 text-[15px] font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-marino active:scale-[.97] [&_svg]:size-5";
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-electrico px-3.5 text-sm font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-marino active:scale-[.97] md:min-h-11 md:px-4 md:text-[15px] [&_svg]:size-[18px] md:[&_svg]:size-5";
 export const botonSecundario =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-linea-fuerte bg-white px-4 text-[15px] font-semibold text-noche transition-[transform,background-color] duration-150 hover:bg-niebla active:scale-[.97] [&_svg]:size-5";
+  "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-linea-fuerte bg-white px-3.5 text-sm font-semibold text-noche transition-[transform,background-color] duration-150 hover:bg-niebla active:scale-[.97] md:min-h-11 md:px-4 md:text-[15px] [&_svg]:size-[18px] md:[&_svg]:size-5";
 export function desplazar(elemento: HTMLElement | null, bloque: ScrollLogicalPosition = "nearest") {
   elemento?.scrollIntoView({
     behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",

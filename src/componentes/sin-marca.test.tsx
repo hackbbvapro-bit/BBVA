@@ -17,9 +17,9 @@ import { ComoFunciona } from "@/componentes/como-funciona";
 import { Perfil } from "@/componentes/perfil";
 import { MenuUsuario } from "@/componentes/menu-usuario";
 import { MiDinero } from "@/componentes/mi-dinero";
-import { TuRuta } from "@/componentes/tu-ruta";
+import { MiRuta } from "@/componentes/tu-ruta";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "@/ruta/entrada";
-import { AVISO_SIMULACION, hechosDe, trazarRuta } from "@/ruta/ruta";
+import { AVISO_SIMULACION, avanceDe, contadorDeAvance, hechosDe, trazarRuta } from "@/ruta/ruta";
 import { LoQueSe } from "@/componentes/lo-que-se";
 import { Marca } from "@/componentes/ui";
 
@@ -81,7 +81,7 @@ describe("la interfaz no usa la marca de ningún banco", () => {
   });
 });
 
-describe("la tarjeta «Tu ruta» en Inicio", () => {
+describe("«Mi ruta» y la tarjeta corta de Inicio", () => {
   const base: Respuestas = {
     nombre: "Lucho", cobro: "fin_de_mes", ingresoMensual: 320_000, saldo: 90_000,
     fijosMensual: 110_000, diaADiaMensual: 100_000, deuda: null, tuvoCredito: false, hoy: "2026-11-14",
@@ -98,23 +98,43 @@ describe("la tarjeta «Tu ruta» en Inicio", () => {
       const perfil = aPerfil(datos);
       const analisis = analizar(perfil);
       const ruta = trazarRuta(perfil, analisis, hechosDe(datos, tuvoCreditoSegun(r)));
-      const sola = pintar(<TuRuta ruta={ruta} alConversar={nada} />, datos);
-      expect(sola).toContain("Conversar con el asistente");
+      const avance = avanceDe(ruta, []);
+      const pagina = pintar(<MiRuta ruta={ruta} avance={avance} alMarcar={nada} alConversar={nada} />, datos);
+      expect(pagina).toContain("Conversar con el asistente");
+      expect(pagina).toContain(ruta.titulo);
+      expect(pagina).toContain(AVISO_SIMULACION);
+      expect(pagina).toContain("Tus pasos, en orden");
+      expect(pagina).toContain(contadorDeAvance(avance));
+      expect(pagina).not.toMatch(/BBVA/i);
       for (const externo of [true, false]) {
-        const html = pintar(<Hoy perfil={perfil} analisis={analisis} demo={false} externo={externo} ruta={ruta} {...voz} />, datos);
-        for (const pagina of [sola, html]) {
-          expect(pagina).toContain(ruta.titulo);
-          expect(pagina).toContain(AVISO_SIMULACION);
-          expect(pagina).toContain("Tus pasos, en orden");
-          expect(pagina).not.toMatch(/BBVA/i);
-        }
+        const html = pintar(<Hoy perfil={perfil} analisis={analisis} demo={false} externo={externo} ruta={ruta} avance={avance} ir={nada} {...voz} />, datos);
+        // Inicio queda limpio: solo el título, el avance y el siguiente paso; el detalle vive en «Mi ruta».
+        expect(html).toContain(ruta.titulo);
+        expect(html).toContain("Siguiente paso");
+        expect(html).toContain("Ver mi ruta");
+        expect(html).not.toContain("Tus pasos, en orden");
+        expect(html).not.toMatch(/BBVA/i);
         expect(html.includes("Escuchar resumen")).toBe(externo);
       }
     }
   });
 
+  it("un paso marcado se cuenta, se tacha y el siguiente pasa a ser el que falta", () => {
+    const datos = armarCaso(base);
+    const perfil = aPerfil(datos);
+    const ruta = trazarRuta(perfil, analizar(perfil), hechosDe(datos, false));
+    expect(ruta.idsPasos.length).toBeGreaterThan(1);
+    const avance = avanceDe(ruta, [ruta.idsPasos[0]]);
+    expect(avance.cumplidos).toBe(1);
+    expect(avance.siguiente).toBe(ruta.pasos[1]);
+    const pagina = pintar(<MiRuta ruta={ruta} avance={avance} alMarcar={nada} />, datos);
+    expect(pagina).toContain(contadorDeAvance(avance));
+    expect(pagina).toContain("line-through");
+    expect(pagina).toContain("Hecho · toca para desmarcar");
+  });
+
   it("sin ruta, Inicio no pinta la tarjeta", () => {
     const perfil = PERFILES[0];
-    expect(pintar(<Hoy perfil={perfil} analisis={analizar(perfil)} demo {...voz} />)).not.toContain("Tus pasos, en orden");
+    expect(pintar(<Hoy perfil={perfil} analisis={analizar(perfil)} demo {...voz} />)).not.toContain("Ver mi ruta");
   });
 });

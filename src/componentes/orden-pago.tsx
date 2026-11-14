@@ -12,22 +12,21 @@ const GRUPOS: readonly { id: GrupoPago; titulo: string; ayuda: string; chip: str
 
 function Decision({ d, n }: { d: DecisionPago; n: number }) {
   return (
-    <li className="flex items-start gap-3 border-t border-linea py-3 first:border-t-0">
-      <span aria-hidden="true" className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-niebla text-sm font-semibold text-noche">
+    <li className="flex items-start gap-3 border-t border-linea py-2.5 first:border-t-0 md:py-3">
+      <span aria-hidden="true" className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-niebla text-xs font-semibold text-noche md:size-7 md:text-sm">
         {n}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-noche">
-          {d.nombre}
-          <span className="ml-2 text-sm font-normal text-gris">{d.entidad}</span>
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="min-w-0 truncate font-semibold text-noche">{d.nombre}</p>
+          <p className="shrink-0 font-semibold text-noche tabular-nums">{d.grupo === "negociar" ? "—" : unido(formatoSoles(d.monto))}</p>
+        </div>
+        <p className="text-xs text-gris">
+          {d.entidad} · {ETIQUETA_CALIFICACION[d.calificacion]}
+          {d.proximoPago ? ` · vence ${formatoCorto(d.proximoPago)}` : ""}
         </p>
-        <p className="mt-0.5 text-sm leading-relaxed text-gris">{unido(d.motivo)}</p>
-        <p className="mt-1 text-xs text-gris">
-          Calificación: {ETIQUETA_CALIFICACION[d.calificacion]}
-          {d.proximoPago ? ` · próximo pago ${formatoCorto(d.proximoPago)}` : ""}
-        </p>
+        <p className="mt-1 text-[13px] leading-relaxed text-tinta md:text-sm">{unido(d.motivo)}</p>
       </div>
-      <p className="shrink-0 font-semibold text-noche tabular-nums">{d.grupo === "negociar" ? "—" : unido(formatoSoles(d.monto))}</p>
     </li>
   );
 }
@@ -37,10 +36,10 @@ export function OrdenDePago({ r }: { r: ResultadoPrioridad }) {
   if (r.decisiones.length === 0) return null;
   return (
     <section className={`${tarjeta} aparecer`} aria-labelledby="orden-pago">
-      <h2 id="orden-pago" className="text-lg font-semibold text-noche">
+      <h2 id="orden-pago" className="text-base font-semibold text-noche md:text-lg">
         Qué pagar primero
       </h2>
-      <p className="mt-1 leading-relaxed text-gris">
+      <p className="mt-1 text-sm leading-relaxed text-gris md:text-base">
         {r.alcanzaParaTodo ? (
           <>
             Con <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> disponibles este mes cubres todos los mínimos
@@ -53,17 +52,17 @@ export function OrdenDePago({ r }: { r: ResultadoPrioridad }) {
           </>
         )}
       </p>
-      <div className="mt-5 space-y-5">
+      <div className="mt-3 space-y-4 md:mt-5 md:space-y-5">
         {GRUPOS.map(g => {
           const items = r.decisiones.filter(d => d.grupo === g.id);
           if (items.length === 0) return null;
           return (
             <div key={g.id}>
               <div className="flex flex-wrap items-center gap-2">
-                <span className={`rounded-full px-3 py-1 text-sm font-semibold ${g.chip}`}>{g.titulo}</span>
-                <span className="text-sm text-gris">{g.ayuda}</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold md:px-3 md:py-1 md:text-sm ${g.chip}`}>{g.titulo}</span>
+                <span className="text-xs text-gris md:text-sm">{g.ayuda}</span>
               </div>
-              <ul className="mt-2">
+              <ul className="mt-1 md:mt-2">
                 {items.map((d, i) => (
                   <Decision key={d.id} d={d} n={i + 1} />
                 ))}
