@@ -21,23 +21,16 @@ export function Recomendaciones({ datos, analisis }: { datos: Datos; analisis: A
             <p className="mt-2 text-sm leading-relaxed text-noche">
               <span className="font-semibold">Por qué te lo sugerimos:</span> {unido(porQue)}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-gris">
-              {unido(entrada.condicion)}
-              {entrada.fuente && (
-                <>
-                  {" · "}
-                  <a
-                    className="inline-flex min-h-11 items-center font-semibold text-electrico underline"
-                    href={entrada.fuente.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Fuente: bbva.pe
-                  </a>
-                  {" · "}Consultado el 14 nov 2026
-                </>
-              )}
-            </p>
+            <p className="mt-2 text-sm leading-relaxed text-gris">{unido(entrada.condicion)}</p>
+            {entrada.fuente && (
+              <p className="flex min-h-11 flex-wrap items-center gap-x-2 text-sm text-gris">
+                <a className="inline-flex min-h-11 items-center font-semibold text-electrico underline" href={entrada.fuente.url} target="_blank" rel="noreferrer">
+                  Fuente: bbva.pe
+                </a>
+                <span aria-hidden="true">·</span>
+                <span>Consultado el 14 nov 2026</span>
+              </p>
+            )}
           </li>
         ))}
       </ul>

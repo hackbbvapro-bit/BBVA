@@ -216,7 +216,7 @@ export function Chat({
         ))}
       </div>
       <div ref={fin} className="scroll-mb-72 xl:scroll-mb-24" />
-      <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md border-t border-linea bg-papel px-4 pb-3 pt-3 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:border-t-0 xl:bg-linear-to-t xl:from-papel xl:via-papel/95 xl:to-papel/0 xl:px-0 xl:pt-6">
+      <div className="fixed inset-x-0 bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md border-t border-linea bg-papel px-4 pb-3 pt-3 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:border-t-0 xl:bg-linear-to-t xl:from-papel xl:via-papel/95 xl:to-papel/0 xl:px-0 xl:pt-6">
         <ConversacionVoz
           estado={manos.estado}
           soporte={manos.soporte}

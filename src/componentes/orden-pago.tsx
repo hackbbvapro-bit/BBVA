@@ -10,11 +10,11 @@ const GRUPOS: readonly { id: GrupoPago; titulo: string; ayuda: string; chip: str
   { id: "negociar", titulo: "Hablar con la entidad", ayuda: "No alcanza: reprograma antes de caer en atraso", chip: "bg-ambar-suave text-ambar-fuerte" },
 ];
 
-function Decision({ d }: { d: DecisionPago }) {
+function Decision({ d, n }: { d: DecisionPago; n: number }) {
   return (
     <li className="flex items-start gap-3 border-t border-linea py-3 first:border-t-0">
       <span aria-hidden="true" className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-niebla text-sm font-semibold text-noche">
-        {d.orden}
+        {n}
       </span>
       <div className="min-w-0 flex-1">
         <p className="font-medium text-noche">
@@ -64,8 +64,8 @@ export function OrdenDePago({ r }: { r: ResultadoPrioridad }) {
                 <span className="text-sm text-gris">{g.ayuda}</span>
               </div>
               <ul className="mt-2">
-                {items.map(d => (
-                  <Decision key={d.id} d={d} />
+                {items.map((d, i) => (
+                  <Decision key={d.id} d={d} n={i + 1} />
                 ))}
               </ul>
             </div>
