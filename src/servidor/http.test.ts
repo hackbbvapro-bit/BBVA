@@ -21,8 +21,15 @@ describe("origen de la petición", () => {
 describe("visitante", () => {
   it("usa la IP que fija la plataforma y, si no hay, un valor fijo", () => {
     expect(visitante(peticion({ "x-real-ip": "203.0.113.7" }))).toBe("203.0.113.7");
-    expect(visitante(peticion({ "x-forwarded-for": "203.0.113.9, 10.0.0.1" }))).toBe("203.0.113.9");
+    expect(visitante(peticion({ "x-vercel-forwarded-for": "203.0.113.5, 10.0.0.1" }))).toBe("203.0.113.5");
     expect(visitante(peticion({}))).toBe("local");
+  });
+
+  it("ignora x-forwarded-for: dos valores distintos comparten cupo y no se puede rotar la IP", () => {
+    const a = visitante(peticion({ "x-forwarded-for": "198.51.100.1" }));
+    const b = visitante(peticion({ "x-forwarded-for": "198.51.100.2" }));
+    expect(a).toBe("local");
+    expect(b).toBe(a);
   });
 });
 

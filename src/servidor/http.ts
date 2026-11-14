@@ -24,12 +24,16 @@ export function okJson(datos: unknown): Response {
   return Response.json(datos, { headers: SIN_CACHE });
 }
 
-/** Identifica al visitante para el límite de uso. En el hosting, la plataforma fija estas cabeceras. */
+/**
+ * Identifica al visitante para el límite de uso. Solo se confía en cabeceras que fija la plataforma
+ * (x-vercel-forwarded-for, x-real-ip); x-forwarded-for lo escribe el cliente y se falsifica para saltarse
+ * el límite. Sin ninguna, todos comparten la clave "local": más estricto, pero no evadible.
+ */
 export function visitante(req: Request): string {
+  const vercel = req.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
+  if (vercel) return vercel;
   const real = req.headers.get("x-real-ip")?.trim();
-  if (real) return real;
-  const reenviada = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return reenviada || "local";
+  return real || "local";
 }
 
 /** true si la petición no viene de otra web (un navegador siempre manda `Origin` en un POST entre sitios). */
