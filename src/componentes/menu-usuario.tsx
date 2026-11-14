@@ -10,10 +10,12 @@ export function MenuUsuario({
   nombre,
   variante,
   alPerfil,
+  alComoFunciona,
 }: {
   nombre: string;
   variante: "lateral" | "cabecera";
   alPerfil: () => void;
+  alComoFunciona: () => void;
 }) {
   const [abierto, setAbierto] = useState(false);
   const raiz = useRef<HTMLDivElement>(null);
@@ -86,6 +88,17 @@ export function MenuUsuario({
           >
             <Icono nombre="perfil" />
             Perfil
+          </button>
+          <button
+            role="menuitem"
+            className={ITEM}
+            onClick={() => {
+              setAbierto(false);
+              alComoFunciona();
+            }}
+          >
+            <Icono nombre="rumbo" />
+            Cómo funciona
           </button>
           <form method="post" action="/api/salir">
             <button role="menuitem" type="submit" className={ITEM}>

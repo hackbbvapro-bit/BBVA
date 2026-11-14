@@ -14,7 +14,8 @@ import { Icono, Marca } from "@/componentes/ui";
 import { ProveedorDatos, useDatos } from "@/componentes/datos";
 import { MenuUsuario } from "@/componentes/menu-usuario";
 import { Perfil as VistaPerfil } from "@/componentes/perfil";
-type Pestana = "hoy" | "dinero" | "deudas" | "hablar" | "perfil";
+import { ComoFunciona } from "@/componentes/como-funciona";
+type Pestana = "hoy" | "dinero" | "deudas" | "hablar" | "perfil" | "como";
 const PESTANAS = [
   ["hoy", "Inicio"],
   ["dinero", "Mi dinero"],
@@ -129,7 +130,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
             </button>
           </nav>
           <div className="mt-auto">
-            <MenuUsuario nombre={perfil.nombre} variante="lateral" alPerfil={() => navegar("perfil")} />
+            <MenuUsuario nombre={perfil.nombre} variante="lateral" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} />
           </div>
         </div>
       </aside>
@@ -149,7 +150,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
                 </span>
               )}
             </button>
-            <MenuUsuario nombre={perfil.nombre} variante="cabecera" alPerfil={() => navegar("perfil")} />
+            <MenuUsuario nombre={perfil.nombre} variante="cabecera" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} />
           </div>
         </div>
       </header>
@@ -175,6 +176,11 @@ function Sesion({ perfil }: { perfil: Perfil }) {
         {pestana === "perfil" && (
           <div className="md:mx-auto md:max-w-4xl md:px-8 md:py-10">
             <VistaPerfil />
+          </div>
+        )}
+        {pestana === "como" && (
+          <div className="md:mx-auto md:max-w-4xl md:px-8 md:py-10">
+            <ComoFunciona />
           </div>
         )}
         {pestana === "hablar" && (
