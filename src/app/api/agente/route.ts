@@ -4,6 +4,7 @@ import { PERFILES } from "@/datos/perfiles";
 import { analizar } from "@/motor";
 import { errorJson, leerJson, mismoOrigen, visitante } from "@/servidor/http";
 import { crearLimite } from "@/servidor/limite";
+import { haySesion, sinSesion } from "@/servidor/sesion";
 import { registrarFallo } from "@/servidor/registro";
 
 export const maxDuration = 60;
@@ -43,6 +44,7 @@ function comoFlujo(eventos: AsyncGenerator<EventoAgente>, cortar: () => void): R
 
 export async function POST(req: Request): Promise<Response> {
   if (!mismoOrigen(req)) return errorJson("origen_no_permitido", 403);
+  if (!haySesion(req)) return sinSesion();
   if (!limite.permite(visitante(req)) || !topeGlobal.permite("todos"))
     return errorJson("demasiadas_peticiones", 429);
   const datos = Peticion.safeParse(await leerJson(req));

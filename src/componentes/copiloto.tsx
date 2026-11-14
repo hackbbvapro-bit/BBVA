@@ -9,8 +9,10 @@ import { Deudas } from "@/componentes/deudas";
 import { MiDinero } from "@/componentes/mi-dinero";
 import { Chat } from "@/componentes/chat";
 import { HojaAvisos } from "@/componentes/avisos";
-import { Icono } from "@/componentes/ui";
-type Pestana = "hoy" | "dinero" | "deudas" | "hablar";
+import { Icono, Marca } from "@/componentes/ui";
+import { MenuUsuario } from "@/componentes/menu-usuario";
+import { Perfil as VistaPerfil } from "@/componentes/perfil";
+type Pestana = "hoy" | "dinero" | "deudas" | "hablar" | "perfil";
 /** Un solo perfil en la interfaz: Rosa (independiente), el del guion de la demo. */
 const ROSA = PERFILES.find(p => p.id === "independiente") ?? PERFILES[0];
 const PESTANAS = [
@@ -24,19 +26,6 @@ export function Copiloto() {
     <div className="relative min-h-dvh w-full bg-papel text-base text-tinta [overflow-wrap:anywhere] md:pl-[232px] [&_button]:cursor-pointer [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-4 [&_:focus-visible]:outline-electrico">
       <Sesion perfil={ROSA} />
     </div>
-  );
-}
-function Marca() {
-  return (
-    <span className="flex items-center gap-2.5">
-      <span className="flex size-9 items-center justify-center rounded-xl bg-electrico text-white">
-        <Icono nombre="rumbo" />
-      </span>
-      <span className="leading-tight">
-        <span className="block text-[17px] font-semibold tracking-[-0.015em] text-noche">Copiloto</span>
-        <span className="block text-xs text-gris">exclusivo para clientes BBVA</span>
-      </span>
-    </span>
   );
 }
 function Sesion({ perfil }: { perfil: Perfil }) {
@@ -109,32 +98,29 @@ function Sesion({ perfil }: { perfil: Perfil }) {
               )}
             </button>
           </nav>
-          <div className="mt-auto flex items-center gap-3 rounded-xl border border-linea px-3 py-2.5">
-            <span className="flex size-9 items-center justify-center rounded-full bg-agua-suave font-semibold text-electrico" aria-hidden="true">
-              {perfil.nombre.slice(0, 1)}
-            </span>
-            <span className="text-sm leading-tight text-noche">
-              {perfil.nombre}
-              <span className="block text-gris">Cuenta demo</span>
-            </span>
+          <div className="mt-auto">
+            <MenuUsuario nombre={perfil.nombre} variante="lateral" alPerfil={() => navegar("perfil")} />
           </div>
         </div>
       </aside>
       <header className="fixed inset-x-0 top-0 z-30 border-b border-linea bg-white/90 px-5 pb-3 pt-[calc(.75rem+env(safe-area-inset-top))] backdrop-blur-xl md:hidden">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Marca />
-          <button
-            aria-label={`Abrir avisos: ${pendientes} pendientes`}
-            onClick={() => setHoja(true)}
-            className="relative flex size-11 items-center justify-center rounded-full border border-linea bg-white text-noche transition-transform active:scale-95"
-          >
-            <Icono nombre="campana" />
-            {pendientes > 0 && (
-              <span className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-coral-fuerte px-1 text-xs font-semibold text-white">
-                {pendientes}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              aria-label={`Abrir avisos: ${pendientes} pendientes`}
+              onClick={() => setHoja(true)}
+              className="relative flex size-11 items-center justify-center rounded-full border border-linea bg-white text-noche transition-transform active:scale-95"
+            >
+              <Icono nombre="campana" />
+              {pendientes > 0 && (
+                <span className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-coral-fuerte px-1 text-xs font-semibold text-white">
+                  {pendientes}
+                </span>
+              )}
+            </button>
+            <MenuUsuario nombre={perfil.nombre} variante="cabecera" alPerfil={() => navegar("perfil")} />
+          </div>
         </div>
       </header>
       <main className="px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-0 md:pb-0 md:pt-0">
@@ -149,6 +135,11 @@ function Sesion({ perfil }: { perfil: Perfil }) {
         {pestana === "deudas" && (
           <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10">
             <Deudas perfil={perfil} analisis={analisis} />
+          </div>
+        )}
+        {pestana === "perfil" && (
+          <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10">
+            <VistaPerfil perfil={perfil} />
           </div>
         )}
         {pestana === "hablar" && (
@@ -169,7 +160,12 @@ function Sesion({ perfil }: { perfil: Perfil }) {
               onClick={() => navegar(id)}
               className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium transition-colors duration-150 ${pestana === id ? "text-electrico" : "text-gris"}`}
             >
-              {pestana === id && <span className="absolute inset-x-6 top-0 h-[3px] rounded-b-full bg-electrico" aria-hidden="true" />}
+              {pestana === id && (
+                <span
+                  className="absolute inset-x-6 top-0 h-[3px] rounded-b-full bg-electrico"
+                  aria-hidden="true"
+                />
+              )}
               <Icono nombre={id} />
               {nombre}
             </button>

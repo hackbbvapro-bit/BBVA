@@ -2,6 +2,7 @@
 
 export type CodigoError =
   | "peticion_invalida"
+  | "sin_sesion"
   | "origen_no_permitido"
   | "demasiadas_peticiones"
   | "ia_no_disponible"
