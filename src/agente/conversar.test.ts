@@ -59,4 +59,9 @@ describe("herramientas e instrucciones", () => {
       expect(texto).toContain(p.nombre);
     }
   });
+
+  it("con un día en negativo, las instrucciones prohíben sugerir pagar de más a una deuda", () => {
+    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
+    expect(texto).toContain("no sugieras pagar más que la cuota mínima");
+  });
 });
