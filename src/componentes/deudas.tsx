@@ -4,6 +4,9 @@ import { formatoSoles, type Perfil, type Analisis, type PlanDeudas } from "@/mot
 import { avisos } from "@/explica/explica";
 import { tarjeta, TarjetaAviso, Portada, unido } from "@/componentes/ui";
 import { useDatos } from "@/componentes/datos";
+import { OrdenDePago } from "@/componentes/orden-pago";
+import { ReporteSbs } from "@/componentes/reporte-sbs";
+import { prioridadDePagos } from "@/datos/paraPrioridad";
 import { ListaDebo, ListaMeDeben, totalDebo, totalMeDeben } from "@/componentes/deudas-editar";
 function Carrera({
   nombre,
@@ -55,10 +58,11 @@ function Plan({ titulo, plan, bueno }: { titulo: string; plan: PlanDeudas; bueno
     </div>
   );
 }
-type Pestana = "debo" | "medeben";
+export type PestanaDeudas = "debo" | "medeben" | "sbs";
+type Pestana = PestanaDeudas;
 
 function Pestanas({ actual, cambiar, debo, medeben }: { actual: Pestana; cambiar: (p: Pestana) => void; debo: number; medeben: number }) {
-  const una = (id: Pestana, texto: string, n: number) => (
+  const una = (id: Pestana, texto: string, n?: number) => (
     <button
       role="tab"
       id={`pestana-${id}`}
@@ -67,20 +71,21 @@ function Pestanas({ actual, cambiar, debo, medeben }: { actual: Pestana; cambiar
       onClick={() => cambiar(id)}
       className={`min-h-11 flex-1 rounded-full px-4 text-[15px] font-semibold transition-colors ${actual === id ? "bg-electrico text-white" : "text-gris hover:text-noche"}`}
     >
-      {texto} <span className="tabular-nums opacity-80">({n})</span>
+      {texto} {n !== undefined && <span className="tabular-nums opacity-80">({n})</span>}
     </button>
   );
   return (
     <div role="tablist" aria-label="Deudas" className="flex gap-1 rounded-full bg-niebla p-1">
       {una("debo", "Debo", debo)}
       {una("medeben", "Me deben", medeben)}
+      {una("sbs", "Reporte SBS")}
     </div>
   );
 }
 
-export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisis }) {
+export function Deudas({ perfil, analisis, pestanaInicial = "debo" }: { perfil: Perfil; analisis: Analisis; pestanaInicial?: PestanaDeudas }) {
   const { datos } = useDatos();
-  const [pestana, setPestana] = useState<Pestana>("debo");
+  const [pestana, setPestana] = useState<Pestana>(pestanaInicial);
   const [aviso, setAviso] = useState("");
   const comparacion = analisis.deudas;
   const debo = totalDebo(datos.deudas);
@@ -130,7 +135,9 @@ export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisi
     <section className={`${tarjeta} aparecer`}>
       <Pestanas actual={pestana} cambiar={setPestana} debo={debo.n} medeben={meDeben.n} />
       <p className="mt-5 text-gris">
-        {pestana === "debo"
+        {pestana === "sbs"
+          ? "Cómo te ve el sistema financiero y en qué orden conviene pagar."
+          : pestana === "debo"
           ? debo.n === 0
             ? "No tienes deudas abiertas."
             : <>Debes en total <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(debo.total))}</span> en {debo.n} {debo.n === 1 ? "deuda" : "deudas"}.</>
@@ -139,13 +146,15 @@ export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisi
             : <>Te deben <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(meDeben.total))}</span> en {meDeben.n} {meDeben.n === 1 ? "cobro" : "cobros"}.</>}
       </p>
       <div id="panel-deudas" role="tabpanel" aria-labelledby={`pestana-${pestana}`} className="mt-2">
-        {pestana === "debo" ? <ListaDebo primeraId={comparacion?.primera?.id ?? null} avisar={setAviso} /> : <ListaMeDeben avisar={setAviso} />}
+        {pestana === "debo" ? <ListaDebo primeraId={comparacion?.primera?.id ?? null} avisar={setAviso} /> : pestana === "medeben" ? <ListaMeDeben avisar={setAviso} /> : <ReporteSbs analisis={analisis} />}
       </div>
     </section>
   );
 
+  const orden = prioridadDePagos(datos, analisis);
   const resto = comparacion && (
     <div className="space-y-5">
+      {pestana !== "sbs" && <OrdenDePago r={orden} />}
       {avisoDeuda && <TarjetaAviso aviso={avisoDeuda} />}
       <section className={`${tarjeta} aparecer`}>
         <h2 className="mb-4 text-lg font-semibold text-noche">La diferencia está en cómo pagas</h2>

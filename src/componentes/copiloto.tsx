@@ -4,7 +4,8 @@ import { analizar, type Perfil } from "@/motor";
 import { avisos } from "@/explica/explica";
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
 import { Hoy } from "@/componentes/hoy";
-import { Deudas } from "@/componentes/deudas";
+import { Adjuntar } from "@/componentes/documento";
+import { Deudas, type PestanaDeudas } from "@/componentes/deudas";
 import { MiDinero } from "@/componentes/mi-dinero";
 import { Chat } from "@/componentes/chat";
 import { LoQueSe } from "@/componentes/lo-que-se";
@@ -40,6 +41,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
   const lista = useMemo(() => avisos(perfil, analisis), [perfil, analisis]);
   const [pestana, setPestana] = useState<Pestana>("hoy"),
     [hoja, setHoja] = useState(false),
+    [deudasInicial, setDeudasInicial] = useState<PestanaDeudas>("debo"),
     [sonando, setSonando] = useState(false);
   const pendientes = lista.filter(a => a.nivel !== "bien").length;
   const { aviso } = useDatos();
@@ -68,6 +70,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
   }
   function navegar(p: Pestana) {
     detener();
+    setDeudasInicial("debo");
     setPestana(p);
     window.scrollTo({ top: 0, behavior: "instant" });
   }
@@ -147,7 +150,7 @@ function Sesion({ perfil }: { perfil: Perfil }) {
         )}
         {pestana === "deudas" && (
           <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10 xl:max-w-[1360px] xl:px-10">
-            <Deudas perfil={perfil} analisis={analisis} />
+            <Deudas perfil={perfil} analisis={analisis} pestanaInicial={deudasInicial} />
           </div>
         )}
         {pestana === "perfil" && (
@@ -157,7 +160,12 @@ function Sesion({ perfil }: { perfil: Perfil }) {
         )}
         {pestana === "hablar" && (
           <div className="md:mx-auto md:max-w-3xl md:px-8 md:py-10 xl:max-w-[1360px] xl:px-10">
-            <Chat perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} />
+            <Chat perfil={perfil} analisis={analisis} leer={leer} detener={detener} sonando={sonando} lateral={
+                <div className="space-y-5">
+                  <LoQueSe analisis={analisis} />
+                  <Adjuntar alGuardar={() => { detener(); setDeudasInicial("sbs"); setPestana("deudas"); window.scrollTo({ top: 0, behavior: "instant" }); }} />
+                </div>
+              } />
           </div>
         )}
       </main>
