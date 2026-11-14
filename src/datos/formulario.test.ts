@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { leerDia, leerSoles, solesParaEditar } from "./formulario";
+import { leerDia, leerEnteroOCero, leerFecha, leerSoles, leerTasa, solesParaEditar, tasaParaEditar } from "./formulario";
 import { ErrorDatos } from "./validar";
 
 describe("leerSoles", () => {
@@ -25,6 +25,27 @@ describe("leerDia", () => {
   });
   it("rechaza texto, decimales y vacío", () => {
     for (const malo of ["", "uno", "1.5", "-3", "100"]) expect(() => leerDia(malo, "el día")).toThrow(ErrorDatos);
+  });
+});
+
+describe("TCEA, atraso y fecha", () => {
+  it("lee el porcentaje a puntos básicos sin decimales de máquina", () => {
+    expect(leerTasa("55", "la TCEA")).toBe(5500);
+    expect(leerTasa("89.99", "la TCEA")).toBe(8999);
+    expect(leerTasa("100 %", "la TCEA")).toBe(10000);
+    expect(leerTasa("  ", "la TCEA")).toBeNull();
+    expect(() => leerTasa("abc", "la TCEA")).toThrow(/porcentaje/);
+  });
+  it("ida y vuelta del porcentaje", () => {
+    for (const bp of [0, 5500, 8999, 10000]) expect(leerTasa(tasaParaEditar(bp), "x")).toBe(bp);
+    expect(tasaParaEditar(null)).toBe("");
+  });
+  it("lee los días de atraso y la fecha", () => {
+    expect(leerEnteroOCero("", "los días")).toBe(0);
+    expect(leerEnteroOCero("22", "los días")).toBe(22);
+    expect(() => leerEnteroOCero("-3", "los días")).toThrow(ErrorDatos);
+    expect(leerFecha("2026-11-20", "la fecha")).toBe("2026-11-20");
+    expect(() => leerFecha("", "la fecha")).toThrow(/Elige/);
   });
 });
 

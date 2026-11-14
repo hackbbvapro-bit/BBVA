@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Analisis, Perfil } from "@/motor";
 import { conversar, type MensajeChat } from "@/cliente/agente";
 import { desbloquearAudio } from "@/cliente/voz";
@@ -24,12 +24,15 @@ export function Chat({
   leer,
   detener,
   sonando,
+  lateral,
 }: {
   perfil: Perfil;
   analisis: Analisis;
   leer: (t: string) => void;
   detener: () => void;
   sonando: boolean;
+  /** Panel de la derecha en pantallas anchas (≥1280 px). */
+  lateral?: ReactNode;
 }) {
   const [mensajes, setMensajes] = useState<Burbuja[]>([]),
     [texto, setTexto] = useState("");
@@ -128,7 +131,8 @@ export function Chat({
     });
   }
   return (
-    <section className="pb-44">
+    <section className="pb-44 xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8 xl:pb-0">
+      <div className="xl:col-span-7 xl:flex xl:min-h-[calc(100dvh-5rem)] xl:flex-col">
       <Portada>
         <div className="flex items-start justify-between gap-3">
           <span className="flex size-14 items-center justify-center rounded-2xl bg-agua-suave text-electrico">
@@ -193,8 +197,8 @@ export function Chat({
           </div>
         ))}
       </div>
-      <div ref={fin} className="scroll-mb-72" />
-      <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md bg-linear-to-t from-papel via-papel/95 to-papel/0 px-4 pb-3 pt-6 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6">
+      <div ref={fin} className="scroll-mb-72 xl:scroll-mb-24" />
+      <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 mx-auto max-w-md bg-linear-to-t from-papel via-papel/95 to-papel/0 px-4 pb-3 pt-6 md:bottom-0 md:left-[232px] md:max-w-3xl md:px-8 md:pb-6 xl:sticky xl:inset-x-auto xl:left-auto xl:mx-0 xl:mt-auto xl:max-w-none xl:px-0">
         {sonando && (
           <button className={`${boton} mb-2 bg-agua-suave text-agua-fuerte`} onClick={detener}>
             Detener voz
@@ -251,6 +255,8 @@ export function Chat({
           )}
         </form>
       </div>
+      </div>
+      {lateral && <aside className="mt-6 xl:sticky xl:top-8 xl:col-span-5 xl:mt-0" aria-label="Lo que sabe el copiloto">{lateral}</aside>}
     </section>
   );
 }

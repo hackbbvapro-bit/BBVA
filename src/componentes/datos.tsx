@@ -38,6 +38,12 @@ function Pantalla({ children }: { children: ReactNode }) {
   );
 }
 
+/** Para tests de renderizado: entrega unos datos fijos sin abrir la base. */
+export function DatosDePrueba({ datos, children }: { datos: Datos; children: ReactNode }) {
+  const valor: ValorDatos = { datos, perfil: aPerfil(datos), persistente: false, cambiar: async () => undefined };
+  return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
+}
+
 export function ProveedorDatos({ children }: { children: ReactNode }) {
   const [estado, setEstado] = useState<Estado>({ fase: "cargando" });
 
