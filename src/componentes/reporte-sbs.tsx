@@ -4,6 +4,7 @@ import { calificacionPorAtraso, ETIQUETA_CALIFICACION, type Calificacion } from 
 import { prioridadDePagos } from "@/datos/paraPrioridad";
 import { Extraccion } from "@/documentos/esquema";
 import { OrdenDePago } from "@/componentes/orden-pago";
+import { Recomendaciones } from "@/componentes/recomendaciones";
 import { useDatos } from "@/componentes/datos";
 import { unido } from "@/componentes/ui";
 
@@ -53,6 +54,7 @@ export function ReporteSbs({ analisis }: { analisis: Analisis }) {
         </ul>
       )}
       <OrdenDePago r={prioridadDePagos(datos, analisis)} />
+      <Recomendaciones datos={datos} analisis={analisis} />
       <p className="text-sm leading-relaxed text-gris">
         Puedes descargar tu reporte gratis en la{" "}
         <a className="font-semibold text-electrico underline" href="https://www.sbs.gob.pe/usuarios/nuestros-servicios/reporte-de-deudas" target="_blank" rel="noreferrer">
