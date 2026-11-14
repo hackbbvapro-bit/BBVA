@@ -18,14 +18,14 @@ function Carrera({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
-        <span className={bueno ? "font-semibold text-white" : "text-white/65"}>{nombre}</span>
-        <span className={`font-bold tabular-nums ${bueno ? "text-agua" : "text-white/80"}`}>
+        <span className={bueno ? "font-semibold text-noche" : "text-gris"}>{nombre}</span>
+        <span className={`font-semibold tabular-nums ${bueno ? "text-electrico" : "text-gris"}`}>
           {plan.noTermina ? "No termina" : `${plan.meses} meses`}
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-white/10">
+      <div className="h-3 overflow-hidden rounded-full bg-niebla">
         <div
-          className={`barra h-full origin-left rounded-full ${bueno ? "bg-agua shadow-[0_0_16px_rgb(133_200_255/.6)]" : "bg-white/35"}`}
+          className={`barra h-full origin-left rounded-full ${bueno ? "bg-electrico" : "bg-linea-fuerte"}`}
           style={{ width: `${ancho}%`, animationName: "estirar" }}
         />
       </div>
@@ -58,9 +58,9 @@ export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisi
     return (
       <>
         <Portada>
-          <p className="text-sm font-medium text-white/60">Tus deudas</p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-balance">Nada pendiente</h1>
-          <p className="mt-3 text-white/70">Tu mes depende solo de tus ingresos y tus gastos.</p>
+          <p className="text-[15px] text-gris">Tus deudas</p>
+          <h1 className="mt-1 text-[2rem] font-semibold tracking-[-0.025em] text-noche text-balance">Nada pendiente</h1>
+          <p className="mt-3 text-gris">Tu mes depende solo de tus ingresos y tus gastos.</p>
         </Portada>
         <div className={`${tarjeta} aparecer py-12 text-center`}>
           <div className="mb-4 flex justify-center text-agua-fuerte">
@@ -77,26 +77,26 @@ export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisi
   return (
     <>
       <Portada>
-        <p className="text-sm font-medium text-white/60">Que tus deudas bajen</p>
+        <p className="text-[15px] text-gris">Que tus deudas bajen</p>
         {avalancha.noTermina ? (
-          <h1 className="mt-2 text-3xl font-bold leading-tight text-balance">
+          <h1 className="mt-1 text-[1.75rem] font-semibold leading-tight tracking-[-0.025em] text-noche text-balance">
             Con lo que pagas hoy, tus deudas no bajan
           </h1>
         ) : (
           <>
-            <p className="mt-2 text-white/80">Pagando en orden, quedas libre en</p>
-            <h1 className="text-6xl font-bold tracking-tight tabular-nums">
+            <p className="mt-1 text-lg text-noche">Pagando en orden, quedas libre en</p>
+            <h1 className="mt-1 text-[3.5rem] font-semibold leading-none tracking-[-0.045em] text-noche tabular-nums md:text-[4rem]">
               {avalancha.meses}
-              <span className="ml-2 text-2xl font-semibold text-white/70">meses</span>
+              <span className="ml-2 text-2xl font-medium tracking-normal text-gris">meses</span>
             </h1>
           </>
         )}
-        <div className="vidrio aparecer mt-6 space-y-4 rounded-3xl p-4">
+        <div className="mt-7 space-y-4 border-t border-linea pt-6">
           <Carrera nombre="Pagando en orden" plan={avalancha} tope={tope} bueno />
           <Carrera nombre="Pagando solo el mínimo" plan={minimos} tope={tope} />
         </div>
         {comparacion.ahorroVsMinimos > 0 && (
-          <p className="aparecer mt-5 inline-flex items-center gap-2 rounded-full bg-agua px-4 py-2 font-bold text-noche shadow-[0_0_24px_rgb(133_200_255/.45)] [animation-delay:.3s]">
+          <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-verde-suave px-4 py-2 font-semibold text-verde-fuerte">
             Te ahorras {unido(formatoSoles(comparacion.ahorroVsMinimos))} en intereses
           </p>
         )}
@@ -104,15 +104,15 @@ export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisi
       <div className="space-y-5">
         {aviso && <TarjetaAviso aviso={aviso} />}
         <section className={tarjeta}>
-          <h2 className="mb-4 text-lg font-bold">La diferencia está en cómo pagas</h2>
+          <h2 className="mb-4 text-lg font-semibold text-noche">La diferencia está en cómo pagas</h2>
           <div className="grid grid-cols-2 gap-3">
             <Plan titulo="Pagando en orden" plan={avalancha} bueno />
             <Plan titulo="Pagando solo el mínimo" plan={minimos} />
           </div>
         </section>
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-agua-fuerte">Tu plan</p>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight">Tus deudas, en orden</h2>
+          <p className="text-sm font-medium text-agua-fuerte">Tu plan</p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-[-0.025em] text-noche">Tus deudas, en orden</h2>
           <p className="mt-1 text-gris">Primero la que más te cuesta al año.</p>
         </div>
         {[...perfil.deudas]
@@ -122,12 +122,12 @@ export function Deudas({ perfil, analisis }: { perfil: Perfil; analisis: Analisi
             return (
               <article
                 key={deuda.id}
-                className={`${tarjeta} aparecer flex gap-4 ${primera ? "ring-2 ring-agua" : ""}`}
+                className={`${tarjeta} aparecer flex gap-4 ${primera ? "border-electrico shadow-[0_0_0_1px_var(--color-electrico)]" : ""}`}
                 style={{ animationDelay: `${i * 80}ms` }}
               >
                 <span
                   aria-hidden="true"
-                  className={`flex size-10 shrink-0 items-center justify-center rounded-2xl text-lg font-bold ${primera ? "bg-agua text-noche" : "bg-papel text-gris"}`}
+                  className={`flex size-10 shrink-0 items-center justify-center rounded-2xl text-lg font-bold ${primera ? "bg-agua-suave text-electrico" : "bg-papel text-gris"}`}
                 >
                   {i + 1}
                 </span>

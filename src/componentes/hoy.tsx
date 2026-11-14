@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   formatoSoles,
   formatoLargo,
@@ -15,7 +15,6 @@ import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { Grafico } from "@/componentes/grafico";
 import { boton, tarjeta, Icono, desplazar, unido } from "@/componentes/ui";
 import { Tablero, cifras, pulso } from "@/componentes/tablero";
-import type { Direccion } from "@/componentes/copiloto";
 
 export function Hoy({
   perfil,
@@ -23,14 +22,12 @@ export function Hoy({
   sonando,
   leer,
   detener,
-  direccion = "a",
 }: {
   perfil: Perfil;
   analisis: Analisis;
   sonando: boolean;
   leer: (texto: string) => void;
   detener: () => void;
-  direccion?: Direccion;
 }) {
   const [jugada, seleccionar] = useState<Jugada>();
   const grafico = useRef<HTMLElement>(null);
@@ -52,18 +49,13 @@ export function Hoy({
         elegir={j => seleccionar(jugada?.id === j.id ? undefined : j)}
         sonando={sonando}
         alternarVoz={alternarVoz}
-        direccion={direccion}
       />
     </div>
     <div className="space-y-6 md:mx-auto md:max-w-xl md:px-6 md:py-10 lg:hidden">
-      {direccion === "b" ? (
-        <CabinaB perfil={perfil} analisis={analisis} aviso={principal} />
-      ) : (
-        <Cabina perfil={perfil} analisis={analisis} despues={despues} aviso={principal} />
-      )}
+      <Pulso perfil={perfil} analisis={analisis} despues={despues} aviso={principal} />
       <section
         ref={grafico}
-        className={`${direccion === "b" ? "-mx-4 bg-agua-suave px-5 py-6 md:mx-0 md:rounded-3xl" : tarjeta} aparecer scroll-mt-36`}
+        className={`${tarjeta} aparecer scroll-mt-36`}
         style={{ animationDelay: ".15s" }}
       >
         <div className="flex items-start justify-between gap-3">
@@ -90,7 +82,7 @@ export function Hoy({
           base={analisis.proyeccion}
           despues={despues}
           descripcion={`${principal.titulo}. ${principal.cuerpo}`}
-          fondo={direccion === "b" ? "var(--color-agua-suave)" : "white"}
+          fondo="white"
         />
         {jugada && despues && <Resultado key={jugada.id} jugada={jugada} despues={despues} />}
       </section>
@@ -139,8 +131,8 @@ export function Hoy({
   );
 }
 
-/* ---------- Dirección A (celular): el aviso como única tarjeta azul ---------- */
-function Cabina({
+/* ---------- Celular e iPad: la tarjeta del pulso (única superficie azul) y la franja compacta de cifras ---------- */
+function Pulso({
   perfil,
   analisis,
   despues,
@@ -154,14 +146,13 @@ function Cabina({
   const d = analisis.proyeccion.deficit;
   return (
     <>
-      <section className="aparecer px-1">
-        <p className="text-[15px] text-gris">Hoy tienes</p>
-        <Saldo key={perfil.id} monto={perfil.saldoActual} />
-        <p className="mt-1.5 text-sm text-gris">Datos de demostración al {formatoLargo(analisis.hoy)}</p>
-      </section>
-      <section className="aparecer rounded-[28px] bg-electrico p-6 text-white" style={{ animationDelay: ".08s" }}>
+      <header className="px-1">
+        <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.025em] text-noche">Hola, {perfil.nombre}</h1>
+        <p className="mt-1 text-sm text-gris">Datos de demostración al {formatoLargo(analisis.hoy)}</p>
+      </header>
+      <section className="aparecer rounded-[28px] bg-electrico p-6 text-white">
         <p className="flex w-fit items-center gap-2 rounded-full bg-white/12 px-3 py-1.5 text-sm font-medium">
-          <span className="punto-vivo size-2 rounded-full bg-[#ffb3b8]" aria-hidden="true" />
+          <span className="size-2 rounded-full bg-[#ffb3b8]" aria-hidden="true" />
           {aviso.nivel === "urgente" ? "Anticípate" : aviso.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
         </p>
         {d ? (
@@ -177,72 +168,15 @@ function Cabina({
         </p>
         <Mes proyeccion={despues ?? analisis.proyeccion} />
       </section>
-    </>
-  );
-}
-
-/* ---------- Dirección B (celular): sin tarjeta, la cifra a tamaño de cartel ---------- */
-function CabinaB({ perfil, analisis, aviso }: { perfil: Perfil; analisis: Analisis; aviso: Aviso }) {
-  const d = analisis.proyeccion.deficit;
-  return (
-    <section className="aparecer -mx-4 -mt-6 bg-white px-5 pb-8 pt-8 md:mx-0 md:mt-0 md:rounded-3xl">
-      <p className="text-sm text-gris">
-        {perfil.nombre} · cuenta demo · al {formatoLargo(analisis.hoy)}
-      </p>
-      {d ? (
-        <>
-          <h1 className="mt-6 text-[1.625rem] font-medium leading-tight tracking-[-0.025em] text-noche">
-            El {formatoLargo(d.fecha)}, te faltarán
-          </h1>
-          <p className="-ml-[0.05em] mt-1 text-[clamp(3.5rem,19vw,6.5rem)] font-semibold leading-[0.88] tracking-[-0.06em] text-coral-fuerte tabular-nums">
-            {unido(formatoSoles(d.faltante))}
-          </p>
-        </>
-      ) : (
-        <h1 className="mt-6 text-[2.25rem] font-semibold leading-tight tracking-[-0.035em] text-noche">{unido(aviso.titulo)}</h1>
-      )}
-      <p className="mt-5 text-lg leading-relaxed text-noche">
-        {d ? `Ese día se juntan ${pulso(analisis)?.causa}. Quedan ${d.diasRestantes} días: todavía estás a tiempo.` : unido(aviso.cuerpo)}
-      </p>
-      <dl className="mt-7 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-linea pt-5">
-        {cifras(perfil, analisis).map(([titulo, valor]) => (
-          <div key={titulo}>
+      <dl className="aparecer grid grid-cols-2 rounded-[22px] border border-linea bg-white" style={{ animationDelay: ".08s" }}>
+        {cifras(perfil, analisis).map(([titulo, valor], i) => (
+          <div key={titulo} className={`px-4 py-4 ${i % 2 ? "border-l border-linea" : ""} ${i > 1 ? "border-t border-linea" : ""}`}>
             <dt className="text-sm leading-snug text-gris">{titulo}</dt>
-            <dd className="mt-1 text-[1.5rem] font-semibold leading-none tracking-[-0.03em] text-noche tabular-nums">{unido(valor)}</dd>
+            <dd className="mt-1.5 text-[1.5rem] font-semibold leading-none tracking-[-0.03em] text-noche tabular-nums">{unido(valor)}</dd>
           </div>
         ))}
       </dl>
-    </section>
-  );
-}
-
-/** Cuenta desde 0 hasta el saldo exacto que dio el motor. Sin JavaScript se ve el valor final. */
-function Saldo({ monto }: { monto: number }) {
-  const cifra = useRef<HTMLSpanElement>(null);
-  useLayoutEffect(() => {
-    const nodo = cifra.current;
-    if (!nodo || !window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    // Solo cambia el texto en pantalla; el valor final siempre es el del motor.
-    const pintar = (valor: number) => (nodo.textContent = unido(formatoSoles(valor)));
-    let cuadro = 0;
-    const inicio = performance.now();
-    const paso = (ahora: number) => {
-      const t = Math.min((ahora - inicio) / 1100, 1);
-      pintar(t === 1 ? monto : Math.round(monto * (1 - Math.pow(1 - t, 4))));
-      if (t < 1) cuadro = requestAnimationFrame(paso);
-    };
-    pintar(0);
-    cuadro = requestAnimationFrame(paso);
-    return () => {
-      cancelAnimationFrame(cuadro);
-      pintar(monto);
-    };
-  }, [monto]);
-  return (
-    <h1 className="mt-1 text-[2.75rem] font-semibold leading-none tracking-[-0.04em] text-noche tabular-nums">
-      <span ref={cifra} aria-hidden="true">{unido(formatoSoles(monto))}</span>
-      <span className="sr-only">{formatoSoles(monto)}</span>
-    </h1>
+    </>
   );
 }
 
@@ -341,11 +275,11 @@ function TarjetaJugada({
       <p className="mt-1.5 text-[15px] leading-relaxed text-gris">{j.detalle}</p>
       <dl className="mt-4 grid grid-cols-2 gap-2">
         <div className="rounded-2xl bg-agua-suave/70 p-3">
-          <dt className="text-[11px] font-bold uppercase tracking-wider text-agua-fuerte">Libera</dt>
+          <dt className="text-sm font-medium text-agua-fuerte">Te libera</dt>
           <dd className="mt-0.5 text-lg font-bold tabular-nums text-tinta">{unido(formatoSoles(j.libera))}</dd>
         </div>
         <div className="rounded-2xl bg-papel p-3">
-          <dt className="text-[11px] font-bold uppercase tracking-wider text-gris">{j.costo === 0 ? "Costo" : "Cuesta"}</dt>
+          <dt className="text-sm font-medium text-gris">Te cuesta</dt>
           <dd className="mt-0.5 text-lg font-bold tabular-nums text-tinta">
             {j.costo === 0 ? "No cuesta dinero" : unido(formatoSoles(j.costo))}
           </dd>
@@ -368,13 +302,13 @@ function Pagos({ analisis }: { analisis: Analisis }) {
   const pagos = proximosPagos(analisis, 7);
   return (
     <section className={`${tarjeta} aparecer`} style={{ animationDelay: ".2s" }}>
-      <p className="text-xs font-bold uppercase tracking-widest text-agua-fuerte">Próximos 7 días</p>
+      <p className="text-sm font-medium text-agua-fuerte">Próximos 7 días</p>
       <h2 className="mt-1 mb-2 text-xl font-bold tracking-tight">Lo que sale esta semana</h2>
       {pagos.length ? (
         pagos.map((p, i) => (
           <div key={`${p.fecha}-${i}`} className="flex items-center gap-3 border-t border-linea py-3.5">
             <span className="flex size-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-papel text-center leading-none">
-              <span className="text-[10px] font-bold uppercase text-gris">{formatoCorto(p.fecha).split(" ")[1] ?? ""}</span>
+              <span className="text-[11px] font-semibold text-gris">{formatoCorto(p.fecha).split(" ")[1] ?? ""}</span>
               <span className="mt-0.5 text-base font-bold">{formatoCorto(p.fecha).split(" ")[0]}</span>
             </span>
             <p className="min-w-0 flex-1 font-medium">{p.descripcion}</p>

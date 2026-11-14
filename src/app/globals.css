@@ -52,43 +52,6 @@ body {
   overflow-wrap: normal;
 }
 
-/* ---------- Cabina (parte superior oscura) ---------- */
-.cabina {
-  background:
-    radial-gradient(120% 70% at 85% 0%, rgb(133 200 255 / 0.20), transparent 60%),
-    radial-gradient(90% 60% at 0% 100%, rgb(20 100 165 / 0.35), transparent 65%),
-    linear-gradient(180deg, var(--color-noche-honda), var(--color-noche) 70%);
-}
-.cabina[data-alerta="si"] {
-  background:
-    radial-gradient(110% 70% at 90% 5%, rgb(255 90 95 / 0.26), transparent 60%),
-    radial-gradient(90% 60% at 0% 100%, rgb(20 100 165 / 0.30), transparent 65%),
-    linear-gradient(180deg, var(--color-noche-honda), var(--color-noche) 70%);
-}
-.aurora {
-  position: absolute;
-  inset: -40% -20% auto auto;
-  width: 22rem;
-  height: 22rem;
-  border-radius: 9999px;
-  filter: blur(60px);
-  opacity: 0.45;
-  animation: deriva 14s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-@keyframes deriva {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(-3rem, 2.5rem, 0) scale(1.15); }
-}
-
-/* Vidrio para cabecera, navegación y tarjetas dentro de la cabina */
-.vidrio {
-  background: rgb(255 255 255 / 0.07);
-  border: 1px solid rgb(255 255 255 / 0.12);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-}
-
 /* ---------- Movimiento ---------- */
 .aparecer {
   animation: aparecer 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -110,27 +73,11 @@ body {
 .latido {
   transform-box: fill-box;
   transform-origin: center;
-  animation: latido 1.8s ease-out infinite;
+  animation: latido 1.8s ease-out 1.3s 1 both;
 }
 @keyframes latido {
   from { transform: scale(1); opacity: 0.7; }
   to { transform: scale(3.2); opacity: 0; }
-}
-
-.punto-vivo {
-  position: relative;
-}
-.punto-vivo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 9999px;
-  background: currentColor;
-  animation: halo 1.8s ease-out infinite;
-}
-@keyframes halo {
-  from { transform: scale(1); opacity: 0.6; }
-  to { transform: scale(2.8); opacity: 0; }
 }
 
 .barra {
