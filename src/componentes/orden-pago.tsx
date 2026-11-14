@@ -44,7 +44,7 @@ export function OrdenDePago({ r }: { r: ResultadoPrioridad }) {
         {r.alcanzaParaTodo ? (
           <>
             Con <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> disponibles este mes cubres todos los mínimos
-            y te sobran <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.sobrante))}</span>.
+            {r.sobrante > 0 ? <> y aún te sobran <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.sobrante))}</span></> : " y el resto va a la deuda más cara"}.
           </>
         ) : (
           <>
