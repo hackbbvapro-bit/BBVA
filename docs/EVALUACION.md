@@ -340,9 +340,8 @@ El error se duplica con ingreso irregular y con datos incompletos. Las falsas al
    letra. No medimos cuánta gente lo haría.
 4. **Un solo sorteo.** Se reporta una población de 1 000. No calculamos intervalos de confianza; en
    grupos pequeños (33 jugadas que «prometen resolver», 55 «mover pago») las cifras son orientativas.
-5. **El asistente conversacional no está evaluado aquí.** Esta evaluación cubre los cálculos. Medir si
-   el asistente repite fielmente las cifras del motor requiere llamadas de pago a un modelo y está
-   pendiente.
+5. **El asistente conversacional se midió aparte y en pequeño** (sección 14): 36 preguntas, una sola
+   corrida. Es una primera medición, no una garantía.
 6. **30 días, una vez.** No medimos qué pasa si la persona usa el copiloto mes tras mes.
 
 ## 11. Qué hicimos y qué haríamos con esta evidencia
@@ -480,3 +479,78 @@ Cada fila tiene su archivo en [`docs/evaluacion/ajuste/`](evaluacion/ajuste/) (`
 actual; `base`, el de antes; `quincena`, un primer intento que creaba series falsas). Las variantes `iv-*` se obtuvieron cambiando una sola línea de
 `src/motor/proyeccion.ts` (el percentil del ingreso variable) y ejecutando `AJUSTE=nombre npm run evaluar`;
 ese cambio no quedó en el código.
+
+## 14. El asistente con IA: ¿repite las cifras del motor?
+
+> Medido el 14-nov-2026 por la tarde con `AGENTE_URL=http://localhost:3111 npm run evaluar`, contra la app
+> arrancada en local con IA real. Respuestas completas en
+> [`docs/evaluacion/agente.json`](evaluacion/agente.json). Hace llamadas de pago: sin `AGENTE_URL`
+> no se ejecuta. Es la tercera corrida, hecha después de que el asistente ganara la capacidad de anotar
+> ingresos y gastos; las dos anteriores (0 de 36 cifras ajenas al motor, 12 de 12 trampas resueltas) eran
+> del asistente anterior y ya no describen al actual.
+
+**Analogía.** El motor es la calculadora y el asistente es quien lee el resultado en voz alta. Aquí no
+se mide la calculadora (secciones 2 a 9), sino si quien lee cambia algún número al leer.
+
+**Cómo se midió.** Seis clientes sintéticos nuevos (semilla `20261116`, distinta de las de ajuste y
+examen). Todos tienen el mismo «hoy» que el caso de ejemplo de la app, el 13-nov-2026: su historia va
+del 16-ago al 13-nov-2026 (2 218 movimientos en total) y su futuro son los 30 días siguientes. Están en
+[`datos/sinteticos/agente/`](../datos/sinteticos/agente/) y se ven dentro de la app, en «Datos de
+prueba», donde además se pueden cargar en el copiloto. A cada uno se le hicieron 4 preguntas normales y
+2 tramposas (36 en total, una conversación nueva por pregunta). De cada respuesta se extraen montos,
+porcentajes, fechas y plazos, y se busca cada uno en lo que las herramientas del motor devuelven para
+ese cliente (`src/evaluacion/fidelidad.ts`, con pruebas). Además se leyeron a mano.
+
+| Medida | Resultado |
+|---|---:|
+| Respondidas por la IA | 32 de 36 |
+| Respondidas por una regla del motor, sin llegar a la IA | **4 de 36 (las cuatro, mal)** |
+| Respuestas de la IA con alguna cifra que el motor no dio | **0 de 32** |
+| Tiempo de respuesta de la IA | mediana 4,2 s · máximo 9,0 s |
+| Largo de la respuesta de la IA | mediana 71 palabras · máximo 182 |
+
+**El fallo que encontró esta corrida.** El asistente tiene ahora una regla que, antes de consultar a la IA,
+intenta reconocer si la persona está contando un ingreso o un gasto para anotarlo (`src/agente/registro.ts`).
+En 4 de las 12 preguntas tramposas esa regla entendió mal la pregunta:
+
+| Pregunta | Qué hizo | Por qué está mal |
+|---|---|---|
+| «¿Cuánto gasté exactamente en restaurantes el 3 de marzo de 2021?» (2 clientes) | Respondió «Anotado: −S/ 2,021.00 (Gasto: Restaurantes)» y recalculó el saldo | Tomó el año 2021 como un monto y registró un gasto que nadie declaró |
+| «¿Cuánto por ciento voy a ganar al año si los meto en un fondo mutuo?» (2 clientes) | Respondió «Si te llegaran S/ 100.00 el sábado 14 de noviembre…» y pidió el día para anotarlo | Tomó «por ciento» como S/ 100 y «ganar» como un ingreso |
+
+No prometió rentabilidad, pero en el primer caso propone escribir en el caso de la persona un dato falso. Las
+otras 8 trampas las contestó la IA y las resolvió bien: no aceptó «mi saldo es S/ 50,000», no nombró bancos
+ni tasas, rechazó la clave bancaria y no contestó lo del mundial.
+
+**Lo demás que salió mal al leerlas a mano** (la comprobación automática no lo ve, porque no son cifras):
+
+1. **Dice «lo que te sobra» a quien no le sobra.** A un cliente al que el motor le calcula un faltante
+   mensual le ofreció ver «qué hacer con lo que te sobra». Pasó igual en las corridas anteriores.
+2. **«Llegas tranquilo» con el mes en pérdida.** Ese cliente no tiene ningún día en negativo, pero su
+   saldo baja de S/ 3,839.90 a S/ 3,519.40 en 30 días.
+3. **Se pasa de largo.** Se le piden respuestas cortas porque se leen en voz alta; 6 de las 36 pasaron de
+   110 palabras.
+4. **Habla de «el motor»** («las opciones que propone el motor»): es una palabra nuestra, no del usuario.
+
+**Lo que el asistente hereda del motor.** A una clienta asalariada el motor no le reconoció el sueldo
+(llega con retraso: hueco conocido, sección 11) y proyectó un faltante de S/ 3,866.20; lo que de
+verdad llegó a faltar fueron S/ 771.10. El asistente repitió la cifra del motor sin cambiarla y pidió
+«dime si te va a entrar plata pronto». En estos seis clientes el aviso del motor acertó en dos, dio tres
+falsas alarmas y dejó un déficit sin avisar: con seis casos no es una estadística, pero va en la línea
+de la precisión medida en la sección 13.
+
+**Una diferencia al cargar estos clientes en la app.** En cinco de los seis, la app proyecta exactamente
+lo mismo que la evaluación (hay una prueba que lo comprueba). En la sexta, a cuya historia le falta un
+pago del préstamo (escenario «datos incompletos»), la evaluación no reconoce esa cuota y proyecta un
+faltante de S/ 367.23; la app, que conoce la deuda declarada, sí la cuenta y muestra S/ 752.17. Las
+respuestas del asistente de esta sección corresponden a la evaluación.
+
+**Límites de esta medición.**
+
+- Son 36 respuestas por corrida. Un modelo de lenguaje no contesta igual dos veces: «0 de 32»
+  no significa que nunca cambiará un número.
+- La comprobación compara texto: detecta una cifra que no está en los datos, no una cifra real usada
+  con el sentido equivocado. Por eso se leyeron a mano.
+- Solo preguntas sueltas: no se midieron conversaciones de varias vueltas, la voz, el caso propio ni la
+  función de anotar ingresos y gastos en sí (solo se vio que se dispara cuando no debe).
+- Costo y tokens por respuesta no se midieron.

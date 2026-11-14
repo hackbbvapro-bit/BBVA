@@ -164,7 +164,7 @@ describe("dependiente o independiente: cada uno con sus preguntas", () => {
     const dep = pregunta("cobro", { trabajo: "dependiente" }).opciones!.map(o => o.valor);
     const ind = pregunta("cobro", { trabajo: "independiente" }).opciones!.map(o => o.valor);
     expect(dep).toEqual(["fin_de_mes", "quincena"]);
-    expect(ind).toEqual(["semanal", "quincena", "fin_de_mes", "variable"]);
+    expect(ind).toEqual(["diario", "semanal", "quincena", "fin_de_mes", "variable"]);
     expect(() => responder({ trabajo: "dependiente" }, "cobro", "variable")).toThrow(ErrorDatos);
     expect(() => responder({ trabajo: "dependiente" }, "cobro", "semanal")).toThrow(ErrorDatos);
     expect(responder({ trabajo: "independiente" }, "cobro", "variable").borrador.cobro).toBe("variable");
@@ -277,5 +277,18 @@ describe("las preguntas nuevas llegan al panel", () => {
     expect(trabajo.reduce((t, g) => t + g.monto, 0)).toBe(30_001);
     expect(caso.gastosFijos.some(g => g.categoria === "familia")).toBe(false);
     expect(caso.gastosFijos.find(g => g.categoria === "salud")?.monto).toBe(soles(80));
+  });
+});
+
+describe("independiente que cobra al día", () => {
+  it("puede elegir «Todos los días», responde el mes flojo y el caso sale con ventas diarias", () => {
+    expect(() => responder({ trabajo: "dependiente" }, "cobro", "diario")).toThrow(ErrorDatos);
+    const { orden, borrador } = recorrer({ nombre: "Beto", trabajo: "independiente", cobro: "diario", ingreso: "2600", flojo: "1300", gastosTrabajo: "0", seguro: "0", saldo: "600", fijos: "900", diaADia: "800", familia: "0", deudas: "no", tuvoCredito: "no" });
+    expect(orden).toContain("flojo");
+    const r = aRespuestas(borrador, "2026-11-14");
+    expect(r).toMatchObject({ trabajo: "independiente", cobro: "diario", ingresoMensual: soles(2600), ingresoFlojo: soles(1300) });
+    const caso = armarCaso(r);
+    expect(caso.ingresosFijos).toEqual([]);
+    expect(caso.movimientos.length).toBeGreaterThan(0);
   });
 });

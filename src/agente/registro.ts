@@ -342,6 +342,36 @@ const HALLAZGO = /(^| )(me encontre|encontre|halle|me halle|me tope con)( |$)/;
 const REGALO = /(^| )(me regalaron|me regalo|me obsequiaron|me obsequio)( |$)/;
 const INGRESO_GENERAL = /(^| )(gano|me pagan|cobro|recibo|sueldo|salario|ingreso)( |$)/;
 
+/** Con qué empieza una pregunta: «cuánto gasté…», «qué pasa…», «por qué…». Va sobre el texto ya normalizado. */
+const INTERROGATIVA = /^(cuanto|cuanta|cuantos|cuantas|cuando|que|como|donde|adonde|cual|cuales|quien|quienes|por que|para que|a cuanto|de cuanto|en que)( |$)/;
+const NOMBRES_DE_MES = Object.keys(MESES).join("|");
+
+/**
+ * Lo que la persona AFIRMA: el mensaje sin sus preguntas. Una pregunta nunca anota nada, aunque traiga un verbo
+ * como «gasté» o «ganar» y un número: «¿cuánto gasté el 3 de marzo de 2021?» no es un gasto de 2021 soles.
+ * «Me van a dar 100 por limpiar ¿cómo cambia mi situación?» conserva la primera parte, que sí es para anotar.
+ */
+export function soloAfirmaciones(texto: string): string {
+  return texto
+    .split(/(?<=[.!?])\s+|(?=¿)/)
+    .filter(oracion => !oracion.trimStart().startsWith("¿") && !INTERROGATIVA.test(normalizar(oracion)))
+    .join(" ")
+    .trim();
+}
+
+/**
+ * Quita lo que parece un monto y no lo es, antes de buscar la cifra: el año de una fecha («3 de marzo de 2021»,
+ * «en 2021») y los porcentajes («5 %», «diez por ciento»; «ciento» solo se leería como cien soles).
+ */
+export function sinFechasNiPorcentajes(texto: string): string {
+  return texto
+    .replace(new RegExp(`\\b(${NOMBRES_DE_MES})(\\s+del?)?\\s+(19|20)\\d{2}\\b`, "gi"), "$1")
+    .replace(/\b(en|del|el|a[nñ]o)\s+(19|20)\d{2}\b(?!\s*(soles|sol|lucas|mangos)\b)/gi, "$1")
+    .replace(/\d+(?:[.,]\d+)?\s*%/g, " ")
+    // «un diez por ciento»: se van también las dos palabras de antes, que son el número del porcentaje.
+    .replace(/(?:\S+\s+){0,2}por\s+ciento\b/gi, " ");
+}
+
 export type Lectura =
   | { tipo: "accion"; accion: Accion }
   /** Falta la fecha de un pago por llegar: `vistaPrevia` supone que llega mañana, solo para mostrar el efecto. */
@@ -354,15 +384,17 @@ export type Lectura =
  * `previa` es el mensaje anterior de la persona: «el viernes» completa «me van a dar 100».
  */
 export function interpretarRegistro(texto: string, hoy: FechaISO, previa?: string): Lectura | null {
-  const t = normalizar(texto);
+  // Solo se lee lo que la persona afirma; sus preguntas se dejan para quien responde (la IA o el motor).
+  const dicho = soloAfirmaciones(texto);
+  const t = normalizar(dicho);
   if (!t) return null;
   if (HIPOTESIS.test(t)) return null;
-  const hallado = buscarMonto(texto);
+  const hallado = buscarMonto(sinFechasNiPorcentajes(dicho));
   if (!hallado) {
     // «el viernes», «el 20»: completa el mensaje anterior si a ese le faltaba la fecha o el día.
-    if (previa && (leerFecha(texto, hoy) || leerDiaDelMes(t))) {
+    if (previa && (leerFecha(dicho, hoy) || leerDiaDelMes(t))) {
       const antes = interpretarRegistro(previa, hoy);
-      if (antes && (antes.tipo === "falta_fecha" || antes.tipo === "falta_dia")) return interpretarRegistro(`${previa} ${texto}`, hoy);
+      if (antes && (antes.tipo === "falta_fecha" || antes.tipo === "falta_dia")) return interpretarRegistro(`${soloAfirmaciones(previa)} ${dicho}`, hoy);
     }
     return null;
   }
@@ -394,7 +426,7 @@ export function interpretarRegistro(texto: string, hoy: FechaISO, previa?: strin
     };
   }
   if (INGRESO_FUTURO.test(t)) {
-    const fecha = leerFecha(texto, hoy);
+    const fecha = leerFecha(dicho, hoy);
     const quien = de ?? "Ingreso por llegar";
     if (!fecha) {
       return {
