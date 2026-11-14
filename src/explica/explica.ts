@@ -57,10 +57,14 @@ function avisoDeficit(analisis: Analisis): Aviso | undefined {
   const salida = jugada
     ? ` La salida más barata: ${minusculaInicial(jugada.titulo)}; ${jugada.costo > 0 ? `cuesta ${formatoSoles(jugada.costo)}` : "no cuesta dinero"}.`
     : analisis.jugadas.length > 0 ? " Ninguna jugada alcanza sola: hay que combinar dos." : "";
+  // El título dice el primer día en rojo; si después el hueco crece, se avisa hasta dónde llega.
+  const fondo = deficit.faltanteMaximo > deficit.faltante
+    ? ` Si no haces nada, el hueco crece hasta ${formatoSoles(deficit.faltanteMaximo)} el ${formatoLargo(deficit.fechaFaltanteMaximo)}.`
+    : "";
   return {
     id: "deficit", nivel: "urgente", fecha: deficit.fecha,
     titulo: `${enDias(deficit.diasRestantes)} te faltarán ${formatoSoles(deficit.faltante)}`,
-    cuerpo: `El ${formatoLargo(deficit.fecha)} ${verbo} ${causas} y la cuenta queda en rojo.${salida}`,
+    cuerpo: `El ${formatoLargo(deficit.fecha)} ${verbo} ${causas} y la cuenta queda en rojo.${fondo}${salida}`,
   };
 }
 
