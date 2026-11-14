@@ -44,10 +44,29 @@ describe("agente sin clave de IA", () => {
   });
 });
 
+describe("agente que anota sin clave de IA", () => {
+  it("«me acaban de pagar 1.000» devuelve la acción, la frase del motor y origen motor", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    const eventos: EventoAgente[] = [];
+    for await (const e of responder({ perfil, analisis, mensajes: [{ rol: "usuario", texto: "me acaban de pagar 1.000" }] })) eventos.push(e);
+    expect(eventos.map(e => e.tipo)).toEqual(["accion", "texto", "fin"]);
+    expect(eventos[0]).toMatchObject({ accion: { tipo: "saldo", monto: 100_000 } });
+    expect(eventos[2]).toEqual({ tipo: "fin", origen: "motor" });
+  });
+
+  it("una deuda sin datos completos solo orienta y no anota nada", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    const eventos: EventoAgente[] = [];
+    for await (const e of responder({ perfil, analisis, mensajes: [{ rol: "usuario", texto: "debo 2000 a mi primo" }] })) eventos.push(e);
+    expect(eventos.some(e => e.tipo === "accion")).toBe(false);
+    expect(eventos.at(-1)).toEqual({ tipo: "fin", origen: "motor" });
+  });
+});
+
 describe("herramientas e instrucciones", () => {
-  it("hay cinco herramientas con nombre único y todas devuelven JSON del motor", async () => {
+  it("hay ocho herramientas con nombre único y todas devuelven JSON del motor", async () => {
     const herramientas = crearHerramientas(perfil, analisis);
-    expect(new Set(herramientas.map(h => h.name)).size).toBe(5);
+    expect(new Set(herramientas.map(h => h.name)).size).toBe(8);
     const simular = herramientas.find(h => h.name === "simular_gasto");
     const salida = await simular?.run({ monto_soles: 80, fecha: analisis.hoy } as never);
     expect(JSON.parse(String(salida))).toHaveProperty("alcanza");
@@ -90,11 +109,11 @@ describe("herramientas e instrucciones", () => {
 });
 
 describe("herramientas e instrucciones cuando hay ruta", () => {
-  it("se suma ver_ruta a las cinco de siempre y devuelve la ruta del motor en JSON", async () => {
+  it("se suma ver_ruta a las ocho de siempre y devuelve la ruta del motor en JSON", async () => {
     const ruta = trazarRuta(perfil, analisis, SIN_HECHOS);
     const herramientas = crearHerramientas(perfil, analisis, ruta);
-    expect(herramientas.map(h => h.name)).toHaveLength(6);
-    expect(new Set(herramientas.map(h => h.name)).size).toBe(6);
+    expect(herramientas.map(h => h.name)).toHaveLength(9);
+    expect(new Set(herramientas.map(h => h.name)).size).toBe(9);
     const verRuta = herramientas.find(h => h.name === "ver_ruta");
     const salida = JSON.parse(String(await verRuta?.run({} as never)));
     expect(salida).toMatchObject({ ruta: ruta.titulo, pasos: ruta.pasos, aviso: ruta.aviso });

@@ -144,9 +144,10 @@ export function Entrada({
               autoFocus
               value={texto}
               onChange={e => setTexto(e.target.value)}
-              inputMode={p.clase === "soles" ? "decimal" : "text"}
+              // Teclado normal también en soles: se puede responder «250» o «doscientos cincuenta», escrito o dictado.
+              inputMode={p.clase === "dia" ? "numeric" : "text"}
               autoComplete="off"
-              maxLength={p.clase === "soles" ? 14 : 60}
+              maxLength={p.clase === "dia" ? 2 : p.clase === "soles" ? 40 : 60}
               placeholder={p.marcador}
               className={`${caja} ${p.clase === "soles" ? "pl-10 tabular-nums" : ""}`}
             />

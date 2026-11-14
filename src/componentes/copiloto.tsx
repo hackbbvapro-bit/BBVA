@@ -5,7 +5,9 @@ import { avisosDelCentro, pendientesSinLeer, type Destino } from "@/avisos/centr
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
 import { fijarSalidas } from "@/cliente/salidas";
 import { guardarSituacion, leerSituacion } from "@/cliente/situacion";
-import { hechosDe, saludoDeRuta, trazarRuta } from "@/ruta/ruta";
+import { avanceDe, hechosDe, saludoDeRuta, trazarRuta, type IdPaso } from "@/ruta/ruta";
+import { guardarAvances, leerAvances } from "@/cliente/memoria";
+import { MiRuta } from "@/componentes/tu-ruta";
 import { Hoy, type IrDesdeInicio } from "@/componentes/hoy";
 import { Deudas, type AbrirDeudas, type PestanaDeudas } from "@/componentes/deudas";
 import { MiDinero } from "@/componentes/mi-dinero";
@@ -19,13 +21,21 @@ import { Perfil as VistaPerfil } from "@/componentes/perfil";
 import { ComoFunciona } from "@/componentes/como-funciona";
 import { Bienvenida, guardarModo, leerModo, type Modo } from "@/componentes/bienvenida";
 import { ID_PROPIO } from "@/datos/semilla";
+import { anotarEnRepo, type Deshacer } from "@/datos/anotar";
+import type { Accion } from "@/agente/registro";
 
-type Pestana = "hoy" | "dinero" | "deudas" | "asistente" | "perfil" | "como";
+type Pestana = "hoy" | "ruta" | "dinero" | "deudas" | "asistente" | "perfil" | "como";
 type Enlace = [Pestana, string, NombreIcono];
 
 /** Menú lateral agrupado (escritorio y iPad). */
 const GRUPOS: { titulo: string; items: Enlace[] }[] = [
-  { titulo: "Resumen", items: [["hoy", "Inicio", "hoy"]] },
+  {
+    titulo: "Resumen",
+    items: [
+      ["hoy", "Inicio", "hoy"],
+      ["ruta", "Mi ruta", "rumbo"],
+    ],
+  },
   {
     titulo: "Mi plata",
     items: [
@@ -42,12 +52,13 @@ const GRUPOS: { titulo: string; items: Enlace[] }[] = [
   },
 ];
 
-/** Barra inferior del celular: dos a cada lado del botón «Agregar». */
+/** Barra inferior del celular, como las apps del iPhone: cinco destinos; «Agregar» vive arriba, junto a los avisos. */
 const MOVIL: Enlace[] = [
   ["hoy", "Inicio", "hoy"],
+  ["ruta", "Mi ruta", "rumbo"],
+  ["asistente", "Asistente", "asistente"],
   ["dinero", "Mi dinero", "dinero"],
   ["deudas", "Deudas", "deudas"],
-  ["asistente", "Asistente", "asistente"],
 ];
 
 const OPCIONES_AGREGAR: [string, string, NombreIcono, string][] = [
@@ -92,7 +103,7 @@ function Contenido() {
   }
   return (
     <div className="relative min-h-dvh w-full bg-papel text-base text-tinta [overflow-wrap:anywhere] md:pl-[232px] [&_button]:cursor-pointer [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-4 [&_:focus-visible]:outline-electrico">
-      <Sesion perfil={perfil} cambiarModo={cambiarModo} reciente={reciente} />
+      <Sesion key={perfil.id} perfil={perfil} cambiarModo={cambiarModo} reciente={reciente} />
     </div>
   );
 }
@@ -171,7 +182,7 @@ function HojaAgregar({ elegir, cerrar }: { elegir: (opcion: string) => void; cer
 
 function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo: () => void; reciente: boolean }) {
   const analisis = useMemo(() => analizar(perfil), [perfil]);
-  const { aviso, datos, cambiar } = useDatos();
+  const { aviso, datos, cambiar, persistente } = useDatos();
   const lista = useMemo(() => avisosDelCentro(datos, perfil, analisis), [datos, perfil, analisis]);
   const [pestana, setPestana] = useState<Pestana>(reciente ? "asistente" : "hoy"),
     [hoja, setHoja] = useState(false),
@@ -192,7 +203,28 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
   fijarSalidas(externo, demo);
   const hechos = useMemo(() => hechosDe(datos, situacion.tuvoCredito), [datos, situacion.tuvoCredito]);
   const ruta = useMemo(() => trazarRuta(perfil, analisis, hechos), [perfil, analisis, hechos]);
-  const saludo = saludoDeRuta(perfil.nombre, ruta, !demo);
+  // Pasos de la ruta que la persona marcó como hechos: se guardan en este equipo, por caso.
+  const [avances, setAvances] = useState<IdPaso[]>(() => leerAvances(perfil.id));
+  const avance = useMemo(() => avanceDe(ruta, avances), [ruta, avances]);
+  const saludo = saludoDeRuta(perfil.nombre, ruta, !demo, avance);
+  function marcar(id: IdPaso, hecho: boolean) {
+    setAvances(antes => {
+      const nuevos = hecho ? [...new Set([...antes, id])] : antes.filter(x => x !== id);
+      // En una pestaña de solo mirar no se guarda (la que tiene la base abierta manda).
+      if (persistente) guardarAvances(perfil.id, nuevos);
+      return nuevos;
+    });
+  }
+  /** Lo que el asistente anotó va a la base como cualquier otro cambio; devuelve cómo deshacerlo. */
+  async function anotar(accion: Accion): Promise<() => Promise<void>> {
+    let deshacer: Deshacer | undefined;
+    await cambiar(async repo => {
+      deshacer = await anotarEnRepo(repo, accion);
+    });
+    const hecho = deshacer;
+    if (!hecho) throw new Error("sin_deshacer");
+    return () => cambiar(hecho);
+  }
   function cambiarExterno(activo: boolean) {
     const nueva = { ...situacion, externo: activo };
     guardarSituacion(nueva);
@@ -272,10 +304,15 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
       key={id}
       aria-current={pestana === id ? "page" : undefined}
       onClick={() => navegar(id)}
-      className={`relative flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors duration-150 ${pestana === id ? "text-electrico" : "text-gris"}`}
+      className={`flex min-h-16 min-w-0 flex-col items-center justify-center gap-0.5 text-[11px] transition-colors duration-150 ${pestana === id ? "font-semibold text-electrico" : "font-medium text-gris"}`}
     >
-      {pestana === id && <span className="absolute inset-x-4 top-0 h-[3px] rounded-b-full bg-electrico" aria-hidden="true" />}
-      <Icono nombre={icono} />
+      {/* Como en iOS: la pestaña activa lleva una cápsula suave detrás del ícono. */}
+      <span
+        aria-hidden="true"
+        className={`flex h-8 w-14 items-center justify-center rounded-full transition-colors duration-200 [&_svg]:size-[22px] ${pestana === id ? "bg-agua-suave" : ""}`}
+      >
+        <Icono nombre={icono} />
+      </span>
       {nombre}
     </button>
   );
@@ -327,10 +364,17 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
           </div>
         </div>
       </aside>
-      <header className="fixed inset-x-0 top-0 z-30 border-b border-linea bg-white/90 px-4 pb-3 pt-[calc(.75rem+env(safe-area-inset-top))] backdrop-blur-xl md:hidden">
+      <header className="fixed inset-x-0 top-0 z-30 border-b border-linea/70 bg-white/75 px-4 pb-3 pt-[calc(.75rem+env(safe-area-inset-top))] backdrop-blur-2xl backdrop-saturate-150 md:hidden">
         <div className="flex items-center justify-between gap-2">
           <Marca />
           <div className="flex items-center gap-2">
+            <button
+              aria-label="Agregar: deuda, reporte de ejemplo, cobro o gasto"
+              onClick={() => setAgregar(true)}
+              className="flex size-11 items-center justify-center rounded-full bg-electrico text-white shadow-[0_6px_16px_-6px_rgb(0_19_145/0.6)] transition-transform active:scale-95"
+            >
+              <Icono nombre="mas" />
+            </button>
             <button
               aria-label={`Abrir avisos: ${pendientes} pendientes`}
               onClick={abrirAvisos}
@@ -349,8 +393,8 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
       </header>
       <main className="mx-auto w-full max-w-7xl px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-[calc(5.5rem+env(safe-area-inset-top))] md:px-8 md:pb-12 md:pt-8">
         {demo && (
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl border border-ambar/40 bg-ambar-suave px-4 py-2 text-sm text-ambar-fuerte md:hidden">
-            <span>Estás viendo el caso de ejemplo.</span>
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-ambar-suave px-3 text-xs text-ambar-fuerte md:hidden">
+            <span>Caso de ejemplo</span>
             <button onClick={cambiarModo} className="min-h-9 font-semibold underline underline-offset-2">
               Empezar con mi situación
             </button>
@@ -373,9 +417,11 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             demo={demo}
             externo={externo}
             ruta={ruta}
+            avance={avance}
             pasos={pasos}
           />
         )}
+        {pestana === "ruta" && <MiRuta ruta={ruta} avance={avance} alMarcar={marcar} alConversar={() => navegar("asistente")} />}
         {pestana === "dinero" && <MiDinero analisis={analisis} />}
         {pestana === "deudas" && (
           <Deudas
@@ -397,26 +443,14 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
           </div>
         )}
         {pestana === "asistente" && (
-          <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} />
+          <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} avance={avance} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} lateral={<LoQueSe analisis={analisis} />} cobros={datos.cobros} alAnotar={anotar} guardar={persistente} />
         )}
       </main>
       <nav
         aria-label="Navegación inferior"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-linea bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-linea/70 bg-white/75 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl backdrop-saturate-150 md:hidden"
       >
-        <div className="mx-auto grid max-w-md grid-cols-5">
-          {MOVIL.slice(0, 2).map(botonMovil)}
-          <div className="flex items-center justify-center">
-            <button
-              aria-label="Agregar: deuda, reporte de ejemplo, cobro o gasto"
-              onClick={() => setAgregar(true)}
-              className="flex size-12 items-center justify-center rounded-2xl bg-electrico text-white shadow-[0_6px_16px_-6px_rgb(0_19_145/0.6)] transition-transform active:scale-95"
-            >
-              <Icono nombre="mas" />
-            </button>
-          </div>
-          {MOVIL.slice(2).map(botonMovil)}
-        </div>
+        <div className="mx-auto grid max-w-md grid-cols-5">{MOVIL.map(botonMovil)}</div>
       </nav>
       {agregar && <HojaAgregar elegir={elegirAgregar} cerrar={() => setAgregar(false)} />}
       {hoja && <HojaAvisos lista={lista} nuevos={nuevos} perfilId={perfil.id} ir={irA} cerrar={() => setHoja(false)} />}

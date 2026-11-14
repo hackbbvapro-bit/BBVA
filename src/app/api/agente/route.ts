@@ -2,10 +2,10 @@ import { z } from "zod";
 import { responder, ultimaPregunta, type EventoAgente } from "@/agente/conversar";
 import { analizar } from "@/motor";
 import { ID_PROPIO } from "@/datos/semilla";
-import { EsquemaHechos, SIN_HECHOS, trazarRuta } from "@/ruta/ruta";
+import { EsquemaAvances, EsquemaHechos, SIN_HECHOS, avanceDe, trazarRuta } from "@/ruta/ruta";
 import { errorJson, leerJson, mismoOrigen, visitante } from "@/servidor/http";
 import { crearLimite } from "@/servidor/limite";
-import { EsquemaPerfil, MAX_BYTES_PERFIL } from "@/servidor/perfil";
+import { EsquemaCobros, EsquemaPerfil, MAX_BYTES_PERFIL } from "@/servidor/perfil";
 import { haySesion, sinSesion } from "@/servidor/sesion";
 import { registrarFallo } from "@/servidor/registro";
 
@@ -25,9 +25,16 @@ const Peticion = z.object({
   hechos: EsquemaHechos.optional(),
   /** Obligatorio en un caso propio: la persona aceptó enviar su simulación al proveedor de IA. */
   consentimiento: z.literal(true).optional(),
+  /** Pagos que le deben (aún no cobrados): el agente los ve y puede anotar nuevos. */
+  cobros: EsquemaCobros.optional(),
+  /** Identificadores de los pasos que la persona marcó en «Mi ruta». Solo ids de una lista cerrada; el avance se calcula aquí. */
+  avances: EsquemaAvances.optional(),
 });
 
-/** Convierte los eventos del agente en líneas JSON (una por evento) que el celular va leyendo según llegan. */
+/**
+ * Convierte los eventos del agente en líneas JSON (una por evento) que el celular va leyendo según llegan.
+ * Una línea «accion» es algo que el agente anotó: el navegador lo guarda en su base y lo puede deshacer.
+ */
 function comoFlujo(eventos: AsyncGenerator<EventoAgente>, cortar: () => void): ReadableStream<Uint8Array> {
   const codificador = new TextEncoder();
   return new ReadableStream<Uint8Array>({
@@ -71,7 +78,9 @@ export async function POST(req: Request): Promise<Response> {
   if (!topeGlobal.permite("todos")) return errorJson("demasiadas_peticiones", 429);
   const corte = new AbortController();
   const senal = AbortSignal.any([req.signal, corte.signal]);
-  const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal, ruta });
+  const cobros = (datos.data.cobros ?? []).filter(c => !c.cobrado);
+  const avance = avanceDe(ruta, datos.data.avances);
+  const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal, ruta, cobros, avance });
   return new Response(comoFlujo(eventos, () => corte.abort()), {
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",

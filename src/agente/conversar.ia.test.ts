@@ -30,9 +30,15 @@ vi.mock("@anthropic-ai/sdk", () => ({
   default: class {
     beta = {
       messages: {
-        toolRunner: () => ({
+        // Como el SDK: entre una vuelta y la siguiente corre las herramientas que el modelo pidió.
+        toolRunner: (params: { tools: { name: string; run: (input: unknown) => unknown }[] }) => ({
           async *[Symbol.asyncIterator]() {
-            for (const v of vueltas) yield flujoDe(v);
+            for (const v of vueltas) {
+              yield flujoDe(v);
+              for (const b of v.bloques) {
+                if (b.type === "tool_use") await params.tools.find(t => t.name === b.name)?.run(b.input);
+              }
+            }
           },
         }),
       },
@@ -46,14 +52,18 @@ const perfil = PERFILES[0];
 const analisis = analizar(perfil);
 const consulta: Bloque = { type: "tool_use", id: "t1", name: "resumen", input: {} };
 
-async function textoDe(): Promise<{ texto: string; origen?: string }> {
+async function textoDe(pregunta = "¿Qué pago primero?") {
   let texto = "";
   let origen: string | undefined;
-  for await (const e of responder({ perfil, analisis, mensajes: [{ rol: "usuario", texto: "¿Qué pago primero?" }] })) {
+  const tipos: string[] = [];
+  const acciones: unknown[] = [];
+  for await (const e of responder({ perfil, analisis, mensajes: [{ rol: "usuario", texto: pregunta }] })) {
+    tipos.push(e.tipo);
     if (e.tipo === "texto") texto += e.texto;
+    else if (e.tipo === "accion") acciones.push(e.accion);
     else origen = e.origen;
   }
-  return { texto, origen };
+  return { texto, origen, tipos, acciones };
 }
 
 beforeEach(() => vi.stubEnv("ANTHROPIC_API_KEY", "clave-falsa-de-prueba"));
@@ -86,5 +96,40 @@ describe("agente con IA", () => {
     const { texto, origen } = await textoDe();
     expect(texto).not.toContain("No puedo con");
     expect(origen).toBe("respaldo");
+  });
+
+  it("lo que el modelo anota sale como acción antes del texto que lo explica, una sola vez", async () => {
+    const anotar: Bloque = {
+      type: "tool_use", id: "t2", name: "anotar_ingreso",
+      input: { monto: "mil quinientos", cuando: "ya_llego", descripcion: "Pago de un cliente", anotar: true },
+    };
+    vueltas = [
+      { bloques: [anotar, { ...anotar, id: "t3" }], stop_reason: "tool_use" },
+      { bloques: [{ type: "text", text: "Listo, lo anoté." }], stop_reason: "end_turn" },
+    ];
+    const { texto, origen, tipos, acciones } = await textoDe("Ojo: un cliente me depositó por un trabajo");
+    expect(acciones).toEqual([{ tipo: "saldo", monto: 150_000, descripcion: "Ingreso: Pago de un cliente" }]);
+    expect(tipos).toEqual(["accion", "texto", "fin"]);
+    expect(texto).toBe("Listo, lo anoté.");
+    expect(origen).toBe("ia");
+  });
+
+  it("si anota pero no llega a explicarlo, la frase del motor lo explica y no se pierde lo anotado", async () => {
+    vueltas = [{
+      bloques: [{ type: "tool_use", id: "t4", name: "anotar_gasto", input: { monto: "80", cuando: "ya_paso", descripcion: "Mercado", anotar: true } }],
+      stop_reason: "tool_use",
+    }];
+    const { texto, origen, acciones } = await textoDe("Ojo: hice compras grandes hoy");
+    expect(acciones).toHaveLength(1);
+    expect(texto).toContain("S/ 80.00");
+    expect(origen).toBe("ia");
+  });
+
+  it("si la persona cuenta un ingreso concreto, responde el motor sin llamar a la IA", async () => {
+    vueltas = [{ bloques: [{ type: "text", text: "Esto no debería verse." }], stop_reason: "end_turn" }];
+    const { texto, origen, acciones } = await textoDe("me acaban de pagar 1.000 soles");
+    expect(acciones).toEqual([expect.objectContaining({ tipo: "saldo", monto: 100_000 })]);
+    expect(texto).not.toContain("no debería");
+    expect(origen).toBe("motor");
   });
 });
