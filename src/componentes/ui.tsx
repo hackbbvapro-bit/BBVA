@@ -25,7 +25,15 @@ const trazos = {
   abajo: "m6 9 6 6 6-6",
   lapiz: "M4 20h4L19 9l-4-4L4 16v4ZM13 7l4 4",
   mas: "M12 5v14M5 12h14",
+  calendario: "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4",
+  tendencia: "m3 17 6-6 4 4 8-8M15 7h6v6",
+  camara: "M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7",
+  subir: "M12 16V4M7 9l5-5 5 5M4 20h16",
+  ayuda: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01",
+  asistente: "M12 3v2M7 8h10a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3ZM9.5 13h.01M14.5 13h.01M2 13v2M22 13v2",
+  manos: "M7 11V6a2 2 0 0 1 4 0v5M11 10V4a2 2 0 0 1 4 0v7M15 9a2 2 0 0 1 4 0v4a8 8 0 0 1-8 8h-1a7 7 0 0 1-6-3l-2-4a2 2 0 0 1 3-2l2 2",
 };
+export type NombreIcono = keyof typeof trazos;
 export function Icono({ nombre }: { nombre: keyof typeof trazos }) {
   return (
     <svg
@@ -51,7 +59,7 @@ export function Marca() {
       </span>
       <span className="leading-tight">
         <span className="block text-[17px] font-semibold tracking-[-0.015em] text-noche">Copiloto</span>
-        <span className="block text-xs text-gris">exclusivo para clientes BBVA</span>
+        <span className="block text-xs text-gris">prototipo · datos sintéticos</span>
       </span>
     </span>
   );
@@ -82,6 +90,44 @@ export function TarjetaAviso({ aviso }: { aviso: Aviso }) {
 export function Portada({ children }: { children: ReactNode }) {
   return <section className="aparecer mb-6 rounded-[22px] border border-linea bg-white p-6 md:p-8">{children}</section>;
 }
+/** Encabezado de página: título a escala de producto (no de cartel), bajada y acciones a la derecha. */
+export function Encabezado({ titulo, bajada, acciones }: { titulo: string; bajada?: ReactNode; acciones?: ReactNode }) {
+  return (
+    <header className="aparecer mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="min-w-0 lg:flex-1">
+        <h1 className="text-[1.625rem] font-semibold leading-tight tracking-[-0.02em] text-noche md:text-[1.875rem]">{titulo}</h1>
+        {bajada && <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-gris">{bajada}</p>}
+      </div>
+      {acciones && <div className="flex flex-wrap gap-2 lg:shrink-0">{acciones}</div>}
+    </header>
+  );
+}
+const chips = {
+  azul: "bg-agua-suave text-electrico",
+  verde: "bg-verde-suave text-verde-fuerte",
+  ambar: "bg-ambar-suave text-ambar-fuerte",
+  coral: "bg-coral-suave text-coral-fuerte",
+};
+/** Indicador compacto: chip con icono, etiqueta corta, cifra y una línea de contexto. */
+export function Kpi({ icono, etiqueta, valor, nota, tono = "azul" }: { icono: NombreIcono; etiqueta: string; valor: string; nota?: string; tono?: keyof typeof chips }) {
+  return (
+    <div className="flex min-w-0 flex-col rounded-2xl border border-linea bg-white p-5">
+      <div className="flex items-center gap-3">
+        <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl [&_svg]:size-5 ${chips[tono]}`}>
+          <Icono nombre={icono} />
+        </span>
+        <span className="text-[13px] font-medium leading-tight text-gris">{etiqueta}</span>
+      </div>
+      <p className="mt-3 text-[1.5rem] font-semibold tabular-nums leading-tight tracking-[-0.015em] text-noche md:text-[1.625rem]">{unido(valor)}</p>
+      {nota && <p className="mt-1 text-[13px] leading-snug text-gris">{unido(nota)}</p>}
+    </div>
+  );
+}
+/** Botones de acción de página. */
+export const botonPrincipal =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-electrico px-4 text-[15px] font-semibold text-white transition-[transform,background-color] duration-150 hover:bg-marino active:scale-[.97] [&_svg]:size-5";
+export const botonSecundario =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-linea-fuerte bg-white px-4 text-[15px] font-semibold text-noche transition-[transform,background-color] duration-150 hover:bg-niebla active:scale-[.97] [&_svg]:size-5";
 export function desplazar(elemento: HTMLElement | null) {
   elemento?.scrollIntoView({
     behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",

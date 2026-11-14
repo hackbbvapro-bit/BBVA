@@ -15,7 +15,7 @@ describe("Recomendaciones", () => {
     expect(renderToStaticMarkup(<DatosDePrueba datos={datos}><Recomendaciones datos={datos} analisis={analisis} /></DatosDePrueba>)).toBe("");
   });
 
-  it("con atraso muestra título, motivo, condición, fuente enlazada y la frase fija", () => {
+  it("con atraso muestra título, motivo y la frase fija; sin marca, sin enlaces y sin cifras de mercado", () => {
     const datos = datosDeRosa();
     // Con plata de sobra: a quien le falta para fin de mes no se le propone inmovilizar un depósito.
     datos.cuentas = [{ id: "c", nombre: "Cuenta", saldo: 900_000_000 }];
@@ -24,16 +24,14 @@ describe("Recomendaciones", () => {
     analisis.proyeccion = { ...analisis.proyeccion, deficit: null };
     // `unido` pone un espacio sin salto entre «S/» y el monto.
     const html = renderToStaticMarkup(<DatosDePrueba datos={datos}><Recomendaciones datos={datos} analisis={analisis} /></DatosDePrueba>).replace(/ /g, " ");
-    expect(html).toContain("Opciones para ti en BBVA");
-    expect(html).toContain("Tarjeta de crédito con garantía líquida BBVA");
-    expect(html).toContain("Por qué te lo sugerimos:");
+    expect(html).toContain("Alternativas que puedes consultar");
+    expect(html).toContain("Tarjeta de crédito con garantía (depósito de respaldo)");
+    expect(html).toContain("Por qué aparece:");
     expect(html).toContain("12 días de atraso");
-    expect(html).toContain("Depósito mínimo S/ 500 como garantía");
-    expect(html).toContain('href="https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-de-credito-garantia-liquida.html"');
-    expect(html).toContain('target="_blank"');
-    expect(html).toContain('rel="noreferrer"');
-    expect(html).toContain("Consultado el 14 nov 2026");
-    expect(html).toContain("Es una sugerencia, no una oferta: confírmalo con BBVA.");
+    expect(html).toContain("Orientación educativa");
+    expect(html).toContain("no es una oferta ni asesoría personalizada");
+    expect(html).toContain("la decisión es tuya");
+    expect(html).not.toMatch(/BBVA|bbva\.pe|href=|S\/ 500|Consultado el/);
     expect(html).not.toMatch(/NaN|undefined|bg-noche|bg-black/);
   });
 });

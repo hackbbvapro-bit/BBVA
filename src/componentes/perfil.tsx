@@ -8,6 +8,7 @@ import { useDatos } from "@/componentes/datos";
 import { leerDia, leerSoles, solesParaEditar } from "@/datos/formulario";
 import { ErrorDatos } from "@/datos/validar";
 import type { TipoPerfil } from "@/motor";
+import { ID_PROPIO } from "@/datos/semilla";
 
 const TIPOS: readonly (readonly [TipoPerfil, string])[] = [
   ["dependiente", "Sueldo fijo"],
@@ -66,6 +67,7 @@ function FormularioDatos({ cerrar }: { cerrar: (guardado: boolean) => void }) {
 export function Perfil() {
   const { datos, cambiar } = useDatos();
   const p = datos.perfil;
+  const practica = p.id === ID_PROPIO;
   const [aviso, setAviso] = useState("");
   const [confirmando, setConfirmando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,11 +93,13 @@ export function Perfil() {
       <Portada>
         <p className="text-[15px] text-gris">Perfil</p>
         <h1 className="mt-1 text-[1.75rem] font-semibold leading-tight tracking-[-0.025em] text-noche md:text-[2rem]">{p.nombre}</h1>
-        <p className="mt-2 leading-relaxed text-gris">Cuenta demo · datos inventados para la hackathon.</p>
+        <p className="mt-2 leading-relaxed text-gris">
+          {practica ? "Caso de práctica · simulación, sin datos reales." : "Caso de ejemplo · datos inventados para la hackathon."}
+        </p>
       </Portada>
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <section className={`${tarjeta} aparecer`}>
-          <h2 className="text-lg font-semibold text-noche">Tus datos</h2>
+          <h2 className="text-lg font-semibold text-noche">Datos del caso</h2>
           <p className="mt-1 text-sm text-gris">Con esto el copiloto te habla y entiende cómo te entra la plata.</p>
           <div className="mt-3">
             <ListaEditable
@@ -122,8 +126,8 @@ export function Perfil() {
             <h2 className="text-lg font-semibold text-noche">Cómo te conoce el copiloto</h2>
             <p className="mt-3 leading-relaxed text-tinta">{p.descripcion}</p>
             <p className="mt-4 text-sm leading-relaxed text-gris">
-              Es un prototipo: en la versión real entrarías con el inicio de sesión de tu app BBVA. Aquí no se piden ni se guardan claves, DNI ni tarjetas.
-              Tus datos viven en este equipo.
+              Es un prototipo de hackathon, no un producto oficial de ningún banco. Aquí no se piden ni se guardan claves, DNI ni tarjetas.
+              Lo que escribes se queda en este equipo.
             </p>
           </section>
           <section className={`${tarjeta} aparecer`}>

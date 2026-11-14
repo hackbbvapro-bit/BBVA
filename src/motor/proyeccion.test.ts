@@ -75,5 +75,20 @@ describe('proyección', () => {
     expect(sinRecurrentes.deficit!.causas).toEqual([]);
     expect(sinRecurrentes.deficit!.faltante).toBe(40); // 0 - 40 en el primer día.
   });
+  it('proyecta los dos cobros de la quincena en sus fechas, también a fin de año', () => {
+    const f = perfil();
+    f.movimientos = ['2026-08-15', '2026-08-31', '2026-09-15', '2026-09-30', '2026-10-15', '2026-10-31', '2026-11-15', '2026-11-30', '2026-12-15']
+      .map(fecha => ({ id: fecha, fecha, monto: 1000, descripcion: 'Sueldo', categoria: 'sueldo' as const, canal: 'cuenta' as const }));
+    const cobros = (p: ReturnType<typeof proyectar>) => p.dias.flatMap(d => d.eventos).filter(e => e.origen === 'recurrente').map(e => e.fecha);
+    const p = proyectar(f);
+    // Hoy 13-nov: solo cuenta la historia hasta hoy; en 30 días entran el 15 y el 30 de noviembre (noviembre no tiene 31).
+    expect(cobros(p)).toEqual(['2026-11-15', '2026-11-30']);
+    expect(p.saldoFinal).toBe(500 + 2 * 1000);
+    // Hoy 20-dic: 31 de diciembre y 15 de enero.
+    expect(cobros(proyectar({ ...f, hoy: '2026-12-20' }))).toEqual(['2026-12-31', '2027-01-15']);
+    // Cada mitad tiene su propio id: mover el cobro del 15 no toca el de fin de mes.
+    const movido = proyectar(f, { ajustes: [{ tipo: 'mover', recurrenteId: 'rec-sueldo-entrada-dia-15', desde: '2026-11-15', hacia: '2026-11-20' }] });
+    expect(cobros(movido)).toEqual(['2026-11-20', '2026-11-30']);
+  });
   it('rechaza duración inválida', () => { expect(() => proyectar(perfil(), { dias: 0 })).toThrow(); });
 });

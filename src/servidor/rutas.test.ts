@@ -161,7 +161,7 @@ describe("GET /api/estado", () => {
   it("solo dice sí o no por pieza, nunca una clave", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "clave-falsa-de-prueba");
     const texto = await estado().text();
-    expect(JSON.parse(texto)).toEqual({ ia: true, voz: false, push: false });
+    expect(JSON.parse(texto)).toEqual({ ia: true, voz: false, push: false, documentos: false });
     expect(texto).not.toContain("clave-falsa");
   });
 });

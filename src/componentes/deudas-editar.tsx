@@ -56,7 +56,7 @@ function FormularioDeuda({ id, cerrar }: { id: string | null; cerrar: (guardado:
     <form onSubmit={enviar} noValidate aria-label={inicial ? `Editar ${inicial.nombre}` : "Agregar una deuda"}>
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2 md:col-span-1">
-          <Texto etiqueta="¿Con quién la tienes?" valor={entidad} cambiar={setEntidad} enfocar marcador="BBVA, Caja Ejemplo, un familiar…" />
+          <Texto etiqueta="¿Con quién la tienes?" valor={entidad} cambiar={setEntidad} enfocar marcador="Banco Ejemplo, Caja Ejemplo, un familiar…" />
         </div>
         <div className="col-span-2 md:col-span-1">
           <Texto etiqueta="Cómo la llamas" valor={nombre} cambiar={setNombre} marcador="Tarjeta Azul" />
@@ -162,7 +162,7 @@ export function totalDebo(deudas: DeudaGuardada[]) {
   return { n: abiertas.length, total: sumar(abiertas.map(d => d.saldo)) };
 }
 
-export function ListaDebo({ primeraId, avisar }: { primeraId: string | null; avisar: (t: string) => void }) {
+export function ListaDebo({ primeraId, avisar, abrirNuevo }: { primeraId: string | null; avisar: (t: string) => void; abrirNuevo?: number }) {
   const { datos } = useDatos();
   const activas = datos.deudas.filter(d => !d.pagada && d.saldo > 0).sort((a, b) => (b.tceaBp ?? 0) - (a.tceaBp ?? 0) || b.saldo - a.saldo);
   const cerradas = datos.deudas.filter(d => d.pagada || d.saldo <= 0);
@@ -197,6 +197,7 @@ export function ListaDebo({ primeraId, avisar }: { primeraId: string | null; avi
       prefijo="deuda"
       formulario={(id, cerrar) => <FormularioDeuda id={id} cerrar={cerrar} />}
       avisar={avisar}
+      abrirNuevo={abrirNuevo}
     />
   );
 }

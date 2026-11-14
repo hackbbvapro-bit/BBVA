@@ -1,3 +1,4 @@
+import { salidasPermitidas } from "./salidas";
 import { Extraccion } from "@/documentos/esquema";
 
 export const TIPOS_ACEPTADOS = ["image/jpeg", "image/png", "image/webp", "application/pdf"] as const;
@@ -19,7 +20,7 @@ export function mensajeDeEstado(estado: number, mensaje?: string): string {
   if (estado === 413) return "El archivo es demasiado grande. Sube uno de menos de 3 MB.";
   if (estado === 415) return "Ese tipo de archivo no se puede leer. Usa una foto (JPG, PNG, WebP) o un PDF.";
   if (estado === 429) return "Hiciste muchos intentos seguidos. Espera un minuto y vuelve a probar.";
-  if (estado === 503) return "El análisis con IA no está disponible ahora. Puedes usar el reporte SBS de ejemplo.";
+  if (estado === 503) return "El análisis con IA no está disponible ahora. Puedes usar el reporte de ejemplo.";
   return "No pude analizar el documento ahora. Inténtalo de nuevo en un momento.";
 }
 
@@ -63,6 +64,9 @@ export async function prepararArchivo(archivo: File): Promise<ArchivoListo> {
 
 /** Envía el archivo a /api/documento y valida la respuesta con el mismo esquema del servidor. */
 export async function analizarDocumento(archivo: ArchivoListo, senal?: AbortSignal): Promise<Extraccion> {
+  if (!salidasPermitidas()) {
+    throw new ErrorArchivo("En el caso de práctica no se envía ningún archivo fuera de este equipo. Usa el reporte de ejemplo.");
+  }
   let respuesta: Response;
   try {
     respuesta = await fetch("/api/documento", {
@@ -72,7 +76,7 @@ export async function analizarDocumento(archivo: ArchivoListo, senal?: AbortSign
       signal: senal,
     });
   } catch {
-    throw new ErrorArchivo("No hay conexión con el servidor. Revisa tu internet o usa el reporte SBS de ejemplo.");
+    throw new ErrorArchivo("No hay conexión con el servidor. Revisa tu internet o usa el reporte de ejemplo.");
   }
   if (!respuesta.ok) {
     const cuerpo = (await respuesta.json().catch(() => null)) as { mensaje?: string } | null;

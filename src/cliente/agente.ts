@@ -2,6 +2,7 @@
  * Conversación con el agente. Si la IA no responde (sin clave, sin red, error),
  * contesta el propio motor en el celular: la demo nunca se queda muda.
  */
+import { salidasPermitidas } from "./salidas";
 import { responderSinIA } from "../explica/explica";
 import type { Analisis, Perfil } from "../motor";
 
@@ -66,6 +67,12 @@ async function leerFlujo(respuesta: Response, alTexto?: (trozo: string) => void)
 export async function conversar({ perfil, analisis, mensajes, alTexto, senal }: Peticion): Promise<RespuestaAgente> {
   const recientes = mensajes.slice(-MAX_MENSAJES).map(m => ({ rol: m.rol, texto: m.texto.slice(0, MAX_CARACTERES) }));
   const pregunta = [...mensajes].reverse().find(m => m.rol === "usuario")?.texto ?? "";
+  if (!salidasPermitidas()) {
+    // Caso de práctica: nada sale del equipo; responde el motor local.
+    const texto = responderSinIA(pregunta, perfil, analisis);
+    alTexto?.(texto);
+    return { texto, origen: "respaldo" };
+  }
   let recibido = "";
   try {
     const respuesta = await fetch("/api/agente", {

@@ -51,13 +51,27 @@ export function configPush(): ConfigPush | undefined {
   return { publica, privada, asunto };
 }
 
+/**
+ * Lectura de documentos con IA: APAGADA por defecto. El prototipo trabaja solo con el reporte de ejemplo
+ * (datos sintéticos, lectura precargada). Solo se enciende poniendo LECTURA_DOCUMENTOS=1 en el servidor.
+ */
+export function lecturaDocumentos(): boolean {
+  return leer("LECTURA_DOCUMENTOS") === "1";
+}
+
 export interface EstadoServicios {
   ia: boolean;
   voz: boolean;
   push: boolean;
+  documentos: boolean;
 }
 
 /** Qué piezas externas están configuradas. Solo verdadero/falso: ningún valor. */
 export function estadoServicios(): EstadoServicios {
-  return { ia: Boolean(claveAnthropic()), voz: Boolean(configVoz()), push: Boolean(configPush()) };
+  return {
+    ia: Boolean(claveAnthropic()),
+    voz: Boolean(configVoz()),
+    push: Boolean(configPush()),
+    documentos: Boolean(claveAnthropic()) && lecturaDocumentos(),
+  };
 }

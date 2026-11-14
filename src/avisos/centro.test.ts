@@ -58,7 +58,7 @@ describe("centro de avisos", () => {
     expect(cuerpo(70)).toContain("Dudoso");
     expect(cuerpo(130)).toContain("Pérdida");
     for (const dias of [1, 10, 40]) expect(cuerpo(dias)).not.toMatch(/CPP|Deficiente|Normal|Dudoso|Pérdida/);
-    expect(cuerpo(10)).toContain("peor queda tu calificación");
+    expect(cuerpo(10)).toContain("peor quedaría su clasificación");
   });
 
   it("un cobro vencido avisa; uno de hoy, futuro o ya cobrado no", () => {

@@ -2,6 +2,8 @@
  * Micrófono. Primero el dictado del navegador (rápido, sin servidor);
  * si no existe o falla, graba el audio y lo transcribe en /api/transcribir.
  */
+import { salidasPermitidas } from "./salidas";
+
 export type ErrorEscucha = "sin_permiso" | "no_soportado" | "sin_voz" | "fallo";
 
 export interface OpcionesEscucha {
@@ -34,7 +36,8 @@ const MAX_GRABACION_MS = 20_000;
 let dictadoFallo = false;
 
 function constructorDictado(): ConstructorDictado | undefined {
-  if (typeof window === "undefined" || dictadoFallo) return undefined;
+  // El dictado del navegador puede mandar el audio a un servidor externo: en práctica no se usa.
+  if (typeof window === "undefined" || dictadoFallo || !salidasPermitidas()) return undefined;
   const w = window as unknown as { SpeechRecognition?: ConstructorDictado; webkitSpeechRecognition?: ConstructorDictado };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
 }
@@ -53,7 +56,7 @@ export function crearDictado(): Dictado | undefined {
 export type { Dictado, EventoDictado };
 
 export function puedeGrabar(): boolean {
-  return typeof window !== "undefined" && "MediaRecorder" in window && !!navigator.mediaDevices?.getUserMedia;
+  return salidasPermitidas() && typeof window !== "undefined" && "MediaRecorder" in window && !!navigator.mediaDevices?.getUserMedia;
 }
 
 /** true si el celular puede escuchar de alguna forma. */
@@ -91,6 +94,7 @@ function dictar(Constructor: ConstructorDictado, o: OpcionesEscucha): Escucha {
 }
 
 async function transcribir(audio: Blob): Promise<string> {
+  if (!salidasPermitidas()) throw new Error("salidas_cerradas");
   const formulario = new FormData();
   formulario.append("audio", audio, audio.type.includes("mp4") ? "audio.mp4" : "audio.webm");
   const respuesta = await fetch("/api/transcribir", { method: "POST", body: formulario });

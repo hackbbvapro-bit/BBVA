@@ -17,3 +17,6 @@ __pycache__/
 next-env.d.ts
 *.pem
 npm-debug.log*
+
+# Dataset sintético completo: se regenera con EVALUACION_COMPLETA=1 npm run evaluar
+/datos/sinteticos/transacciones-completo.csv
