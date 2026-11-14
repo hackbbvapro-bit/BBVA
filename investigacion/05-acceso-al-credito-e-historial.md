@@ -1,5 +1,9 @@
 # 05 · Acceso al crédito, historial crediticio y marco legal en Perú (estado a 13-nov-2026)
 
+> **Aviso (13-nov-2026):** algunas cifras de este documento se revisaron después contra su fuente
+> y varias estaban mal atribuidas o sin verificar. Antes de usar una cifra en el pitch, mira
+> [`10-verificacion-de-cifras.md`](10-verificacion-de-cifras.md): si lo contradice, vale el 10.
+
 Alcance: profundiza lo que `01-problemas-financieros-peru.md` y `conocimiento/metodo-asesor.md` (secc. 3.6 y 5) solo rozan. No repite sus cifras salvo para cruzarlas.
 
 Leyenda de verificación: **[ABIERTO]** = lo leí en la página oficial durante esta investigación. **[BÚSQUEDA]** = salió solo de un resumen de buscador, sin abrir la fuente primaria. **[SIN VERIFICAR]** = no lo pude confirmar; no usar en pantalla. Ninguna cifra de este archivo la calculó un modelo de lenguaje: las que aparecen vienen de la fuente citada.

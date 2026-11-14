@@ -1,5 +1,9 @@
 # 09 · Competencia en Perú y LATAM, y estado del arte de asistentes financieros de voz
 
+> **Aviso (13-nov-2026):** algunas cifras de este documento se revisaron después contra su fuente
+> y varias estaban mal atribuidas o sin verificar. Antes de usar una cifra en el pitch, mira
+> [`10-verificacion-de-cifras.md`](10-verificacion-de-cifras.md): si lo contradice, vale el 10.
+
 Fecha de la investigación: 13-nov-2026. Complementa `03-benchmark-asesores-ia-top.md` (no se repite lo que ya está ahí: Cleo 3.0, Copilot, Monarch, YNAB, Origin, Plum, Fintonic, BCP Clara, Interbank "Mis Finanzas", ruta de finanzas abiertas de la SBS).
 
 Etiquetas: **[ABIERTA]** = abrí la página y leí el texto. **[SIN VERIFICAR]** = solo vi un titular o resumen del buscador. **[EMPRESA]** = dato que la propia empresa publica de sí misma.

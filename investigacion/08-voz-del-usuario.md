@@ -1,4 +1,9 @@
 # La voz del usuario: cómo hablan los peruanos de su plata, sus deudas y sus bancos
+
+> **Aviso (13-nov-2026):** algunas cifras de este documento se revisaron después contra su fuente
+> y varias estaban mal atribuidas o sin verificar. Antes de usar una cifra en el pitch, mira
+> [`10-verificacion-de-cifras.md`](10-verificacion-de-cifras.md): si lo contradice, vale el 10.
+
 Consulta: 13-nov-2026. Para el agente de voz de la demo (14-15 nov).
 
 ## 0. Lo primero que hay que saber (límites honestos)

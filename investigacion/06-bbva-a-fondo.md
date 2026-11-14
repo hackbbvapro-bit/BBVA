@@ -1,5 +1,9 @@
 # BBVA Perú y BBVA global a fondo (consulta 2026-11-13, Lima)
 
+> **Aviso (13-nov-2026):** algunas cifras de este documento se revisaron después contra su fuente
+> y varias estaban mal atribuidas o sin verificar. Antes de usar una cifra en el pitch, mira
+> [`10-verificacion-de-cifras.md`](10-verificacion-de-cifras.md): si lo contradice, vale el 10.
+
 **Aviso de método (importante):** en esta sesión el sistema bloqueó abrir páginas directamente (curl y navegador fueron denegados) y no había WebFetch. Todo sale de **WebSearch (resúmenes del buscador con pasajes literales de cada página)**, no de lectura página completa ni de probar la app. Por eso: cada dato lleva URL; lo que sale de un pasaje claro del buscador se marca con la fuente; lo dudoso, `[SIN VERIFICAR]`. Cifras de BBVA son declaraciones del propio banco. No se leyó ningún tarifario completo ni se abrió la app.
 
 ## (a) Conclusión en 5 líneas

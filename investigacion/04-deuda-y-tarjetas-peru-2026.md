@@ -1,5 +1,9 @@
 # Deuda de consumo y tarjetas de crédito en el Perú (estado a nov-2026)
 
+> **Aviso (13-nov-2026):** algunas cifras de este documento se revisaron después contra su fuente
+> y varias estaban mal atribuidas o sin verificar. Antes de usar una cifra en el pitch, mira
+> [`10-verificacion-de-cifras.md`](10-verificacion-de-cifras.md): si lo contradice, vale el 10.
+
 Consulta: 13-nov-2026. Método: búsquedas web + apertura de 17 páginas de origen (BCRP, SBS, El Peruano, Infobae, Andina, La República, Perú Retail, Infomercado, SBS-estadísticas). Lo que solo vi en el resumen de un buscador va marcado **no verificado** [SIN VERIFICAR]. Etiquetas: [MEDIDO] = leído en la fuente abierta; [CALCULADO] = cuenta mía con fórmula; [ASUMIDO] = supuesto.
 
 Profundiza y corrige `01-problemas-financieros-peru.md` (ver sección «Correcciones»).
