@@ -9,12 +9,19 @@
 5. **2-3 jugadas con costo**: mover un pago, pagar el mínimo (costo en intereses), recortar un gasto.
 6. **Orden de deudas por TCEA** (avalancha) y ahorro frente a pagar en otro orden.
 7. **Explicación en lenguaje llano** generada por IA a partir de los números ya calculados.
+8. **Agente con voz** (decidido el 13-nov): se le pregunta hablando o escribiendo y contesta con voz.
+   Solo usa las herramientas del motor; no calcula ni inventa cifras.
+9. **Avisos**: campanita dentro de la app y notificación al celular (PWA instalada).
+
+Las ideas y por qué esta primero: `docs/IDEAS.md`.
 
 ## Lo que NO entra (aunque tiente)
 - Conexión real con bancos (no hay finanzas abiertas operativas en Perú todavía).
 - Mover dinero, pagar o contratar productos.
 - Inversiones, criptomonedas, recomendaciones de productos concretos.
-- Chat libre de propósito general: la IA solo habla de lo calculado.
+- Chat libre de propósito general: el agente conversa, pero solo sobre lo que calculó el motor
+  (si le preguntan otra cosa, lo dice y vuelve al tema).
+- Base de datos y cuentas de usuario: no hacen falta para la demo (ver `docs/INFRAESTRUCTURA.md`).
 
 ## Reparto sugerido (5 personas, ajustar)
 | Rol | Tarea |
@@ -33,15 +40,18 @@
   bloqueados; el dueño del proyecto en Vercel debe ser quien integre, o usar repo público / plan Pro.
 
 ## Guion de la demo (3 minutos)
-1. **El problema** (30 s): 37 % de peruanos no tiene colchón para un mes; las apps te dicen en qué
-   gastaste, no lo que viene.
+1. **El problema** (30 s): solo 39 % de los peruanos podría afrontar un gasto imprevisto de un mes
+   de ingresos (SBS-CAF, 2026); las apps te dicen en qué gastaste, no lo que viene. Las frases
+   con fuente están en `investigacion/10-verificacion-de-cifras.md`.
 2. **La persona** (20 s): independiente con ingresos irregulares, dos tarjetas, Yape diario.
-3. **El aviso** (60 s): «el día 23 te faltan S/ 180» → por qué → 3 jugadas con su costo.
+3. **El aviso** (60 s): «el lunes 23 te faltarán S/ 200.00» (perfil Rosa) → por qué → 3 jugadas
+   con su costo. El guion detallado, con las cifras que hoy muestra la app, está en
+   `docs/GUIA-FINAL.md`.
 4. **La deuda** (40 s): qué tarjeta pagar primero y cuánto ahorra.
 5. **Confianza** (30 s): todos los números salen de un motor con tests; la IA solo explica.
 
 ## Preguntas pendientes para los organizadores
-- ¿Se puede llegar con código previo?
+- ~~¿Se puede llegar con código previo?~~ Sí (confirmado 13-nov).
 - ¿Hay datos sintéticos oficiales o API de BBVA para usar?
 - ¿Hay restricción de stack o de proveedor de IA?
 - ¿Cómo se presenta (tiempo, formato, entregables)?

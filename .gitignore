@@ -8,3 +8,12 @@ __pycache__/
 *.pyc
 .venv/
 .DS_Store
+
+# Next.js / pruebas
+/out/
+/build
+/coverage
+*.tsbuildinfo
+next-env.d.ts
+*.pem
+npm-debug.log*

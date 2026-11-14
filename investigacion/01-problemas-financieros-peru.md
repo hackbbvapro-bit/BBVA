@@ -1,4 +1,9 @@
 # Estudio de problemas financieros en Perú (nov-2023 a nov-2026)
+
+> **Aviso (13-nov-2026):** algunas cifras de este documento se revisaron después contra su fuente
+> y varias estaban mal atribuidas o sin verificar. Antes de usar una cifra en el pitch, mira
+> [`10-verificacion-de-cifras.md`](10-verificacion-de-cifras.md): si lo contradice, vale el 10.
+
 Consulta: 13-nov-2026. Método: 12 búsquedas web (WebSearch). Límites honestos al final de la sección 1.
 
 ## 1. Resumen ejecutivo
