@@ -8,9 +8,8 @@ Final presencial de la Hackathon BBVA 2026 · Torre Central BBVA, San Isidro (Li
 Construir con IA algo que ayude a una persona a **comprender, anticipar y mejorar** su situación
 financiera, usando **datos sintéticos**, y presentar un **MVP** funcionando.
 
-> Pendiente de confirmar con los organizadores: si se permite llegar con código previo o solo con
-> la idea y la investigación. Hasta saberlo, este repositorio contiene investigación y diseño,
-> no el producto.
+> Confirmado (13-nov-2026): se permite llegar a la final con código previo.
+> Por ahora el repositorio lo trabaja una sola persona; el resto del equipo se suma más adelante.
 
 ## La idea en una línea
 **Un copiloto que te avisa ANTES de que te falte la plata, te dice por qué y te da 2-3 jugadas
@@ -50,7 +49,8 @@ pantalla debe salir de una función con test.
 
 ## Estado
 - [x] Investigación y método
-- [ ] Confirmar reglas de la final (código previo, stack, datos)
+- [x] Confirmar si se permite código previo (sí)
+- [ ] Confirmar stack, datos y formato de presentación
 - [ ] Datos sintéticos
 - [ ] Motor de proyección + tests
 - [ ] Interfaz y explicación con IA
