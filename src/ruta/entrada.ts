@@ -35,6 +35,16 @@ export interface Respuestas {
   ingresoFlojo?: Centimos;
   /** Dependiente: si recibe gratificación en julio y diciembre. Solo da contexto; no entra en la proyección. */
   gratificacion?: boolean;
+  /** Dependiente: ingreso extra que llega seguro cada mes, aparte del sueldo. */
+  ingresoExtra?: Centimos;
+  /** Independiente: lo que gasta al mes para poder trabajar (materiales, mercadería, movilidad). */
+  gastosTrabajo?: Centimos;
+  /** Independiente: seguro de salud o pensión que paga por su cuenta. */
+  seguro?: Centimos;
+  /** Apoyo fijo a la familia cada mes. */
+  apoyoFamilia?: Centimos;
+  /** Dependiente: estudios o cursos que paga cada mes. */
+  estudios?: Centimos;
   saldo: Centimos;
   /** Alquiler y servicios. */
   fijosMensual: Centimos;
@@ -124,6 +134,13 @@ function descripcion(r: Respuestas): string {
       `Ingreso variable: en un mes normal le entran ${formatoSoles(r.ingresoMensual)} y en uno flojo ${formatoSoles(Math.min(r.ingresoFlojo, r.ingresoMensual))}; la proyección usa el mes flojo, por prudencia.`,
     );
   }
+  const extras: string[] = [];
+  if (r.ingresoExtra) extras.push(`un ingreso extra de ${formatoSoles(r.ingresoExtra)} al mes`);
+  if (r.gastosTrabajo) extras.push(`${formatoSoles(r.gastosTrabajo)} al mes en gastos del trabajo`);
+  if (r.seguro) extras.push(`${formatoSoles(r.seguro)} al mes de seguro o pensión`);
+  if (r.apoyoFamilia) extras.push(`${formatoSoles(r.apoyoFamilia)} al mes de apoyo a su familia`);
+  if (r.estudios) extras.push(`${formatoSoles(r.estudios)} al mes en estudios`);
+  if (extras.length > 0) partes.push(`Además declara ${extras.join(", ")}.`);
   return partes.join(" ");
 }
 
@@ -143,7 +160,12 @@ export function armarCaso(r: Respuestas): Datos {
   datos.gastosFijos = [
     ...fijos("gasto-alquiler", ["Alquiler y servicios"], [5], r.fijosMensual, "alquiler"),
     ...fijos("gasto-dia", NOMBRES_DE_GASTO, DIAS_DE_GASTO, r.diaADiaMensual, "comida"),
+    ...fijos("gasto-trabajo", ["Gastos del trabajo, primera quincena", "Gastos del trabajo, segunda quincena"], [3, 18], r.gastosTrabajo ?? 0, "otros"),
+    ...fijos("gasto-seguro", ["Seguro de salud o pensión"], [10], r.seguro ?? 0, "salud"),
+    ...fijos("gasto-familia", ["Apoyo a la familia"], [1], r.apoyoFamilia ?? 0, "familia"),
+    ...fijos("gasto-estudios", ["Estudios y cursos"], [10], r.estudios ?? 0, "educacion"),
   ];
+  datos.ingresosFijos.push(...fijos("ingreso-extra", ["Ingreso extra"], [20], r.ingresoExtra ?? 0, "ingreso_variable"));
   datos.deudas = r.deuda && r.deuda.saldo > 0 ? [deudaGuardada(r.deuda)] : [];
   return datos;
 }
