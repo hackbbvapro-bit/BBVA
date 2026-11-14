@@ -25,11 +25,11 @@ describe("datos que ve el agente", () => {
     }
   });
 
-  it("el resumen de Rosa dice el día y el monto exactos del déficit", () => {
+  it("el resumen de Andrea dice el día y el monto exactos del déficit", () => {
     const { perfil, analisis } = porId("independiente");
     const resumen = datosResumen(perfil, analisis);
     expect(resumen.deficit?.primer_dia_en_negativo).toBe("lunes 23 de noviembre");
-    expect(resumen.deficit?.cuanto_falta_ese_dia).toBe("S/ 200.00");
+    expect(resumen.deficit?.cuanto_falta_ese_dia).toBe("S/ 119.07");
     expect(resumen.deficit?.causas.length).toBeGreaterThan(0);
   });
 
@@ -39,7 +39,7 @@ describe("datos que ve el agente", () => {
     expect(datosJugadas(analisis).hay_deficit).toBe(false);
   });
 
-  it("las jugadas de Rosa llevan costo y señalan la más barata que resuelve", () => {
+  it("las jugadas de Andrea llevan costo y señalan la más barata que resuelve", () => {
     const { analisis } = porId("independiente");
     const jugadas = datosJugadas(analisis);
     expect(jugadas.hay_deficit).toBe(true);

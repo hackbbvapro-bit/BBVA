@@ -29,7 +29,7 @@ export function LoQueSe({ analisis }: { analisis: Analisis }) {
       </h2>
       <p className="mt-1 hidden text-sm text-gris md:block">Esto es lo que uso para contestarte. Si algo está viejo, corrígelo y respondo con lo nuevo.</p>
       <dl className="mt-2 md:mt-5">
-        <Dato etiqueta="Hoy tienes" valor={formatoSoles(perfil.saldoActual)} detalle={`${datos.cuentas.length} ${datos.cuentas.length === 1 ? "cuenta" : "cuentas"}`} />
+        <Dato etiqueta="Dinero hoy" valor={formatoSoles(perfil.saldoActual)} detalle={`${datos.cuentas.length} ${datos.cuentas.length === 1 ? "cuenta" : "cuentas"}`} />
         <Dato
           etiqueta="Tu próximo faltante"
           valor={deficit ? formatoSoles(deficit.faltante) : "Ninguno"}

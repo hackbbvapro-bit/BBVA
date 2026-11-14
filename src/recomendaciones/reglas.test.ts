@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { analizar, formatoSoles } from "../motor";
 import type { Analisis } from "../motor";
 import { aPerfil } from "../datos/aPerfil";
-import { datosDeRosa } from "../datos/semilla";
+import { datosDeEjemplo } from "../datos/semilla";
 import type { Datos } from "../datos/tipos";
 import { CATALOGO } from "./catalogo";
 import { recomendar } from "./reglas";
@@ -11,9 +11,9 @@ const analisisDe = (d: Datos): Analisis => analizar(aPerfil(d));
 const sinDeficit = (a: Analisis): Analisis => ({ ...a, proyeccion: { ...a.proyeccion, deficit: null } });
 const ids = (d: Datos, a: Analisis) => recomendar(d, a).map(r => r.entrada.id);
 
-/** Rosa sin atraso, con liquidez de sobra y sin déficit: ninguna regla debería activarse salvo la de tarjeta, si no tuviera. */
-function rosaHolgada(): { datos: Datos; analisis: Analisis } {
-  const datos = datosDeRosa();
+/** Andrea sin atraso, con liquidez de sobra y sin déficit: ninguna regla debería activarse salvo la de tarjeta, si no tuviera. */
+function andreaHolgada(): { datos: Datos; analisis: Analisis } {
+  const datos = datosDeEjemplo();
   datos.cuentas = [{ id: "c", nombre: "Cuenta", saldo: 900_000_000 }];
   return { datos, analisis: sinDeficit(analisisDe(datos)) };
 }
@@ -31,12 +31,12 @@ describe("catálogo", () => {
 });
 
 describe("recomendar", () => {
-  it("con la semilla de Rosa es determinista y cada motivo trae su regla sin NaN", () => {
-    const datos = datosDeRosa();
+  it("con la semilla de Andrea es determinista y cada motivo trae su regla sin NaN", () => {
+    const datos = datosDeEjemplo();
     const analisis = analisisDe(datos);
     const r = recomendar(datos, analisis);
     expect(recomendar(datos, analisis)).toEqual(r);
-    // Rosa tiene «Tarjeta Azul» abierta y cero días de atraso: ni tarjeta con garantía ni tarjeta de inicio.
+    // Andrea tiene «Tarjeta Azul» abierta y cero días de atraso: ni tarjeta con garantía ni tarjeta de inicio.
     expect(r.map(x => x.entrada.id)).not.toContain("tarjeta-con-garantia");
     expect(r.map(x => x.entrada.id)).not.toContain("tarjeta-inicio");
     for (const x of r) {
@@ -50,25 +50,25 @@ describe("recomendar", () => {
   });
 
   it("no ofrece nada a quien está holgado y ya tiene tarjeta", () => {
-    const { datos, analisis } = rosaHolgada();
+    const { datos, analisis } = andreaHolgada();
     expect(ids(datos, analisis)).toEqual([]);
   });
 
   it("deuda con atraso activa la tarjeta con garantía y cita los días reales", () => {
-    const { datos, analisis } = rosaHolgada();
+    const { datos, analisis } = andreaHolgada();
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 12 } : d));
     const r = recomendar(datos, analisis).find(x => x.entrada.id === "tarjeta-con-garantia");
     expect(r?.porQue).toBe("Tienes una deuda con 12 días de atraso.");
   });
 
   it("un atraso corto que aún deja la calificación en Normal no basta para pedir un depósito", () => {
-    const { datos, analisis } = rosaHolgada();
+    const { datos, analisis } = andreaHolgada();
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 1 } : d));
     expect(ids(datos, analisis)).not.toContain("tarjeta-con-garantia");
   });
 
   it("con un faltante proyectado no propone productos que piden inmovilizar un depósito", () => {
-    const { datos } = rosaHolgada();
+    const { datos } = andreaHolgada();
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 40 } : d));
     const holgado = sinDeficit(analisisDe(datos));
     expect(ids(datos, holgado)).toContain("tarjeta-con-garantia");
@@ -86,7 +86,7 @@ describe("recomendar", () => {
   });
 
   it("una calificación no Normal en el último reporte de deudas cargado también la activa", () => {
-    const { datos, analisis } = rosaHolgada();
+    const { datos, analisis } = andreaHolgada();
     datos.documentos = [
       {
         id: "d1", tipo: "reporte-sbs", resumen: "Reporte", fecha: "2026-11-01",
@@ -101,7 +101,7 @@ describe("recomendar", () => {
   });
 
   it("sin tarjeta abierta activa la tarjeta de inicio; una tarjeta pagada no cuenta", () => {
-    const { datos, analisis } = rosaHolgada();
+    const { datos, analisis } = andreaHolgada();
     datos.deudas = datos.deudas.map(d => (d.tipo === "tarjeta" ? { ...d, pagada: true } : d));
     expect(ids(datos, analisis)).toContain("tarjeta-inicio");
     datos.deudas = datos.deudas.filter(d => d.tipo !== "tarjeta");
@@ -109,8 +109,8 @@ describe("recomendar", () => {
   });
 
   it("un déficit proyectado activa reprogramar con la fecha y el faltante reales", () => {
-    const { datos, analisis } = rosaHolgada();
-    const base = analisisDe(datosDeRosa());
+    const { datos, analisis } = andreaHolgada();
+    const base = analisisDe(datosDeEjemplo());
     const con: Analisis = {
       ...analisis,
       proyeccion: {
@@ -124,7 +124,7 @@ describe("recomendar", () => {
   });
 
   it("si los mínimos no alcanzan, reprogramar sale aunque no haya déficit", () => {
-    const { datos } = rosaHolgada();
+    const { datos } = andreaHolgada();
     datos.cuentas = [{ id: "c", nombre: "Cuenta", saldo: 0 }];
     datos.deudas = datos.deudas.map(d => ({ ...d, pagoMinimo: 900_000_000, saldo: 900_000_000 }));
     const analisis = sinDeficit(analisisDe(datos));

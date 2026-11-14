@@ -2,11 +2,14 @@ import type { PGlite } from "@electric-sql/pglite";
 import type { Movimiento } from "../motor/tipos";
 import { migrar, type Ejecutor } from "./esquema";
 import { validado, type Repositorio } from "./repositorio";
-import { datosDeRosa } from "./semilla";
+import { datosDeEjemplo, ID_PROPIO } from "./semilla";
 import type { Cobro, Datos, DeudaGuardada, DocumentoAnalizado, Fijo, Sentido } from "./tipos";
 import type { TipoPerfil, Categoria, Canal } from "../motor/tipos";
 
 type Tx = Ejecutor;
+
+/** Nombres de casos de ejemplo que ya no se usan: quien los tenga guardados recibe el ejemplo actual. */
+const EJEMPLOS_RETIRADOS = ["Rosa"];
 
 const TABLAS = ["avisos_leidos", "documentos", "cobros", "deudas", "movimientos", "fijos", "cuentas", "perfil"];
 
@@ -112,12 +115,20 @@ async function leer(db: Tx): Promise<Datos> {
   };
 }
 
-/** Repositorio sobre PGlite. Aplica las migraciones y, si la base está vacía, carga la semilla de Rosa. */
+/** Repositorio sobre PGlite. Aplica las migraciones y, si la base está vacía, carga la semilla de Andrea. */
 export async function crearRepositorioPGlite(db: PGlite): Promise<Repositorio> {
   await db.waitReady;
   await migrar(db);
-  const hay = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM perfil")).rows[0].n;
-  if (hay === 0) await db.transaction(tx => escribirTodo(tx, datosDeRosa()));
+  const guardado = (await db.query<{ id: string; nombre: string }>("SELECT id, nombre FROM perfil LIMIT 1")).rows[0];
+  // Sin nada guardado, o con un caso de ejemplo ya retirado, se siembra el ejemplo actual.
+  // Los datos propios de la persona (id «propio») nunca se tocan.
+  const retirado = guardado !== undefined && guardado.id !== ID_PROPIO && EJEMPLOS_RETIRADOS.includes(guardado.nombre);
+  if (!guardado || retirado) {
+    await db.transaction(async tx => {
+      if (retirado) for (const t of TABLAS) await tx.exec(`DELETE FROM ${t}`);
+      await escribirTodo(tx, datosDeEjemplo());
+    });
+  }
   const borrar = (tabla: string) => async (id: string) => void (await db.query(`DELETE FROM ${tabla} WHERE id = $1`, [id]));
   // Todo o nada: si una fila falla, la base queda como estaba.
   const reemplazarTodo = (datos: Datos) =>
@@ -139,6 +150,6 @@ export async function crearRepositorioPGlite(db: PGlite): Promise<Repositorio> {
     guardarDocumento: async d => void (await upsertDocumento(db, d)),
     marcarAvisoLeido: async clave => void (await db.query("INSERT INTO avisos_leidos (clave) VALUES ($1) ON CONFLICT DO NOTHING", [clave])),
     cargar: datos => reemplazarTodo(datos),
-    restablecer: () => reemplazarTodo(datosDeRosa()),
+    restablecer: () => reemplazarTodo(datosDeEjemplo()),
   });
 }

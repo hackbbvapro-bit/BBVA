@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Adjuntar } from "@/componentes/documento";
 import { DatosDePrueba } from "@/componentes/datos";
-import { datosDeRosa } from "@/datos/semilla";
+import { datosDeEjemplo } from "@/datos/semilla";
 
 describe("Adjuntar", () => {
   it("ofrece solo el reporte de ejemplo, con rótulo honesto y sin selector de archivos", () => {
     const html = renderToStaticMarkup(
-      <DatosDePrueba datos={datosDeRosa()}>
+      <DatosDePrueba datos={datosDeEjemplo()}>
         <Adjuntar alGuardar={() => undefined} />
       </DatosDePrueba>,
     );

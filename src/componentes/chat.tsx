@@ -70,7 +70,7 @@ export function Chat({
 }: {
   perfil: Perfil;
   analisis: Analisis;
-  /** Caso de ejemplo (Rosa, inventada). Si no, es el caso que armó la persona. */
+  /** Caso de ejemplo (Andrea, inventada). Si no, es el caso que armó la persona. */
   demo?: boolean;
   /** IA, voz y dictado permitidos: siempre en el ejemplo; en un caso propio, solo si la persona aceptó. */
   externo?: boolean;
@@ -360,7 +360,7 @@ export function Chat({
             <div className="mt-1 space-y-1.5 rounded-xl bg-niebla px-3 py-2.5">
               {externo && (
                 <p>
-                  {demo ? "El caso de Rosa es inventado. Sus cifras y tu pregunta" : "Tu caso de simulación y tus preguntas"} viajan a servicios externos de IA y de voz (Anthropic, Fish Audio y el dictado del navegador): no escribas ni digas datos personales.
+                  {demo ? "El caso de Andrea es inventado. Sus cifras y tu pregunta" : "Tu caso de simulación y tus preguntas"} viajan a servicios externos de IA y de voz (Anthropic, Fish Audio y el dictado del navegador): no escribas ni digas datos personales.
                 </p>
               )}
               <p>{AVISO_SIMULACION}</p>
