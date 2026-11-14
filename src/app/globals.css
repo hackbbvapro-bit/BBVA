@@ -1,19 +1,20 @@
 @import "tailwindcss";
 
-/* Paleta propia del copiloto (no es la de ningún banco). Un solo tema claro. */
+/* Paleta propia del copiloto (no es la de ningún banco). Un solo tema claro con cabina oscura. */
 @theme {
-  --color-tinta: #0c1a2b;
-  --color-tinta-suave: #1b2e47;
-  --color-papel: #f5f7fa;
-  --color-linea: #dfe5ee;
+  --color-tinta: #0b1626;
+  --color-tinta-suave: #16263d;
+  --color-noche: #060d18;
+  --color-papel: #f3f5f9;
+  --color-linea: #e1e7ef;
   --color-gris: #5b6b80;
-  --color-agua: #0fb5a6;
+  --color-agua: #14c8b4;
   --color-agua-fuerte: #0a7d74;
-  --color-agua-suave: #e2f6f4;
+  --color-agua-suave: #e0f7f4;
   --color-ambar: #f5a524;
   --color-ambar-fuerte: #8a5300;
   --color-ambar-suave: #fef3dc;
-  --color-coral: #e5484d;
+  --color-coral: #ff5a5f;
   --color-coral-fuerte: #b92d33;
   --color-coral-suave: #fde8e9;
   --font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -31,9 +32,129 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ---------- Cabina (parte superior oscura) ---------- */
+.cabina {
+  background:
+    radial-gradient(120% 70% at 85% 0%, rgb(20 200 180 / 0.22), transparent 60%),
+    radial-gradient(90% 60% at 0% 100%, rgb(64 110 255 / 0.18), transparent 65%),
+    linear-gradient(180deg, var(--color-noche), var(--color-tinta) 70%);
+}
+.cabina[data-alerta="si"] {
+  background:
+    radial-gradient(110% 70% at 90% 5%, rgb(255 90 95 / 0.26), transparent 60%),
+    radial-gradient(90% 60% at 0% 100%, rgb(20 200 180 / 0.16), transparent 65%),
+    linear-gradient(180deg, var(--color-noche), var(--color-tinta) 70%);
+}
+.aurora {
+  position: absolute;
+  inset: -40% -20% auto auto;
+  width: 22rem;
+  height: 22rem;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.45;
+  animation: deriva 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes deriva {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-3rem, 2.5rem, 0) scale(1.15); }
+}
+
+/* Vidrio para cabecera, navegación y tarjetas dentro de la cabina */
+.vidrio {
+  background: rgb(255 255 255 / 0.07);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+/* ---------- Movimiento ---------- */
+.aparecer {
+  animation: aparecer 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.trazo {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: trazar 1.3s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+@keyframes trazar {
+  to { stroke-dashoffset: 0; }
+}
+
+.latido {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: latido 1.8s ease-out infinite;
+}
+@keyframes latido {
+  from { transform: scale(1); opacity: 0.7; }
+  to { transform: scale(3.2); opacity: 0; }
+}
+
+.punto-vivo {
+  position: relative;
+}
+.punto-vivo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: halo 1.8s ease-out infinite;
+}
+@keyframes halo {
+  from { transform: scale(1); opacity: 0.6; }
+  to { transform: scale(2.8); opacity: 0; }
+}
+
+.barra {
+  transition:
+    height 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.5s ease;
+  animation: crecer 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes crecer {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes estirar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.desvanecer {
+  transition: opacity 0.5s ease;
+}
+
+/* Ondas de voz mientras habla el copiloto */
+.onda {
+  transform-origin: center;
+  animation: onda 0.9s ease-in-out infinite alternate;
+}
+@keyframes onda {
+  from { transform: scaleY(0.3); }
+  to { transform: scaleY(1); }
+}
+
+/* Indicador de la pestaña activa */
+.pestana-activa {
+  animation: aparecer 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .trazo {
+    stroke-dashoffset: 0;
   }
 }

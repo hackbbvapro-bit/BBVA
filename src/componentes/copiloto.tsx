@@ -62,10 +62,10 @@ function Sesion({ perfil, cambiar }: { perfil: Perfil; cambiar: (p: Perfil) => v
   }
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-30 mx-auto max-w-md border-b border-linea bg-papel px-5 pb-3 pt-[calc(.75rem+env(safe-area-inset-top))]">
+      <header className="fixed inset-x-0 top-0 z-30 mx-auto max-w-md border-b border-white/10 bg-noche/75 px-5 pb-3 pt-[calc(.75rem+env(safe-area-inset-top))] text-white backdrop-blur-xl backdrop-saturate-150">
         <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex size-9 items-center justify-center rounded-xl bg-agua-suave text-agua-fuerte">
+          <div className="flex items-center gap-2.5">
+            <span className="flex size-9 items-center justify-center rounded-xl bg-linear-to-br from-agua to-[#3d7bff] text-noche shadow-[0_0_20px_rgb(20_200_180/.45)]">
               <Icono nombre="rumbo" />
             </span>
             <span className="text-xl font-bold tracking-tight">Copiloto</span>
@@ -73,17 +73,17 @@ function Sesion({ perfil, cambiar }: { perfil: Perfil; cambiar: (p: Perfil) => v
           <button
             aria-label={`Abrir avisos: ${pendientes} pendientes`}
             onClick={() => setHoja(true)}
-            className="relative flex size-11 items-center justify-center rounded-full border border-linea bg-white"
+            className="vidrio relative flex size-11 items-center justify-center rounded-full transition-transform active:scale-95"
           >
             <Icono nombre="campana" />
             {pendientes > 0 && (
-              <span className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-tinta px-1 text-xs text-white">
+              <span className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-coral px-1 text-xs font-bold text-white shadow-[0_0_12px_rgb(255_90_95/.7)]">
                 {pendientes}
               </span>
             )}
           </button>
         </div>
-        <div role="group" aria-label="Persona de demostración" className="grid grid-cols-3 gap-2">
+        <div role="group" aria-label="Persona de demostración" className="vidrio grid grid-cols-3 gap-1 rounded-full p-1">
           {PERFILES.map(p => (
             <button
               key={p.id}
@@ -91,7 +91,7 @@ function Sesion({ perfil, cambiar }: { perfil: Perfil; cambiar: (p: Perfil) => v
               onClick={() => {
                 if (perfil.id !== p.id) cambiar(p);
               }}
-              className={`min-h-11 rounded-full px-3 font-semibold ${perfil.id === p.id ? "bg-tinta text-white" : "border border-linea bg-white text-gris"}`}
+              className={`min-h-10 rounded-full px-3 text-sm font-semibold transition-colors duration-300 ${perfil.id === p.id ? "bg-white text-noche shadow-[0_4px_14px_-4px_rgb(0_0_0/.5)]" : "text-white/65"}`}
             >
               {p.nombre}
             </button>
@@ -109,25 +109,35 @@ function Sesion({ perfil, cambiar }: { perfil: Perfil; cambiar: (p: Perfil) => v
       </main>
       <nav
         aria-label="Navegación principal"
-        className="fixed inset-x-0 bottom-0 z-30 mx-auto grid max-w-md grid-cols-3 border-t border-linea bg-white px-3 pb-[env(safe-area-inset-bottom)]"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md px-4 pb-[calc(.75rem+env(safe-area-inset-bottom))]"
       >
-        {(
-          [
-            ["hoy", "Hoy"],
-            ["deudas", "Deudas"],
-            ["hablar", "Hablar"],
-          ] as const
-        ).map(([id, nombre]) => (
-          <button
-            key={id}
-            aria-current={pestana === id ? "page" : undefined}
-            onClick={() => navegar(id)}
-            className={`my-2 flex min-h-16 flex-col items-center justify-center gap-1 rounded-2xl text-sm font-semibold ${pestana === id ? "bg-agua-suave text-agua-fuerte" : "text-gris"}`}
-          >
-            <Icono nombre={id} />
-            {nombre}
-          </button>
-        ))}
+        <div className="pointer-events-auto grid grid-cols-3 gap-1 rounded-[1.75rem] border border-white/10 bg-noche/85 p-1.5 text-white shadow-[0_18px_40px_-12px_rgb(6_13_24/.65)] backdrop-blur-xl backdrop-saturate-150">
+          {(
+            [
+              ["hoy", "Hoy"],
+              ["deudas", "Deudas"],
+              ["hablar", "Hablar"],
+            ] as const
+          ).map(([id, nombre]) => (
+            <button
+              key={id}
+              aria-current={pestana === id ? "page" : undefined}
+              onClick={() => navegar(id)}
+              className={`relative flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[1.35rem] text-xs font-semibold transition-colors duration-300 active:scale-95 ${pestana === id ? "text-noche" : "text-white/60"}`}
+            >
+              {pestana === id && (
+                <span
+                  className="pestana-activa absolute inset-0 rounded-[1.35rem] bg-agua shadow-[0_0_24px_rgb(20_200_180/.45)]"
+                  aria-hidden="true"
+                />
+              )}
+              <span className="relative flex flex-col items-center gap-0.5">
+                <Icono nombre={id} />
+                {nombre}
+              </span>
+            </button>
+          ))}
+        </div>
       </nav>
       {hoja && <HojaAvisos lista={lista} perfilId={perfil.id} cerrar={() => setHoja(false)} />}
     </>
