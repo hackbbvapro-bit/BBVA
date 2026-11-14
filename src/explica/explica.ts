@@ -8,6 +8,7 @@ import {
 } from "../motor";
 import type { Analisis, EventoProyectado, FechaISO, Jugada, Perfil } from "../motor";
 import { buscarMonto } from "../motor/numeros";
+import { CAMBIAR_FECHA_DE_PAGO } from "./educacion";
 import { fraseAvance, fraseLibre, rutaExplicada, type Avance, type Ruta } from "../ruta/ruta";
 
 export type NivelAviso = "urgente" | "atencion" | "bien";
@@ -160,7 +161,7 @@ function responderGasto(texto: string, perfil: Perfil, analisis: Analisis): stri
 
 function responderJugada(texto: string, analisis: Analisis): string | undefined {
   const reglas: [RegExp, Jugada["tipo"]][] = [
-    [/minimo/, "pagar_minimo"], [/mover|fecha|atras|aplaz/, "mover_pago"], [/recort|gast|ahorr/, "recortar_gasto"],
+    [/minimo/, "pagar_minimo"], [/suscrip|paus/, "pausar_suscripciones"], [/recort|gast|ahorr/, "recortar_gasto"],
   ];
   const tipo = reglas.find(([patron]) => patron.test(texto))?.[1];
   if (!tipo) return undefined;
@@ -183,6 +184,8 @@ function responderRuta(texto: string, ruta: Ruta): string | undefined {
  * Respuesta armada solo con cálculos del motor, para cuando la IA no está disponible.
  * Con `ruta`, también responde por dónde empezar y qué alternativas comparar; sin ella, se comporta igual que antes.
  */
+/** «¿Puedo mover / cambiar / postergar la fecha de pago?» (no «¿cuál es mi fecha de pago?»). */
+const PREGUNTA_FECHA_DE_PAGO = /\b(mover|muevo|cambiar|cambio|aplazar|aplazo|postergar|postergo|retrasar|retraso|correr|corro)\b.{0,30}\bfecha/;
 const PREGUNTA_DE_AVANCE =
   /\bcomo voy\b|\bmi avance\b|como va mi ruta|siguiente paso|\bque sigue\b|que paso (sigue|me toca|doy)|me falta hacer|\bya hice\b|\bya marque\b/;
 export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Analisis, ruta?: Ruta, avance?: Avance): string {
@@ -192,6 +195,10 @@ export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Anali
   if (avance && PREGUNTA_DE_AVANCE.test(texto)) return fraseAvance(avance);
   const gasto = responderGasto(texto, perfil, analisis);
   if (gasto) return gasto;
+  if (PREGUNTA_FECHA_DE_PAGO.test(texto)) {
+    const mejor = mejorJugada(analisis);
+    return mejor ? `${CAMBIAR_FECHA_DE_PAGO} Lo que sí puedes hacer hoy: ${explicarJugada(mejor)}` : CAMBIAR_FECHA_DE_PAGO;
+  }
   const jugada = responderJugada(texto, analisis);
   if (jugada) return jugada;
   const deRuta = ruta && responderRuta(texto, ruta);

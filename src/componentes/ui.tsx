@@ -109,7 +109,17 @@ const chips = {
   ambar: "bg-ambar-suave text-ambar-fuerte",
   coral: "bg-coral-suave text-coral-fuerte",
 };
-export type Cifra = { icono: NombreIcono; etiqueta: string; valor: string; nota?: string; tono?: keyof typeof chips };
+export type Cifra = {
+  icono: NombreIcono;
+  etiqueta: string;
+  valor: string;
+  nota?: string;
+  tono?: keyof typeof chips;
+  /** Si existe, la celda es un botón que lleva a la sección de esa cifra. */
+  ir?: () => void;
+  /** A dónde lleva, para lectores de pantalla (p. ej. «Ir a Deudas»). */
+  accion?: string;
+};
 /**
  * Franja de cifras: una sola tarjeta dividida en celdas con filetes finos (2 por fila en el celular,
  * todas en fila desde tableta). Ocupa una cuarta parte del alto que tenían las tarjetas sueltas.
@@ -118,21 +128,39 @@ export function Cifras({ items, etiqueta }: { items: Cifra[]; etiqueta: string }
   const columnas = items.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3";
   return (
     <section aria-label={etiqueta} className={`aparecer grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-linea bg-linea ${columnas}`}>
-      {items.map(({ icono, etiqueta, valor, nota, tono = "azul" }, i) => (
-        <div
-          key={etiqueta}
-          className={`flex min-w-0 flex-col bg-white px-4 py-3 md:px-5 md:py-4 ${items.length % 2 === 1 && i === items.length - 1 ? "col-span-2 lg:col-span-1" : ""}`}
-        >
-          <p className="flex items-center gap-1.5 text-xs font-medium leading-tight text-gris">
-            <span className={`flex size-5 shrink-0 items-center justify-center rounded-md [&_svg]:size-3.5 ${chips[tono]}`}>
-              <Icono nombre={icono} />
+      {items.map(({ icono, etiqueta, valor, nota, tono = "azul", ir, accion }, i) => {
+        const clase = `flex min-w-0 flex-col bg-white px-4 py-3 text-left md:px-5 md:py-4 ${items.length % 2 === 1 && i === items.length - 1 ? "col-span-2 lg:col-span-1" : ""}`;
+        const contenido = (
+          <>
+            <span className="flex items-start gap-1.5 text-xs font-medium leading-tight text-gris">
+              <span className={`flex size-5 shrink-0 items-center justify-center rounded-md [&_svg]:size-3.5 ${chips[tono]}`}>
+                <Icono nombre={icono} />
+              </span>
+              <span className="min-w-0 self-center">{etiqueta}</span>
+              {ir && (
+                <span aria-hidden="true" className="ml-auto shrink-0 text-gris/70 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-electrico">›</span>
+              )}
             </span>
-            <span className="truncate">{etiqueta}</span>
-          </p>
-          <p className="mt-1.5 text-lg font-semibold leading-tight tracking-[-0.015em] text-noche tabular-nums md:text-xl">{unido(valor)}</p>
-          {nota && <p className="mt-0.5 truncate text-xs leading-snug text-gris" title={nota}>{unido(nota)}</p>}
-        </div>
-      ))}
+            <span className="mt-1.5 text-lg font-semibold leading-tight tracking-[-0.015em] text-noche tabular-nums md:text-xl">{unido(valor)}</span>
+            {nota && <span className="mt-0.5 line-clamp-3 text-xs md:line-clamp-2 leading-snug text-gris" title={nota}>{unido(nota)}</span>}
+          </>
+        );
+        return ir ? (
+          <button
+            key={etiqueta}
+            type="button"
+            onClick={ir}
+            aria-label={`${etiqueta}: ${valor}. ${nota ? `${nota}. ` : ""}${accion ?? ""}`.trim()}
+            className={`${clase} group cursor-pointer transition-colors duration-150 hover:bg-niebla focus-visible:relative focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-electrico`}
+          >
+            {contenido}
+          </button>
+        ) : (
+          <div key={etiqueta} className={clase}>
+            {contenido}
+          </div>
+        );
+      })}
     </section>
   );
 }

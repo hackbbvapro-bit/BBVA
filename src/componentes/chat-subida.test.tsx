@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PERFILES } from "@/datos/perfiles";
 import { analizar } from "@/motor";
-import { datosDeRosa } from "@/datos/semilla";
+import { datosDeEjemplo } from "@/datos/semilla";
 import { DatosDePrueba } from "@/componentes/datos";
 import { Chat, preguntaTrasGuardar, RUTA_PDF_EJEMPLO } from "@/componentes/chat";
 
@@ -15,7 +15,7 @@ describe("subir un documento desde el asistente", () => {
     const perfil = PERFILES[0];
     for (const demo of [true, false]) {
       const html = renderToStaticMarkup(
-        <DatosDePrueba datos={datosDeRosa()}>
+        <DatosDePrueba datos={datosDeEjemplo()}>
           <Chat perfil={perfil} analisis={analizar(perfil)} demo={demo} {...voz} />
         </DatosDePrueba>,
       );

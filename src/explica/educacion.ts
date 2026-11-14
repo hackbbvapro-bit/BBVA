@@ -23,6 +23,14 @@ export const SI_NO_PAGAS = [
   "La entidad puede bloquear la tarjeta para compras nuevas.",
 ] as const;
 
+/**
+ * Si pregunta por mover la fecha de pago de una tarjeta. Verificado en hojas resumen y ayuda de entidades
+ * peruanas (nov-2026): donde se permite, el cambio de ciclo depende de la entidad y rige desde el ciclo
+ * siguiente, así que no sirve para el pago de este mes. Por eso el copiloto no lo propone como jugada.
+ */
+export const CAMBIAR_FECHA_DE_PAGO =
+  "Cambiar la fecha de pago de una tarjeta depende de tu entidad y, donde se puede, rige desde el ciclo siguiente: no sirve para el pago de este mes. Si este mes no te alcanza, paga al menos el mínimo a tiempo o llama a la entidad ANTES de la fecha para pedir una reprogramación.";
+
 /** Cómo salir, en orden. */
 export const PARA_SALIR = [
   "Paga más que el mínimo en cuanto puedas, empezando por la deuda de TCEA más alta.",
