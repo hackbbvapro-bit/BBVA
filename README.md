@@ -8,9 +8,8 @@ Final presencial de la Hackathon BBVA 2026 · Torre Central BBVA, San Isidro (Li
 Construir con IA algo que ayude a una persona a **comprender, anticipar y mejorar** su situación
 financiera, usando **datos sintéticos**, y presentar un **MVP** funcionando.
 
-> Pendiente de confirmar con los organizadores: si se permite llegar con código previo o solo con
-> la idea y la investigación. Hasta saberlo, este repositorio contiene investigación y diseño,
-> no el producto.
+> Confirmado (13-nov-2026): se permite llegar a la final con código previo.
+> Por ahora el repositorio lo trabaja una sola persona; el resto del equipo se suma más adelante.
 
 ## La idea en una línea
 **Un copiloto que te avisa ANTES de que te falte la plata, te dice por qué y te da 2-3 jugadas
@@ -24,7 +23,7 @@ Responde a dos preguntas que hoy ninguna app peruana contesta bien:
 1. **Lee movimientos** sintéticos (CSV / JSON con el formato de un estado de cuenta, Yape/Plin incluidos).
 2. **Detecta recurrentes**: sueldo o ingresos irregulares, alquiler, servicios, suscripciones, cuotas.
 3. **Proyecta el saldo a 30 días** de forma determinista (sin IA).
-4. **Avisa del déficit** con fecha y causa: «el 23 te faltan S/ 180 porque coinciden la cuota y el alquiler».
+4. **Avisa del déficit** con fecha y causa: «el lunes 23 te faltarán S/ 200.00 porque se juntan el alquiler y el pago de la tarjeta».
 5. **Propone 2-3 jugadas** con su costo calculado: mover un pago, pagar solo el mínimo (y cuánto cuesta),
    recortar una suscripción, adelantar un cobro.
 6. **La IA solo explica** en lenguaje llano lo que el motor ya calculó. Nunca inventa un número.
@@ -34,7 +33,7 @@ Responde a dos preguntas que hoy ninguna app peruana contesta bien:
 pantalla debe salir de una función con test.
 
 ## Diferencial peruano
-- **Ingresos irregulares** (≈70 % de informalidad laboral): la proyección trabaja con rangos, no con un sueldo fijo.
+- **Ingresos irregulares** (cerca de 70 % de informalidad laboral según el INEI): la proyección trabaja con rangos, no con un sueldo fijo.
 - **Yape / Plin** como movimientos de primera clase, no como «otros».
 - **TCEA** (costo real del crédito) para comparar deudas, no solo la tasa de interés.
 
@@ -45,13 +44,41 @@ pantalla debe salir de una función con test.
 | `investigacion/02-que-hace-bbva-y-que-no.md` | Qué ya tiene la app de BBVA Perú y dónde están los huecos |
 | `investigacion/03-benchmark-asesores-ia-top.md` | Qué hacen los mejores asesores con IA del mundo (Cleo, Monarch, Rocket Money, Plum…) |
 | `conocimiento/metodo-asesor.md` | Método de un asesor financiero: gastos, prioridades, deuda, escáner de estados de cuenta, errores a evitar |
+| `investigacion/04` a `09` | Deuda y tarjetas, acceso al crédito, BBVA a fondo, cómo se gana una hackathon, voz del usuario y competencia |
+| `investigacion/10-verificacion-de-cifras.md` | **Fuente de verdad de las cifras de mercado.** Qué está verificado, qué se corrigió y qué no se dice. Si otro documento la contradice, vale este |
+| `conocimiento/asesorfi/` | Conocimiento incorporado de AsesorFi |
 | `docs/PLAN-MVP.md` | Alcance del MVP, reparto del equipo y guion de la demo |
+| `docs/IDEAS.md` | Las ideas planteadas para la final |
+| `docs/INFRAESTRUCTURA.md` | Qué está montado, qué no y por qué; variables de entorno y plan B |
+| `docs/GUIA-FINAL.md` | Paso a paso para la final: claves, publicar, probar en el celular, guion de la demo y qué hacer si algo falla |
+| `src/motor/`, `src/datos/`, `src/explica/` | El motor que calcula (con tests), los tres perfiles sintéticos y los textos sin IA |
+| `src/componentes/`, `src/app/`, `src/cliente/` | La app para celular: Hoy, Deudas, Hablar y avisos |
+| `src/agente/`, `src/servidor/`, `src/app/api/` | El agente de IA, la voz, los avisos y sus protecciones |
 | `CLAUDE.md` | Reglas para trabajar con Claude Code en este proyecto |
+
+## Cómo probarlo en tu computadora
+```bash
+npm install
+cp .env.example .env.local   # las claves son opcionales: sin ellas la app usa sus respaldos
+npm run dev                  # abre http://localhost:3000
+```
+Antes de dar algo por bueno: `npm run typecheck`, `npm run lint`, `npm test` y `npm run build`.
+El formato del código lo pone Prettier (`npx prettier --write <archivo>`).
+
+Sin claves, la app funciona completa con datos de demostración: el chat responde con textos del
+motor y la voz es la del propio celular. Con `ANTHROPIC_API_KEY` conversa el agente de IA y con
+`FISH_API_KEY` + `FISH_VOICE_ID` habla con voz de Fish Audio. Detalle en `docs/INFRAESTRUCTURA.md`.
 
 ## Estado
 - [x] Investigación y método
-- [ ] Confirmar reglas de la final (código previo, stack, datos)
-- [ ] Datos sintéticos
-- [ ] Motor de proyección + tests
-- [ ] Interfaz y explicación con IA
-- [ ] Demo y pitch
+- [x] Confirmar si se permite código previo (sí)
+- [x] Stack: Next.js + TypeScript + Tailwind + Vitest
+- [x] Datos sintéticos (Rosa, Carlos y Lucía)
+- [x] Motor de proyección + tests
+- [x] Interfaz para celular, chat con respaldo sin IA y avisos dentro de la app
+- [x] Cifras del pitch revisadas contra su fuente (`investigacion/10-verificacion-de-cifras.md`)
+- [x] Rama `base-motor` en GitHub y pull request 1 abierto (sin fusionar)
+- [ ] Poner tope de gasto en Anthropic y Fish Audio, y cargar sus claves
+- [ ] Probar el agente con clave real de Anthropic y la voz con clave real de Fish Audio
+- [ ] Publicar en Vercel (fusionar el pull request) y probar micrófono y notificaciones en un celular real
+- [ ] Demo y pitch (guion en `docs/GUIA-FINAL.md`)
