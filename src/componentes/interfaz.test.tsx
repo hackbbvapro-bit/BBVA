@@ -71,7 +71,18 @@ describe("Perfil y menú de usuario", () => {
     const html = renderToStaticMarkup(<DatosDePrueba datos={datosDeRosa()}><Perfil /></DatosDePrueba>);
     expect(html).toContain("Rosa");
     expect(html).not.toMatch(/<input|NaN|undefined/);
-    const menu = renderToStaticMarkup(<MenuUsuario nombre="Rosa" variante="lateral" alPerfil={() => undefined} />);
+    const menu = renderToStaticMarkup(<MenuUsuario nombre="Rosa" variante="lateral" alPerfil={() => undefined} alComoFunciona={() => undefined} />);
     expect(menu).toContain("Cuenta demo");
+  });
+});
+describe("Cómo funciona", () => {
+  it("trae el recorrido de 5 pasos, el glosario completo y la nota de privacidad", async () => {
+    const { ComoFunciona } = await import("@/componentes/como-funciona");
+    const html = renderToStaticMarkup(<ComoFunciona />);
+    expect(html.match(/<li class="relative/g)).toHaveLength(5);
+    for (const t of ["TCEA", "Faltante (déficit)", "Calificación SBS", "Jugada", "Saldo proyectado", "Tu privacidad", "Los números los calcula el código"]) {
+      expect(html).toContain(t);
+    }
+    expect(html).not.toMatch(/<input|NaN|undefined/);
   });
 });
