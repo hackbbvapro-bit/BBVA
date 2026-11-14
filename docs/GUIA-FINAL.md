@@ -11,9 +11,9 @@ Marcas: **[MEDIDO]** salió de ejecutar algo · **[ASUMIDO]** no se comprobó to
 | Pieza | Estado |
 |---|---|
 | Motor que calcula, pantallas, chat, avisos dentro de la app | Funciona y está probado en vista de celular **[MEDIDO]** |
-| Código en GitHub | Pull request 1 fusionado a `main` el 13-nov-2026 **[MEDIDO]** |
-| Dirección pública (producción) | **Publicada** en `https://copiloto-anticipador.vercel.app`. Cada fusión a `main` la vuelve a publicar sola **[MEDIDO]**. Es pública, sin contraseña |
-| Claves de notificaciones | Cargadas en Vercel **[MEDIDO]** |
+| Código en GitHub | En `main` de `github.com/hackbbvapro-bit/BBVA` (repositorio del equipo) desde el 14-nov-2026 **[MEDIDO]** |
+| Dirección pública (producción) | **Publicada** en `https://copiloto-anticipador-hack.vercel.app`. Cada cambio en `main` la vuelve a publicar sola **[MEDIDO]**. Es pública, sin contraseña |
+| Claves de notificaciones | En `.env.local`; **falta cargarlas en el Vercel del equipo** |
 | Agente de IA (Anthropic) | Código listo. **Falta la clave. Nunca se probó con una clave real** |
 | Voz (Fish Audio) | Código listo. **Faltan la clave y el id de la voz. Nunca se probó con una clave real** |
 | Micrófono y notificaciones en un celular real | **Sin probar** |
@@ -40,7 +40,7 @@ de fish.audio: es el final de la dirección `fish.audio/m/<id>`).
 
 **No las pegues en un chat, en WhatsApp ni en un archivo del repositorio.**
 
-- **En Vercel (lo que ve el jurado):** `vercel.com` → proyecto `copiloto-anticipador` → Settings →
+- **En Vercel (lo que ve el jurado):** `vercel.com` → proyecto `copiloto-anticipador-hack` → Settings →
   Environment Variables → añade las tres, marcadas para *Production* y *Preview*.
   Una variable nueva solo vale desde la siguiente publicación (ver paso 4).
 - **En tu computadora (para probar):** abre el archivo `.env.local` de la carpeta del proyecto con
@@ -69,13 +69,13 @@ Abre `http://localhost:3000` y comprueba, en este orden:
 
 ## Paso 4 · Publicar (ya hecho; solo falta el Redeploy con tus claves)
 
-La app ya está publicada en `https://copiloto-anticipador.vercel.app` **[MEDIDO el 13-nov]**: la
+La app ya está publicada en `https://copiloto-anticipador-hack.vercel.app` **[MEDIDO el 14-nov]**: la
 pantalla carga con Rosa y el chat responde con el motor («Respuesta del motor, sin IA»). Ahí
 `/api/estado` devuelve hoy `"ia":false` y `"voz":false` porque faltan tus claves.
 
 1. Cuando cargues las claves en Vercel: Deployments → el último → **Redeploy**. Una variable nueva
    solo vale desde la siguiente publicación.
-2. Abre `https://copiloto-anticipador.vercel.app/api/estado` y comprueba `"ia":true`, `"voz":true`
+2. Abre `https://copiloto-anticipador-hack.vercel.app/api/estado` y comprueba `"ia":true`, `"voz":true`
    y `"push":true`.
 3. Repite el paso 3 en la dirección de producción.
 

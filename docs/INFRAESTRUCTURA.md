@@ -1,24 +1,25 @@
 # Infraestructura del MVP
 
-Estado al viernes 13 de noviembre de 2026 por la noche. Analogía: la app es un puesto de feria
+Estado al sábado 14 de noviembre de 2026, madrugada. Analogía: la app es un puesto de feria
 desmontable; solo se montó lo que el puesto necesita para atender, no un local entero.
 
 ## Qué está montado
 
 | Pieza | Para qué | Estado |
 |---|---|---|
-| GitHub (repositorio privado) | Guardar el código y trabajar en equipo | Listo. Pull request 1 fusionado a `main` el 13-nov-2026 [MEDIDO] |
-| Vercel (proyecto `copiloto-anticipador`) | Publicar la app con dirección `https` (obligatoria para micrófono y notificaciones) | **Publicada** en `https://copiloto-anticipador.vercel.app`; cada fusión a `main` se publica sola [MEDIDO]. Pública, sin contraseña. Hoy `/api/estado` da `ia:false`, `voz:false`, `push:true` hasta que se carguen las claves y se haga Redeploy |
+| GitHub (`hackbbvapro-bit/BBVA`, público) | Repositorio del equipo para la final | Listo. Código subido a `main` el 14-nov-2026 [MEDIDO]. El repositorio anterior ya no se usa |
+| Vercel (cuenta del equipo, proyecto `copiloto-anticipador-hack`) | Publicar la app con dirección `https` (obligatoria para micrófono y notificaciones) | **Publicada** en `https://copiloto-anticipador-hack.vercel.app`; cada cambio en `main` se publica solo [MEDIDO]. Pública, sin contraseña. Hoy `/api/estado` da `ia:false`, `voz:false`, `push:false` hasta que se carguen las claves y se haga Redeploy |
 | API de Anthropic | El agente que conversa y explica | Código listo. **Falta la clave** |
 | Fish Audio | La voz del agente (y transcribir audio como respaldo) | Código listo. **Faltan la clave y el id de la voz** |
-| Notificaciones web (VAPID) | Avisos en el celular | Claves generadas en `.env.local` y cargadas en Vercel (Production y Preview). **Sin probar en un celular real** |
+| Notificaciones web (VAPID) | Avisos en el celular | Claves generadas en `.env.local`. **Falta cargarlas en el Vercel del equipo.** Sin probar en un celular real |
+| Supabase (cuenta del equipo) | Base de datos, si el equipo la necesita | Proyecto creado y enlazado al repositorio. **El código no lo usa** (ver abajo) |
 
-## Qué NO se montó y por qué
+## Qué NO se conectó y por qué
 
-- **Supabase (base de datos y cuentas):** la demo usa tres perfiles sintéticos que viven en el
-  código y el motor calcula en el propio celular. No hay nada que guardar. Además, la cuenta
-  gratuita ya tiene sus dos proyectos ocupados por proyectos reales y no se tocan. Si después de
-  la hackathon se quisiera guardar usuarios, es la pieza natural a añadir.
+- **Supabase (base de datos y cuentas):** existe el proyecto en la cuenta del equipo, pero la
+  demo usa tres perfiles sintéticos que viven en el código y el motor calcula en el propio
+  celular. No hay nada que guardar. Conectarlo la noche antes de la final añade riesgo sin nada
+  visible para el jurado. El plan gratuito se pausa tras ~1 semana sin uso.
 - **Resend (correos):** los avisos van por notificación del celular y por voz, que es lo que se
   ve en una demo de tres minutos. Un correo no suma en el escenario. Queda como opción comentada
   en `.env.example`.
@@ -38,7 +39,7 @@ en un chat.**
 | `FISH_API_KEY` | Para la voz de Fish Audio | El dueño de la cuenta (fish.audio) |
 | `FISH_VOICE_ID` | Para la voz de Fish Audio | Id de una voz en español elegida en fish.audio |
 | `FISH_MODEL` | No (por defecto `s2.1-pro`) | — |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Para notificaciones | Ya generadas en `.env.local` y cargadas en Vercel |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Para notificaciones | Ya generadas en `.env.local`; falta cargarlas en el Vercel del equipo |
 
 Para cargar una variable en Vercel desde la terminal (pide el valor sin mostrarlo en pantalla):
 
@@ -72,7 +73,7 @@ y `push` en `true` o `false`.
   la voz de Fish y las notificaciones necesitan red.
 - **iPhone:** las notificaciones solo funcionan si la app se instaló con «Compartir → Añadir a
   pantalla de inicio» y el permiso se pide con un toque. Hay que probarlo en un iPhone real.
-- **Vercel gratuito con repositorio privado:** puede bloquear el despliegue de commits hechos por
-  alguien que no es el dueño del proyecto. Si un compañero sube código y no se publica, es eso.
+- **Vercel gratuito:** si un compañero sube código y no se publica, revisa en Vercel →
+  Deployments si quedó bloqueado por no ser el dueño del proyecto.
 - **Sin base de datos:** las suscripciones a notificaciones no se guardan; el aviso de prueba se
   envía en el momento, desde el celular que lo pide.
