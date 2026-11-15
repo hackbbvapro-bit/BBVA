@@ -412,3 +412,8 @@ body {
     stroke-dashoffset: 0;
   }
 }
+
+/* Portada: los enlaces del menú bajan suave solo si la persona no pidió menos movimiento. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.portada) { scroll-behavior: smooth; }
+}

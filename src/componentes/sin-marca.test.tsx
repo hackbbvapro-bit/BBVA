@@ -73,7 +73,10 @@ describe("la interfaz orienta con BBVA y no recomienda competidores", () => {
     ]) {
       const html = pintar(vista);
       expect(html.length).toBeGreaterThan(0);
-      expect(html).not.toMatch(/BBVA/i);
+      // La portada nombra al banco solo para aclarar el contexto: «Proyecto · Hackathon BBVA» y
+      // «no es un producto oficial de BBVA». Fuera de esas dos frases, ninguna mención.
+      const sinAclaraciones = html.replace(/Hackathon BBVA/g, "").replace(/no es un producto oficial de BBVA/g, "");
+      expect(sinAclaraciones).not.toMatch(/BBVA/i);
     }
   });
 

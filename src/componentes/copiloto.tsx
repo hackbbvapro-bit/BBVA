@@ -81,6 +81,18 @@ function Contenido() {
   // Solo se pinta en el navegador (ProveedorDatos espera a abrir la base), así que se puede leer el almacenamiento aquí.
   // Quien ya guardó sus datos entra directo; quien nunca eligió ve la bienvenida.
   const [modo, setModo] = useState<Modo | null>(() => leerModo() ?? (perfil.id === ID_PROPIO ? "propio" : null));
+  // Opción elegida en la portada de ingreso (?empezar=demo|propio). Solo cuenta si aún no hay un caso guardado:
+  // nunca reemplaza en silencio lo que la persona ya armó en este equipo.
+  const [empezar, setEmpezar] = useState<Modo | undefined>(() => {
+    if (modo !== null) return undefined;
+    const v = new URLSearchParams(window.location.search).get("empezar");
+    return v === "demo" || v === "propio" ? v : undefined;
+  });
+  useEffect(() => {
+    // La dirección queda limpia: recargar no repite la elección.
+    if (new URLSearchParams(window.location.search).has("empezar"))
+      window.history.replaceState(null, "", window.location.pathname);
+  }, []);
   // Recién armado el caso: la sesión abre en el asistente, que saluda con la ruta.
   const [reciente, setReciente] = useState(false);
   if (modo === null) {
@@ -88,7 +100,9 @@ function Contenido() {
     fijarSalidas(false);
     return (
       <Bienvenida
+        empezar={empezar}
         alListo={(m, extra) => {
+          setEmpezar(undefined); // usada una vez: volver al inicio después no la repite
           setReciente(extra?.reciente === true);
           setModo(m);
         }}
