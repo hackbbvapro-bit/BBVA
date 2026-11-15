@@ -185,9 +185,9 @@ describe("respuestas sin IA cuando hay ruta", () => {
   const datos = armarCaso(respuestas);
   const perfil = aPerfil(datos);
   const analisis = analizar(perfil);
-  const ruta = trazarRuta(perfil, analisis, hechosDe(datos, tuvoCreditoSegun(respuestas)));
+  const ruta = trazarRuta(perfil, analisis, { ...hechosDe(datos, tuvoCreditoSegun(respuestas)), meta: "construir_historial" });
 
-  it("el caso de prueba es de quien nunca tuvo crédito", () => {
+  it("el caso de prueba elige prepararse para una compra grande", () => {
     expect(ruta.id).toBe("construir_historial");
   });
 

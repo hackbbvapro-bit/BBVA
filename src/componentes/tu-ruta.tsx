@@ -2,7 +2,7 @@
 
 import { Encabezado, Icono, botonPrincipal, tarjeta, unido } from "@/componentes/ui";
 import { formatoSoles } from "@/motor";
-import { contadorDeAvance, type Avance, type IdPaso, type Ruta } from "@/ruta/ruta";
+import { contadorDeAvance, type Avance, type IdPaso, type IdRuta, type Ruta } from "@/ruta/ruta";
 import { productosDeLaRuta, type Partida, type PlanDelMes, type ProductoDeRuta } from "@/ruta/presupuesto";
 
 /**
@@ -220,12 +220,18 @@ export function MiRuta({
   alMarcar,
   alConversar,
   plan,
+  opciones = [ruta],
+  recomendada,
+  alElegir,
 }: {
   ruta: Ruta;
   avance: Avance;
   alMarcar: (id: IdPaso, hecho: boolean) => void;
   alConversar?: () => void;
   plan?: PlanDelMes;
+  opciones?: Ruta[];
+  recomendada?: IdRuta;
+  alElegir?: (id: IdRuta) => void;
 }) {
   const siguiente = avance.pasos.findIndex(p => !p.hecho);
   const { flujo } = ruta;
@@ -237,6 +243,20 @@ export function MiRuta({
         bajada="Tu plan según tu presupuesto: qué hacer primero, con qué plata y qué productos te sirven."
       />
 
+      <section className={tarjeta} aria-labelledby="elige-ruta">
+        <h2 id="elige-ruta" className="text-lg font-semibold text-noche">Elige tu ruta</h2>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {opciones.map(opcion => (
+            <button key={opcion.id} type="button" aria-pressed={ruta.id === opcion.id}
+              onClick={() => alElegir?.(opcion.id)}
+              className={`min-w-0 rounded-xl border-2 p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electrico ${ruta.id === opcion.id ? "border-electrico bg-agua-suave/60" : "border-linea bg-white hover:bg-niebla"}`}>
+              {recomendada === opcion.id && <span className="mb-2 block text-xs font-semibold text-electrico">{opcion.id === "estar_en_verde" ? "Recomendada por tu saldo" : "Recomendada"}</span>}
+              <span className="block font-semibold text-noche">{opcion.titulo}</span>
+              <span className="mt-1 block text-sm leading-relaxed text-gris">{opcion.motivos[0]}</span>
+            </button>
+          ))}
+        </div>
+      </section>
       <section
         className={`${tarjeta} grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-8`}
         aria-labelledby="tu-ruta"
@@ -339,7 +359,7 @@ export function MiRuta({
           {ruta.motivos.length > 0 && (
             <section className={tarjeta} aria-labelledby="motivos">
               <h2 id="motivos" className="text-base font-semibold text-noche">
-                Por qué te toca esta ruta
+                Por qué te sirve esta ruta
               </h2>
               <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-tinta">
                 {ruta.motivos.map(m => (

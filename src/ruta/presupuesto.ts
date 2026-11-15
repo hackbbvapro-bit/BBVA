@@ -82,7 +82,7 @@ function planSinHolgura(perfil: Perfil, analisis: Analisis, libre: Centimos): Pl
 function repartir(perfil: Perfil, analisis: Analisis, ruta: Ruta, libre: Centimos): { partidas: Partida[]; nota: string } {
   const { deficit } = analisis.proyeccion;
   const c = ruta.colchon;
-  if (ruta.id === "estar_en_verde") {
+  if (ruta.id === "estar_en_verde" || ruta.id === "salir_deudas") {
     if (deficit) {
       const hueco = Math.min(libre, deficit.faltanteMaximo);
       const partidas: Partida[] = [{
@@ -114,6 +114,10 @@ function repartir(perfil: Perfil, analisis: Analisis, ruta: Ruta, libre: Centimo
       nota: "Regla del copiloto: usa como máximo la mitad de lo que te sobra, para que siempre puedas pagar el total.",
     };
   }
+  if (ruta.id === "ahorrar") return {
+    partidas: [{ id: "colchon", titulo: "Ahorro y colchón", monto: libre, detalle: c.falta > 0 ? `Para tu colchón faltan ${formatoSoles(c.falta)}; conserva el ahorro disponible para tus metas.` : "Tu colchón ya está completo; este ahorro queda para tus metas." }],
+    nota: "Separa el ahorro al cobrar y mantenlo disponible.",
+  };
   // hacer_crecer
   if (c.falta > 0) {
     const alColchon = Math.min(libre, c.falta);

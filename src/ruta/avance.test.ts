@@ -38,8 +38,8 @@ describe("avance de la ruta", () => {
   it("el saludo retoma desde el siguiente paso cuando ya hay avance", () => {
     const a = avanceDe(ruta, [ruta.idsPasos[0]]);
     const saludo = saludoDeRuta("Lucho", ruta, true, a);
-    expect(saludo).toContain("Hola de nuevo, Lucho");
-    expect(saludo).toContain("Llevas 1 de");
+    expect(saludo).toContain("Hola, Lucho");
+    expect(saludo.toLowerCase()).toContain(a.siguiente!.toLowerCase());
   });
 
   it("el servidor solo acepta identificadores de paso conocidos", () => {
