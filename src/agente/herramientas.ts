@@ -4,11 +4,19 @@ import { z } from "zod";
 import { analizar, type Analisis, type Perfil } from "../motor";
 import type { CobroPendiente } from "../motor/cobros";
 import { leerMonto } from "../motor/numeros";
-import type { Avance, Ruta } from "../ruta/ruta";
+import type { Avance, Hechos, Ruta } from "../ruta/ruta";
 import { datosDeudas, datosJugadas, datosProximosPagos, datosResumen, datosRuta, datosSimulacion } from "./datos";
+import { FAMILIAS, buscarEnCatalogo, menuDelCatalogo } from "../catalogo-bbva/catalogo";
+import { SENALES_DICHAS } from "../catalogo-bbva/orientacion";
+import { senalesDe } from "../catalogo-bbva/senales";
 import { CATEGORIAS, EsquemaAccion, aplicar, efectoComoDato, efectoDe, frase, leerFecha, type Accion, type Situacion } from "./registro";
 
 const SinDatos = z.object({});
+const BusquedaCatalogo = z.object({
+  consulta: z.string().trim().max(80).optional().describe("Qué busca, en palabras de la persona: «tarjeta sin membresía», «crédito para casa», «seguro de salud». Vacío para ver el menú completo."),
+  familia: z.enum(FAMILIAS).optional().describe("Para limitar a una familia de productos."),
+  lo_que_dijo: z.array(z.enum(SENALES_DICHAS)).max(SENALES_DICHAS.length).optional().describe("Solo lo que la persona dijo EXPLÍCITAMENTE en esta conversación: que cobra su sueldo en BBVA o que tiene la meta de comprar vivienda, auto o estudiar. Nunca lo supongas."),
+});
 const DiasPagos = z.object({
   dias: z.number().int().min(1).max(30).optional().describe("Cuántos días hacia adelante mirar. Por defecto 7."),
 });
@@ -69,6 +77,8 @@ export interface OpcionesHerramientas {
   alAccion?: (accion: Accion, texto: string) => void;
   /** Qué pasos de la ruta marcó la persona en «Mi ruta» (calculado en el servidor). */
   avance?: Avance;
+  /** Historial crediticio declarado (tuvo crédito, días de atraso): afina las señales del catálogo. */
+  hechos?: Hechos;
 }
 
 const comoTexto = (datos: unknown): string => JSON.stringify(datos);
@@ -195,6 +205,20 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
           { tipo: "deuda", entidad, nombre, tipoDeuda: tipo, saldo: total, pagoMensual: cuota, dia: dia_de_pago, tceaBp: leerTcea(tcea_dicha) },
           si,
         );
+      },
+    }),
+    betaZodTool({
+      name: "buscar_producto_bbva",
+      description:
+        "Catálogo de productos de BBVA Perú para personas naturales (cuentas, tarjetas de crédito, préstamos, vivienda y auto, fondos e inversiones, seguros y servicios), copiado de la web oficial con su fecha de consulta. Sin consulta devuelve el menú (todas las familias, o solo la que pases en familia): úsalo cuando pidan la lista, p. ej. «qué tarjetas tienen» → familia tarjetas_credito sin consulta. Con consulta devuelve hasta cuatro fichas completas (para qué sirve, requisitos, cifras oficiales tal cual y enlace): úsala para una necesidad concreta o para ver el detalle de un producto del menú por su nombre. Cada ficha trae el criterio calculado por código con los números de la persona: «encaja_con_tu_situacion», «cuando_si», «cuando_no», «falta_confirmar», «freno» y «avisos»; el menú trae «para_tu_situacion». Úsala siempre que pregunten por productos de BBVA o por qué producto les conviene.",
+      inputSchema: BusquedaCatalogo,
+      eager_input_streaming: true,
+      run: ({ consulta, familia, lo_que_dijo }) => {
+        // Las señales se calculan aquí, con los números de este momento (incluye lo anotado en la conversación).
+        const situacionPersona = { senales: senalesDe(situacion.perfil, actual, opciones.hechos, lo_que_dijo) };
+        return comoTexto(consulta
+          ? buscarEnCatalogo(consulta, familia, undefined, situacionPersona)
+          : menuDelCatalogo(familia, undefined, situacionPersona));
       },
     }),
   ];

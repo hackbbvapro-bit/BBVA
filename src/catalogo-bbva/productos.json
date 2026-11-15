@@ -1,0 +1,2927 @@
+{
+ "fecha_consulta": "2026-11-14",
+ "fuente": "Web oficial de BBVA Perú (bbva.pe y fondos.bbva.pe)",
+ "aviso": "Cifras copiadas de la web pública de BBVA Perú en la fecha de consulta; pueden cambiar y la web es la que manda. Prototipo de hackathon, no es un canal oficial de BBVA ni promete aprobación de ningún producto.",
+ "productos": [
+  {
+   "id": "visa-cero",
+   "nombre": "Tarjeta Visa Cero",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Tarjeta de crédito sin cobro de membresía, pensada para comprar con más libertad y empezar a usar crédito con costo de mantenimiento cero.",
+   "para_quien": "Personas con ingresos formales que buscan una tarjeta sin membresía y sin puntos.",
+   "beneficios": [
+    "Membresía anual: S/0.",
+    "La tarjeta VISA Cero BBVA no acumula Puntos BBVA.",
+    "Descuentos en más de 500 marcas en el App BBVA Beneficios.",
+    "Protección de precios Visa: reembolso de la diferencia hasta US$ 200 por cuenta por año (la diferencia debe ser superior a US$ 25, dentro de los 30 días de la compra).",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/700",
+    "Si recibes tu sueldo en el BBVA solo necesitas una copia de tu DNI.",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Copia del DNI.",
+    "Copia del último recibo cancelado de agua, luz, teléfono fijo o cable de tu domicilio.",
+    "Dependiendo del segmento laboral al que pertenezcas podría haber mayor documentación."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: Soles 109.99%; Dólares 89.99%",
+    "TEA compensatoria fija para disposiciones de efectivo en sistema revolvente o cuotas y consumo en casinos: 104.99% Soles y 83.99% Dólares",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA revolvente: 118.06%; TCEA cuotas: 120.39%",
+    "Membresía anual: S/0",
+    "Envío físico de Estado de Cuenta: S/20 (a solicitud del cliente) o envío digital gratuito",
+    "Seguro de desgravamen: Equivale al 0.39% del saldo promedio de deuda de tu periodo de facturación. El monto máximo es de S/20 o $5.50",
+    "Ingreso mínimo: S/700 ingreso neto mensual",
+    "Seguro de Protección de Tarjetas (opcional) desde S/17.90 al mes"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/visa-cero.html",
+   "estado": "vigente",
+   "notas": "La página de Compra de Deuda dice que ese servicio NO aplica para Visa Cero, aunque la ficha de Visa Cero publica una TEA para traslado de deuda en cuotas (59.99%). El título HTML de la página la llama 'Tarjeta de Crédito CERO Smart'; el encabezado visible dice 'Tarjeta Visa Cero'. El índice tarjetas.html la llama 'BBVA Cero'."
+  },
+  {
+   "id": "visa-basica",
+   "nombre": "Tarjeta Básica (Visa Básica)",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Tarjeta de crédito simple, sin seguro de desgravamen, sin puntos ni pagos sin intereses.",
+   "para_quien": "Personas que quieren una tarjeta esencial y aceptan que la deuda no quede cubierta por seguro ante fallecimiento o invalidez.",
+   "beneficios": [
+    "No acumula Puntos BBVA ni participa de Pagos Sin Intereses.",
+    "No cuenta con seguro de desgravamen: la deuda no queda cubierta en caso de fallecimiento o invalidez del titular.",
+    "Cambio de tarjeta sin costo desde la App BBVA (sujeto a evaluación).",
+    "Protección de precios Visa hasta US$ 200 por cuenta por año.",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/700",
+    "Si recibes tu sueldo en el BBVA solo necesitas una copia de tu DNI.",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Copia del DNI.",
+    "Copia del último recibo cancelado de agua, luz, teléfono fijo o cable de tu domicilio.",
+    "Dependiendo del segmento laboral al que pertenezcas podría haber mayor documentación."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: Soles 109.99%; Dólares 83.99%",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA máxima para compras en sistema revolvente: 117.85%",
+    "TCEA máxima para compras en sistema cuotas: 122.32%",
+    "Membresía anual: S/59. La membresía puede salir gratis.",
+    "Envío físico de Estado de Cuenta: S/20 (a solicitud del cliente) o envío digital gratuito",
+    "Seguro de desgravamen: no tiene",
+    "Ingreso mínimo: S/700 ingreso neto mensual"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-basica.html",
+   "estado": "vigente",
+   "notas": "No aparece en el índice tarjetas.html (sección 'Tarjeta de Crédito, encuentra la ideal para ti'), pero sí en el menú de credito.html. No publica TEA de disposición de efectivo."
+  },
+  {
+   "id": "visa-bfree",
+   "nombre": "Tarjeta Visa Bfree",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Tarjeta de crédito de entrada con puntos BBVA, pagos sin intereses y bono de bienvenida.",
+   "para_quien": "Personas con ingresos desde S/1,000 que quieren acumular puntos desde su primera tarjeta con puntos.",
+   "beneficios": [
+    "Bono de Bienvenida: 2,000 Puntos BBVA por una meta de compras de S/500 en los primeros 30 días de activada la tarjeta (solo una vez, solo titulares).",
+    "Acumula Puntos BBVA; pagan tu membresía o se canjean por productos del catálogo.",
+    "No acumulan puntos los consumos en casinos, disposiciones de efectivo, débito automático, traslados de deuda, pagos en Banca por Internet ni en ventanilla.",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay.",
+    "Protección de precios Visa."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/1,000",
+    "Si recibes tu sueldo en el BBVA solo necesitas una copia de tu DNI.",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Línea mínima de S/500.",
+    "Copia del DNI.",
+    "Copia del último recibo cancelado de agua, luz, teléfono fijo o cable de tu domicilio."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: Soles 99.99%; Dólares 83.99%",
+    "TEA compensatoria fija para disposiciones de efectivo en sistema revolvente o cuotas y consumo en casinos: En soles 104.99% y en USD 83.99%",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA revolvente: 117.67%; TCEA cuotas: 125.58%",
+    "Membresía anual: S/75. La membresía puede salir gratis.",
+    "Envío físico de Estado de Cuenta: S/20 (a solicitud del cliente) o envío digital gratuito",
+    "Seguro de desgravamen: Equivale al 0.39% del saldo promedio de deuda de tu periodo de facturación. El monto máximo es de S/20 o $5.50.",
+    "Ingreso mínimo: S/1,000 ingreso neto mensual",
+    "Línea mínima de S/500",
+    "Bono de Bienvenida: 2,000 Puntos BBVA por una meta de compras de S/500"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/visa-bfree-puntos-vida.html",
+   "estado": "vigente",
+   "notas": "El índice tarjetas.html dice 'Gana 2,000 Puntos BBVA como premio de Bienvenida'. La página de Mastercard Bfree exige línea mínima S/1,000 frente a S/500 de Visa Bfree."
+  },
+  {
+   "id": "mastercard-bfree",
+   "nombre": "Tarjeta de Crédito Mastercard Bfree",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Versión Mastercard de la tarjeta de entrada con puntos BBVA, pagos sin intereses y bono de bienvenida.",
+   "para_quien": "Personas con ingresos desde S/1,000 que prefieren la franquicia Mastercard.",
+   "beneficios": [
+    "Bono de Bienvenida: 2,000 Puntos BBVA por una meta de compras de S/500 en los primeros 30 días de activada la tarjeta (solo una vez, solo titulares).",
+    "Acumula Puntos BBVA; pagan tu membresía o se canjean por productos del catálogo.",
+    "No acumulan puntos los consumos en casinos, disposiciones de efectivo, débito automático, traslados de deuda, pagos en Banca por Internet ni en ventanilla.",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/1,000",
+    "Si recibes tu sueldo en el BBVA, solo necesitas una copia de tu DNI.",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Línea mínima S/ 1,000",
+    "Copia del DNI",
+    "Copia del último recibo cancelado, de agua, luz, teléfono fijo o cable de tu domicilio."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: Soles 99.99%; Dólares 83.99%",
+    "TEA compensatoria fija para disposiciones de efectivo en sistema revolvente o cuotas y consumo en casinos: En soles 104.99% y en USD 83.99%",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA revolvente: 117.67%; TCEA cuotas: 125.58%",
+    "Membresía anual: S/75. La membresía puede salir gratis.",
+    "Envío físico de Estado de Cuenta: S/20 o envío digital gratuito",
+    "Seguro de desgravamen: Equivale al 0.39% del saldo promedio de deuda de tu periodo de facturación. El monto máximo es de S/20 o $5.50.",
+    "Ingreso mínimo: S/1,000 ingreso neto mensual",
+    "Línea mínima S/ 1,000",
+    "Bono de Bienvenida: 2,000 Puntos BBVA por una meta de compras de S/500"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/mastercard-bfree-puntos-vida.html",
+   "estado": "vigente",
+   "notas": "Línea mínima S/1,000 aquí vs S/500 en Visa Bfree. La página muestra una campaña de preventa de Tropitour con Mastercard."
+  },
+  {
+   "id": "visa-platinum",
+   "nombre": "Tarjeta Platinum Visa",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Tarjeta de crédito intermedia-alta con puntos BBVA, hasta 36 cuotas sin intereses y seguros de viaje y compras.",
+   "para_quien": "Personas con ingresos desde S/3,000 que quieren más puntos y coberturas de viaje.",
+   "beneficios": [
+    "Compra hasta en 36 cuotas sin intereses en más de 7,500 establecimientos.",
+    "Regalo de 4,000 Puntos BBVA al comprar un monto de S/1,000.",
+    "Variante Visa: suscripción en GigSky, servicio de emergencia médica internacional, protección en demora de viaje, protección de compras, protección de precios.",
+    "Seguro de Alquiler de Vehículos y Servicios Médicos de Emergencia Internacional pagando tus boletos de viaje.",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/3,000",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Línea mínima S/ 3,000.",
+    "Copia del DNI.",
+    "Copia del último recibo cancelado de agua, luz, teléfono fijo o cable de tu domicilio.",
+    "Dependiendo del segmento laboral al que pertenezcas podría haber mayor documentación."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: Soles 89.99%; Dólares 83.99%",
+    "TEA compensatoria fija para disposiciones de efectivo en sistema revolvente o cuotas y consumo en casinos: Soles 104.99% y en USD 83.99%",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA revolvente: 133.35%; TCEA cuotas: 155.71%",
+    "Membresía anual: S/280. La membresía puede salir gratis.",
+    "Envío físico de Estado de Cuenta: S/20 o envío digital gratuito",
+    "Seguro de desgravamen: Equivale al 0.39% del saldo promedio de deuda de tu periodo de facturación. El monto máximo es de S/20 o $5.50.",
+    "Ingreso mínimo: S/3,000 ingreso neto mensual",
+    "Línea mínima S/3,000",
+    "Regalo de 4,000 Puntos BBVA al comprar un monto de S/1,000",
+    "Acumulación Platinum: 1.25 Puntos por S/4 de compra (o su equivalente en dólares)"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-platinum.html",
+   "estado": "vigente",
+   "notas": "La página de Platinum publica UNA sola tabla de costos para las dos franquicias (Visa y Mastercard); no separa tasas por franquicia. En 'Condiciones' el texto dice 'Si no recibes tu sueldo en el BBVA, solo necesitas una copia de tu DNI' (en las demás tarjetas dice 'Si recibes'); posible errata de la web."
+  },
+  {
+   "id": "mastercard-platinum",
+   "nombre": "Tarjeta Platinum Mastercard",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Versión Mastercard de la Platinum, con plataforma Priceless, estacionamiento VIP y coberturas de viaje.",
+   "para_quien": "Personas con ingresos desde S/3,000 que prefieren Mastercard y experiencias Priceless.",
+   "beneficios": [
+    "Compra hasta en 36 cuotas sin intereses en más de 7,500 establecimientos.",
+    "Regalo de 4,000 Puntos BBVA al comprar un monto de S/1,000.",
+    "Variante Mastercard: plataforma Priceless con +2,500 experiencias, estacionamiento VIP en Jockey Plaza (voucher de compra de S/150 o más), protección de compras, cobertura en inconvenientes de viajes, programa médico integral para viajes.",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/3,000",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Línea mínima S/ 3,000.",
+    "Copia del DNI.",
+    "Copia del último recibo cancelado de agua, luz, teléfono fijo o cable de tu domicilio.",
+    "Dependiendo del segmento laboral al que pertenezcas podría haber mayor documentación."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: Soles 89.99%; Dólares 83.99%",
+    "TEA compensatoria fija para disposiciones de efectivo en sistema revolvente o cuotas y consumo en casinos: Soles 104.99% y en USD 83.99%",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA revolvente: 133.35%; TCEA cuotas: 155.71%",
+    "Membresía anual: S/280. La membresía puede salir gratis.",
+    "Envío físico de Estado de Cuenta: S/20 o envío digital gratuito",
+    "Seguro de desgravamen: Equivale al 0.39% del saldo promedio de deuda de tu periodo de facturación. El monto máximo es de S/20 o $5.50.",
+    "Ingreso mínimo: S/3,000 ingreso neto mensual",
+    "Línea mínima S/3,000",
+    "Regalo de 4,000 Puntos BBVA al comprar un monto de S/1,000",
+    "Acumulación Platinum: 1.25 Puntos por S/4 de compra (o su equivalente en dólares)"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-platinum.html",
+   "estado": "vigente",
+   "notas": "La página de Platinum publica UNA sola tabla de costos para las dos franquicias (Visa y Mastercard); no separa tasas por franquicia. En 'Condiciones' el texto dice 'Si no recibes tu sueldo en el BBVA, solo necesitas una copia de tu DNI' (en las demás tarjetas dice 'Si recibes'); posible errata de la web."
+  },
+  {
+   "id": "visa-signature",
+   "nombre": "Tarjeta Visa Signature",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Tarjeta premium para viajeros con acceso a salas VIP, muchos puntos y seguros de viaje.",
+   "para_quien": "Personas con ingresos desde S/6,000.",
+   "beneficios": [
+    "Acceso VIP a más de 1,600 salas Priority Pass para ti y un acompañante.",
+    "Regalo de 8,000 puntos BBVA al comprar un monto de S/5,000.",
+    "Compra hasta en 36 cuotas sin intereses en más de 7,500 establecimientos.",
+    "Seguro de Alquiler de Vehículos y Servicios Médicos de Emergencia Internacional pagando tus boletos de viaje.",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/6,000",
+    "Si recibes tu sueldo en el BBVA solo necesitas una copia de tu DNI.",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Línea mínima de S/8,000.",
+    "Copia del DNI.",
+    "Copia del último recibo cancelado de agua, luz, teléfono fijo o cable de tu domicilio."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: Soles 79.99%; Dólares 79.99%",
+    "TEA compensatoria fija para disposiciones de efectivo en sistema revolvente o cuotas y consumo en casinos: Soles 104.99%; Dólares 83.99%",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA revolvente: 131.16%; TCEA cuotas: 158.02%",
+    "Membresía anual: S/350. La membresía puede salir gratis.",
+    "Envío físico de Estado de Cuenta: S/20 o envío digital gratuito",
+    "Seguro de desgravamen: Equivale al 0.39% del saldo promedio de deuda de tu periodo de facturación. El monto máximo es de S/20 o $5.50.",
+    "Ingreso mínimo: S/6,000 ingreso neto mensual",
+    "Línea mínima de S/8,000",
+    "Regalo de 8,000 puntos BBVA al comprar un monto de S/5,000"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/visa-signature-puntos-vida.html",
+   "estado": "vigente",
+   "notas": "La URL actual termina en -puntos-vida; la antigua visa-signature.html puede estar redirigida."
+  },
+  {
+   "id": "visa-infinite",
+   "nombre": "Tarjeta Visa Infinite",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Tarjeta de gama más alta de Visa en BBVA: tasa de compras más baja, salas VIP, Priority Lane y seguros de viaje.",
+   "para_quien": "Personas de altos ingresos (desde S/12,000); se solicita con banquero o en el App.",
+   "beneficios": [
+    "Acceso VIP a más de 1,600 salas Priority Pass para ti y un acompañante.",
+    "Priority Lane del Aeropuerto Jorge Chávez gratis para el titular y un acompañante (enrolando la tarjeta titular en Priority Pass; tarjeta física no aplica).",
+    "Regalo de 12,000 puntos BBVA al comprar un monto de S/. 8,000.",
+    "Compra hasta en 36 cuotas sin intereses en más de 7,500 establecimientos.",
+    "Seguro de Alquiler de Vehículos y Servicios Médicos de Emergencia Internacional pagando tus boletos de viaje.",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/12,000",
+    "Si recibes tu sueldo en el BBVA solo necesitas una copia de tu DNI.",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Línea mínima de S/20,000.",
+    "Copia del DNI.",
+    "Copia del último recibo cancelado de agua, luz, teléfono fijo o cable de tu domicilio.",
+    "Solicítala con tu banquero o en tu App."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: 39.99% para soles y dolares",
+    "TEA compensatoria fija para disposiciones de efectivo en sistema revolvente o cuotas y consumo en casinos: 64.99% Soles y Dólares",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA revolvente: 104.09%; TCEA cuotas: 139.47%",
+    "Membresía anual: S/500. La membresía puede salir gratis.",
+    "Envío físico de Estado de Cuenta: S/20 (a solicitud del cliente) o envío digital gratuito",
+    "Seguro de desgravamen: Equivale al 0.39% del saldo promedio de deuda de tu periodo de facturación. El monto máximo es de S/20 o $5.50.",
+    "Ingreso mínimo: S/12,000 ingreso neto mensual",
+    "Línea mínima de S/20,000",
+    "Regalo de 12,000 puntos BBVA al comprar un monto de S/. 8,000"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/visa-infinite-puntos.html",
+   "estado": "vigente",
+   "notas": "Las páginas usan 'S/. 8,000' y 'S/ 8,000' indistintamente."
+  },
+  {
+   "id": "mastercard-black",
+   "nombre": "Tarjeta de Crédito Mastercard Black",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito",
+   "para_que_sirve": "Tarjeta premium Mastercard con salas VIP LoungeKey, Priority Lane, gastronomía y estacionamiento VIP.",
+   "para_quien": "Personas con ingresos desde S/6,000 que buscan beneficios de viaje y experiencias.",
+   "beneficios": [
+    "Acceso a más de 1,500 salas LoungeKey (Mastercard Airport Experience): titular y un invitado, también adicionales.",
+    "Priority Lane del Aeropuerto Jorge Chávez gratis para el titular y un acompañante.",
+    "Estacionamiento gratis en Zona VIP Mastercard Black del Jockey Plaza presentando voucher de compra de S/150 o más.",
+    "70% de descuento en el consumo en una selección de restaurantes afiliados.",
+    "Regalo de 8,000 Puntos BBVA al comprar un monto de S/5,000.",
+    "Compra hasta en 36 cuotas sin intereses en más de 7,000 establecimientos.",
+    "Solo tú podrás ver los números de tu tarjeta desde tu App.",
+    "CVV dinámico que cambia cada 5 minutos.",
+    "Prende y apaga tu tarjeta para compras por internet, compras en el exterior y disposición en efectivo.",
+    "Pago con Google Pay, Apple Pay y Garmin Pay."
+   ],
+   "requisitos": [
+    "Ingreso neto mínimo mensual S/ 6,000",
+    "Si no recibes tu sueldo en el BBVA, solo necesitas una copia de tu DNI.",
+    "Continuidad laboral, no menor a 6 meses.",
+    "Línea mínima S/ 8,000",
+    "Copia del DNI.",
+    "Copia del último recibo cancelado de agua, luz, teléfono fijo o cable de tu domicilio."
+   ],
+   "cifras_oficiales": [
+    "TEA compensatoria fija para compras en sistema revolvente o cuotas: Soles 39.99% - 69.99%; Dólares 39.99% - 69.99%",
+    "TEA compensatoria fija para disposiciones de efectivo en sistema revolvente o cuotas y consumo en casinos: En soles 104.99% y en dólares 83.99%",
+    "TEA compensatoria fija para traslado de deuda en cuotas: 59.99%",
+    "TCEA revolvente: 126.10%; TCEA cuotas: 155.93%",
+    "Membresía anual: S/399. La membresía puede salir gratis.",
+    "Envío físico de Estado de Cuenta: S/20 o envío digital gratuito",
+    "Seguro de desgravamen: Equivale al 0.39% del saldo promedio de deuda de tu periodo de facturación. El monto máximo es de S/20 o $5.50.",
+    "Ingreso mínimo: S/ 6,000 ingreso neto mensual",
+    "Línea mínima S/ 8,000",
+    "Regalo de 8,000 Puntos BBVA al comprar un monto de S/5,000"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/mastercard-black-puntos-vida.html",
+   "estado": "vigente",
+   "notas": "TEA de compras publicada como rango (39.99% - 69.99%). La página Salas VIP dice 1,500 salas para Black y menciona 'Exclusivo Segmento Global Wealth'. El texto 'Si no recibes tu sueldo en el BBVA' parece errata."
+  },
+  {
+   "id": "tarjeta-start",
+   "nombre": "Tarjeta de Crédito Start (con garantía líquida)",
+   "familia": "tarjetas_credito",
+   "subfamilia": "credito-garantizada",
+   "para_que_sirve": "Tarjeta respaldada por un depósito propio que sirve para construir o reconstruir historial crediticio; la línea de crédito es igual al depósito.",
+   "para_quien": "Personas sin historial crediticio o que quieren reconstruirlo.",
+   "beneficios": [
+    "Solicitud 100% digital en unos 2 minutos.",
+    "Depósito de respaldo entre S/ 500 y S/ 15,000; tu dinero queda como garantía y no genera intereses.",
+    "Membresía GRATIS por un año (oferta de lanzamiento).",
+    "Hasta 36 cuotas sin intereses en más de 7,200 establecimientos; acumula Puntos BBVA; hasta 8,000 puntos BBVA en tu primer mes.",
+    "En 6 meses de buen manejo (consumo mínimo de S/100 al mes y pago a tiempo) puedes recuperar el 100% del depósito.",
+    "A los 20 días de mora el banco cobra la deuda de la cuenta de respaldo.",
+    "Se puede elegir Visa o Mastercard (Bfree: S/ 500 – S/ 2,999)."
+   ],
+   "requisitos": [
+    "Depósito de respaldo igual a tu línea de crédito (entre S/ 500 y S/ 15,000).",
+    "Uso mensual con consumo mínimo de S/100 y pago a tiempo para construir historial.",
+    "La página dice 'olvídate de los requisitos y evaluaciones'."
+   ],
+   "cifras_oficiales": [
+    "Monto de respaldo: entre S/ 500 y S/ 15,000",
+    "Consumo mínimo mensual: S/100",
+    "Membresía GRATIS por un año",
+    "Hasta 8,000 puntos BBVA en tu primer mes",
+    "Mora: a los 20 días el banco cobra de la cuenta de respaldo",
+    "Devolución del depósito: tras 6 meses de buen manejo"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/tarjeta-credito-historial-crediticio.html",
+   "estado": "vigente",
+   "notas": "La página NO publica TEA, TCEA, membresía posterior al primer año, desgravamen ni ingreso mínimo (no hay cifras de tasas ni costos: consultar tarifario). Indica 'Beneficios y condiciones pueden variar según campaña y franquicia'. El simulador muestra 'Bfree: S/ 500 – S/ 2,999' según monto."
+  },
+  {
+   "id": "tarjeta-credito-adicional",
+   "nombre": "Tarjeta de Crédito Adicional",
+   "familia": "tarjetas_credito",
+   "subfamilia": "servicio",
+   "para_que_sirve": "Extensión de tu tarjeta principal para un familiar o persona de confianza; comparte tu línea y tú defines su límite mensual.",
+   "para_quien": "Titulares de una tarjeta de crédito BBVA que quieren compartir su línea con control.",
+   "beneficios": [
+    "Mismos descuentos, preventas y Puntos BBVA que la titular.",
+    "Gastos integrados en el estado de cuenta del titular.",
+    "El titular define y modifica el límite mensual de cada adicional desde el App BBVA.",
+    "Se solicita solo por canales privados (App BBVA o Banca por Internet).",
+    "Los consumos y el comportamiento de pago impactan solo el historial del titular."
+   ],
+   "requisitos": [
+    "Ser titular de una tarjeta de crédito BBVA con oferta de adicional disponible (se revisa en el App, sección Para Mí)."
+   ],
+   "cifras_oficiales": [
+    "Solicitar y emitir una tarjeta adicional no tiene costo. Sin embargo, se recomienda al titular revisar el tarifario de su tarjeta de crédito principal para validar si existe algún cobro de membresía anual asociado a los plásticos adicionales."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/tarjeta-de-credito-adicional.html",
+   "estado": "vigente",
+   "notas": "La URL tarjetas/credito/adicionales.html muestra el mismo contenido."
+  },
+  {
+   "id": "compra-de-deuda",
+   "nombre": "Compra de Deuda",
+   "familia": "tarjetas_credito",
+   "subfamilia": "servicio",
+   "para_que_sirve": "Trae a tu tarjeta BBVA deudas de tarjetas o préstamos de otros bancos para pagarlas en una sola cuota mensual fija.",
+   "para_quien": "Titulares de tarjeta de crédito BBVA activa con línea disponible que quieren ordenar sus deudas.",
+   "beneficios": [
+    "Pagas hasta en 36 cuotas fijas mensuales.",
+    "Un solo pago en lugar de varios bancos.",
+    "Se solicita por la web, App BBVA, Banca por Internet o por teléfono al (01) 595-0000 opción 2-1.",
+    "La compra de deuda se suma a los consumos exigidos para exonerar la membresía.",
+    "No afecta tu historial crediticio, según la página."
+   ],
+   "requisitos": [
+    "Ser persona natural.",
+    "Cliente titular de una tarjeta de crédito BBVA activa.",
+    "Tener línea disponible en la tarjeta de crédito durante la vigencia de la campaña.",
+    "Clientes con clasificación normal en el sistema financiero y al día en sus pagos.",
+    "No aplica para: Visa Cero, Visa Repsol, Visa Primera, Tarjetas Mini, Visa Arcángel, Tarjeta Cuota Fija, Tarjetas Empresariales, Tarjeta Capital de Trabajo, ni Visa Nacional; ni deudas de tarjetas Oh, la Curacao, Única, Diners; ni créditos reprogramados o refinanciados."
+   ],
+   "cifras_oficiales": [
+    "Hasta 36 cuotas fijas mensuales",
+    "Cada operación hasta por S/30,000 en App BBVA y Banca por internet (sujeto a línea disponible y evaluación crediticia)",
+    "El traslado puede demorar hasta 48 horas en oficinas o hasta 5 días en la Banca por Teléfono",
+    "La tasa está en función al perfil de crédito del cliente y tipo de Tarjeta de crédito (no se publica una cifra)"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/compra-deuda-.html",
+   "estado": "vigente",
+   "notas": "No publica una tasa propia; cada ficha de tarjeta publica 'TEA compensatoria fija para traslado de deuda en cuotas: 59.99%'. Visa Cero aparece excluida aquí pero publica TEA de traslado en su ficha. Existe también la URL tarjetas/beneficios/compra-deuda.html (200) usada en el catálogo previo."
+  },
+  {
+   "id": "efectivo-cuotas",
+   "nombre": "Efectivo Cuotas",
+   "familia": "tarjetas_credito",
+   "subfamilia": "servicio",
+   "para_que_sirve": "Te da efectivo de la línea disponible de tu tarjeta de crédito y lo pagas en cuotas fijas con una tasa preferencial.",
+   "para_quien": "Titulares de tarjeta de crédito BBVA activa que necesitan efectivo para un proyecto.",
+   "beneficios": [
+    "Solicitud 100% digital en menos de 5 minutos y sin papeleos.",
+    "De 2 hasta 36 cuotas.",
+    "TCEA preferencial por solicitarlo en cuotas.",
+    "Requiere activar 'Disposición de Efectivo' en la configuración de la tarjeta; el dinero se abona a la cuenta que elijas."
+   ],
+   "requisitos": [
+    "Ser persona natural.",
+    "Cliente titular de una tarjeta de crédito BBVA activa.",
+    "Línea disponible; clientes con clasificación normal y al día en sus pagos.",
+    "No aplica para: Visa Cero, Visa Repsol, Visa Primera, Tarjetas Mini, Visa Arcángel, Tarjeta Cuota Fija, Tarjetas Empresariales, Tarjeta Capital de Trabajo, ni Visa Nacional."
+   ],
+   "cifras_oficiales": [
+    "Desde 2 hasta 36 cuotas",
+    "Aplica ITF 0.005%, sujeto a variación",
+    "Información sobre tasas, comisiones, gastos y penalidades en el tarifario del Banco"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/efectivo-en-cuotas.html",
+   "estado": "vigente",
+   "notas": "La página no publica la TEA/TCEA del Efectivo Cuotas (habla de 'TCEA preferencial'); las fichas de cada tarjeta publican la TEA de disposición de efectivo. Sus términos y condiciones repiten texto de Compra de Deuda ('trasladar su deuda de otros Bancos'). También existe tarjetas/beneficios/efectivo-cuotas.html (200)."
+  },
+  {
+   "id": "salas-vip-tarjetas",
+   "nombre": "Salas VIP con tarjetas BBVA",
+   "familia": "tarjetas_credito",
+   "subfamilia": "servicio",
+   "para_que_sirve": "Acceso a salas VIP de aeropuertos (Priority Pass o LoungeKey) con las tarjetas premium.",
+   "para_quien": "Titulares de Visa Signature, Visa Infinite, Mastercard Black y Visa Special Edition.",
+   "beneficios": [
+    "Aplica para: Visa Signature, Mastercard Black, Visa Infinite y Visa Special Edition.",
+    "Priority Pass: más de 1,600 salas (Visa Signature, Infinite, Special Edition). LoungeKey: más de 1,500 salas (Mastercard Black).",
+    "Tus adicionales también pueden ingresar, previo cumplimiento de las condiciones.",
+    "Primer registro en Priority Pass: cobro temporal de $1 devuelto en menos de 4 días hábiles."
+   ],
+   "requisitos": [
+    "Tener una de las tarjetas premium indicadas y registrarse en la app de Priority Pass o LoungeKey."
+   ],
+   "cifras_oficiales": [
+    "Más de 1,600 salas VIP Priority Pass",
+    "Más de 1,500 salas LoungeKey (Mastercard Black)",
+    "Cobro temporal de $1 al registrarse por primera vez, devuelto en un plazo menor a 4 días hábiles"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/salas-vip.html",
+   "estado": "vigente",
+   "notas": "Menciona 'Visa Special Edition' pero BBVA no publica una ficha de esa tarjeta en la sección de crédito (probar URL directa dio 404). Un bloque de la página menciona 'Exclusivo Segmento Global Wealth'."
+  },
+  {
+   "id": "control-total-tarjetas",
+   "nombre": "Control Total (seguridad y gestión de tu tarjeta)",
+   "familia": "tarjetas_credito",
+   "subfamilia": "servicio",
+   "para_que_sirve": "Guía de funciones del App para controlar la tarjeta: clave de 4 dígitos, prender/apagar compras por internet, exterior y efectivo, CVV dinámico y aumento temporal de línea.",
+   "para_quien": "Titulares de tarjeta de crédito BBVA.",
+   "beneficios": [
+    "Cambiar clave de 4 dígitos desde el App.",
+    "Prender y apagar compras por internet, compras en el exterior y disposición de efectivo.",
+    "Ver el CVV dinámico en el App.",
+    "Línea adicional temporal: 'Te damos hasta 10% adicional'."
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Línea adicional: hasta 10% adicional (según la página)",
+    "Seguro de Protección de Tarjetas desde S/ 17.90 al mes"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/credito/control-total.html",
+   "estado": "vigente",
+   "notas": "Página informativa de seguridad, no un producto con tasas."
+  },
+  {
+   "id": "prestamo-al-toque",
+   "nombre": "Préstamo al Toque",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Préstamo de libre disponibilidad 100% digital: pides desde la app o la banca por internet y el dinero llega a tu cuenta en minutos.",
+   "para_quien": "Personas que necesitan dinero rápido y tienen oferta preaprobada o pasan la evaluación crediticia; quien cobra su sueldo en BBVA tiene tasa preferencial.",
+   "beneficios": [
+    "Desembolso inmediato desde la App BBVA o Banca por Internet: recibe el dinero en 2 minutos en tu Cuenta BBVA.",
+    "Tasas preferenciales si recibes tu sueldo con BBVA.",
+    "Cambio de fecha de pago: hasta 10 veces en un periodo de 60 meses (máximo dos veces por año).",
+    "Pagos anticipados sin penalidades para cancelar el total o parte de la deuda en cualquier momento.",
+    "No requiere garantía ni aval."
+   ],
+   "requisitos": [
+    "Ser persona natural.",
+    "Tener una clasificación 100% normal en el BBVA y el sistema financiero.",
+    "Tener continuidad laboral mínima de 6 meses.",
+    "Contar con ingresos mínimos netos de S/700 o su equivalente en dólares.",
+    "No aplica para personas con atrasos en pagos de deudas en la Central de Riesgos de la SBS (tanto para el titular como cónyuge, de ser el caso).",
+    "Si no recibes tu sueldo en BBVA, documentos según situación laboral: dependiente: recibo de luz, agua o teléfono fijo y última boleta de pago (ingresos fijos) o dos últimas (variables); independiente: recibo de servicio, 3 últimos PDT o 3 últimos recibos por honorarios, contrato de locación vigente.",
+    "Si en los últimos 45 días calendario has adquirido otro crédito con BBVA u otra entidad, podrían modificarse las condiciones de la preaprobación."
+   ],
+   "cifras_oficiales": [
+    "Puedes solicitar un préstamo desde S/ 700 hasta S/ 250 000. Sujetos a oferta preaprobada o evaluación crediticia.",
+    "Plazo de pago de hasta 60 meses.",
+    "Por canales digitales (APP, Banca por Internet y Web) puedes desembolsar hasta S/100,000.",
+    "Ejemplo Cuenta Sueldo, préstamo de S/ 5,000 a 60 meses: Tasa Regular 42% -> TEA Preferencial 32%; cuota anterior S/ 178.60, nueva cuota S/ 157.00 (página índice de préstamos personales).",
+    "Ejemplo Cuenta Sueldo, S/ 10,000 a 60 meses: Tasa Regular 36% -> TEA Preferencial 26%; cuota anterior S/ 331.00, nueva cuota S/ 290.00 (página índice).",
+    "Ejemplo Cuenta Sueldo, S/ 15,000 a 60 meses: Tasa Regular 30% -> TEA Preferencial 20%; cuota anterior S/ 455.10, nueva cuota S/ 387.20 (página índice).",
+    "TCEA máxima referencial de 91.5%, calculada con una TEA de 90% para S/5,000 a 12 meses, cuota mensual S/585.06; considera seguro de desgravamen convencional individual (0.0069% del saldo insoluto) (página índice, preguntas frecuentes)."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/al-toque.html",
+   "estado": "vigente",
+   "notas": "Contradicciones de la web: el máximo es S/ 250 000 en un punto y hasta S/100,000 por canales digitales en las preguntas frecuentes; el banner dice «Préstamos desde 400 soles» y el texto S/ 700 (el sorteo de octubre habla de desembolsos desde S/400). Las URLs libre-disponibilidad.html y prestamo-al-toque.html redirigen a esta página. Existe campaña «30 premios de S/1,000» con vigencia 01-31 de octubre de 2026 (ya vencida al 14-nov-2026). Las cifras de ejemplo con tasas vienen de https://www.bbva.pe/personas/productos/prestamos/personales.html, son ejemplos de oferta sujeta a evaluación."
+  },
+  {
+   "id": "prestamo-libre-disponibilidad-basico",
+   "nombre": "Préstamo Libre Disponibilidad Básico",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Crédito de libre disponibilidad en soles sin seguro de desgravamen, que se contrata en oficina.",
+   "para_quien": "Personas que quieren un préstamo de consumo nuevo sin seguro de desgravamen y aceptan que no hay cobertura por fallecimiento o invalidez.",
+   "beneficios": [
+    "Pagos anticipados: cancelar o amortizar parcialmente reduciendo intereses, sin penalidades.",
+    "Elegir la fecha de pago y cambiarla sin penalidades cada 6 meses.",
+    "Débito automático en cuenta para las cuotas.",
+    "No requiere seguro de desgravamen."
+   ],
+   "requisitos": [
+    "Clasificación 100% Normal en el BBVA Perú y Sistema Financiero - titular y cónyuge.",
+    "Verificación domiciliaria y/o laboral.",
+    "Otros requisitos según evaluación.",
+    "Copia del DNI del titular y/o cónyuge.",
+    "Solo aplica para Préstamo de Consumo Nuevo, no aplica para Renovado, Subrogado o Garantizados."
+   ],
+   "cifras_oficiales": [
+    "Financiamiento mínimo: S/1,000. Sujeto a evaluación crediticia hasta S/30,000.",
+    "El financiamiento se puede entregar únicamente en soles.",
+    "94.00% TCEA máxima referencial considerando una TEA aplicable a un monto de S/5,000 a 12 meses, con envío gratuito de estado de cuenta virtual.",
+    "Estado de cuenta físico S/10.00.",
+    "Cancelación anticipada parcial o total, adelanto de cuotas y estado de cuenta online: sin costo."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/prestamo-libre-disponibilidad-basico.html",
+   "estado": "vigente",
+   "notas": "NO incluye cobertura ante fallecimiento e invalidez del titular. Se contrata en oficinas."
+  },
+  {
+   "id": "adelanto-de-sueldo",
+   "nombre": "Adelanto de Sueldo",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Préstamo de libre disponibilidad asociado a tu cuenta de sueldo: te da efectivo al instante y se paga en una sola cuota que se carga en tu siguiente abono de sueldo.",
+   "para_quien": "Clientes que reciben su sueldo en BBVA (régimen laboral de 5ta categoría) y necesitan un puente de dinero hasta fin de mes.",
+   "beneficios": [
+    "Sin intereses: solo una comisión fija según el monto solicitado.",
+    "100% digital desde la App BBVA o Banca por Internet.",
+    "Dinero en la cuenta en 2 minutos."
+   ],
+   "requisitos": [
+    "Recibir tu sueldo a través del BBVA.",
+    "Pertenecer al régimen laboral de 5ta Categoría.",
+    "Tener un ingreso neto mínimo de S/ 1,000.",
+    "Ser cliente Mundo Sueldo (tener una cuenta de ahorros y recibir tu sueldo en dicha cuenta).",
+    "Haber recibido tu sueldo por lo menos los últimos 2 meses.",
+    "No registrar deudas pendientes en el sistema financiero.",
+    "Sujeto a evaluación crediticia mensual."
+   ],
+   "cifras_oficiales": [
+    "Montos de financiamiento: mínimo S/100, máximo S/2,500.",
+    "Plazo: hasta 30 días máximo.",
+    "Comisión única según monto: hasta S/400 -> S/20.00; S/400.01 a S/1,000 -> S/40.00; S/1,000.01 a S/1,500 -> S/50.00; S/1,500.01 a S/2,500 -> S/65.00.",
+    "Cero intereses."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/adelanto-de-sueldo.html",
+   "estado": "vigente",
+   "notas": "La página menciona ingreso mínimo de S/1,000 «o su equivalente en dólares»; los términos añaden continuidad laboral de 6 meses y clasificación 100% normal. El texto dice «Mundo Sueldo» en vez de Cuenta Sueldo en un punto."
+  },
+  {
+   "id": "prestamo-renovado",
+   "nombre": "Préstamo Renovado",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Refinancia la deuda que ya tienes con BBVA y recibe dinero extra en un solo préstamo nuevo con una sola cuota.",
+   "para_quien": "Clientes con un préstamo vigente que quieren sumar un monto nuevo sin empezar de cero.",
+   "beneficios": [
+    "Tasa preferencial (TCEA) por ser cliente BBVA.",
+    "Desembolso en tu cuenta en solo 2 minutos.",
+    "Cuotas con débito automático.",
+    "Pago anticipado total o parcial sin penalidades.",
+    "Ejemplo de la página: con una deuda de S/10,000, renuevas por S/15,000 y recibes S/5,000 adicionales."
+   ],
+   "requisitos": [
+    "Ser persona natural.",
+    "Tener una clasificación 100% normal en el BBVA y el sistema financiero.",
+    "Tener continuidad laboral mínima de 6 meses.",
+    "Contar con ingresos mínimos netos de S/1,000 o su equivalente en dólares.",
+    "No aplica para personas con atrasos en pagos de deudas en la Central de Riesgos de la SBS (titular y cónyuge)."
+   ],
+   "cifras_oficiales": [],
+   "sin_cifras_publicadas": true,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/prestamo-renovado.html",
+   "estado": "vigente",
+   "notas": "La página no publica monto máximo, plazo ni tasas."
+  },
+  {
+   "id": "prestamo-por-convenio",
+   "nombre": "Préstamo por Convenio",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Préstamo para empleados de empresas con convenio con BBVA, cuyas cuotas se descuentan automáticamente de la boleta de pago.",
+   "para_quien": "Trabajadores de empresas públicas y privadas con convenio firmado con BBVA, sean o no clientes.",
+   "beneficios": [
+    "Tasas preferenciales independientes por cada convenio.",
+    "Descuento automático de la boleta de pago.",
+    "Compra de deuda bajo descuento por planilla.",
+    "Verificación laboral exonerada en todos los convenios.",
+    "Cancelación anticipada parcial o total sin penalidad."
+   ],
+   "requisitos": [
+    "Empleado de empresa pública y privada que presenta un convenio firmado con el BBVA.",
+    "Nombrados, contratado a plazo fijo y CAS (de acuerdo al convenio).",
+    "DNI titular y cónyuge (de ser el caso); solicitud firmada (para importes mayores a S/100,000 se requiere firma de cónyuge); última boleta de pago (si es variable, 3 a 6 boletas); carta de autorización de descuento por planilla; cronograma preliminar firmado; seguro de desgravamen; DPS (declaración personal de salud).",
+    "Para ampliaciones: mínimo 1 cuota pagada en orden; para renovaciones (retanqueo): 4 cuotas pagadas, con el 100% de retorno de la cuota."
+   ],
+   "cifras_oficiales": [
+    "Financiamiento mínimo: S/1,000. Máximo: hasta S/200,000 (sujeto a evaluación).",
+    "Plazo: desde 6 meses hasta 72 meses (según condiciones del convenio); empezar a pagar hasta en 2 meses.",
+    "Seguro de desgravamen individual convencional (sin devolución): 0.05511%; individual con devolución: 0.05823%.",
+    "Estado de cuenta físico S/10; el online no tiene costo.",
+    "Tasas independientes por cada convenio."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/por-convenio.html",
+   "estado": "vigente",
+   "notas": "Moneda no indicada explícitamente en la página; se asume soles por los montos. [SIN VERIFICAR] si hay dólares. Las FAQs dicen que se renueva «a partir de la cuarta cuota cancelada»."
+  },
+  {
+   "id": "prestamo-compra-de-deuda",
+   "nombre": "Préstamo Compra de Deuda",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Préstamo de libre disponibilidad para juntar en BBVA tus deudas de tarjetas o préstamos de otros bancos en un solo pago mensual.",
+   "para_quien": "Personas, clientes o no de BBVA, con buen historial que tienen deudas en otras entidades y quieren ordenarlas.",
+   "beneficios": [
+    "Consolidas deudas en un solo pago mensual.",
+    "Modificar la fecha de pago hasta 10 veces.",
+    "Tasas preferenciales, seas o no cliente BBVA.",
+    "Pago anticipado o amortizaciones sin penalidades.",
+    "No pide cancelar tus otras tarjetas de crédito."
+   ],
+   "requisitos": [
+    "Ser persona natural (cliente o no del banco).",
+    "Tener una clasificación 100% normal en el BBVA y el sistema financiero.",
+    "No reportar atrasos en pagos de deudas en la Central de Riesgos de la SBS (titular y cónyuge).",
+    "Tener continuidad laboral mínima demostrable de 6 meses.",
+    "Boletas de pago u otro documento que sustente ingresos netos mínimos de S/1,000 o su equivalente en dólares.",
+    "No se incluye gratificación ni abonos extraordinarios al cálculo de ingresos."
+   ],
+   "cifras_oficiales": [
+    "Financiamiento mínimo: S/1,000 o su equivalente en dólares. Máximo: sujeto a evaluación crediticia.",
+    "Plazo: desde 6 meses hasta 60 meses (según evaluación crediticia).",
+    "Al pagar tarjetas de otros bancos se cobra una comisión por transferencia interbancaria por cada tarjeta; para préstamos se emite un cheque de gerencia sin costo.",
+    "ITF 0.005% (sujeto a variación)."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/compra-deuda.html",
+   "estado": "vigente",
+   "notas": "La Hoja Resumen enlazada indica «vigente desde el 20.12.2016». No se publican tasas en la página."
+  },
+  {
+   "id": "credito-estudios",
+   "nombre": "Préstamo para Estudios",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Financia diplomados, especializaciones, maestrías o doctorados, en Perú o en el extranjero, hasta el 100% del costo de los estudios.",
+   "para_quien": "Personas con ingresos demostrables que quieren estudiar y pagar el programa a plazos, con periodo de gracia.",
+   "beneficios": [
+    "Financiamiento hasta el 100% del costo de los estudios.",
+    "Hasta 10 años para pagar si estudias en el extranjero.",
+    "Periodos de gracia de 6 hasta 30 meses.",
+    "Tasa preferencial (TCEA) para quien tiene su cuenta sueldo en BBVA.",
+    "Cancelación anticipada, cambio de fecha de pago y estado de cuenta online: sin costo."
+   ],
+   "requisitos": [
+    "Percibir ingresos netos mínimos demostrables de S/2,400 o su equivalente en dólares.",
+    "DNI vigente y el de tu cónyuge (de ser el caso).",
+    "Carta de admisión al programa.",
+    "Presupuesto de estudios.",
+    "Presupuesto para financiamiento de manutención (estadía y alimentación), en caso de que lo solicites.",
+    "Garantías: para importes menores o iguales a US$30,000; para importes mayores a US$30,000: Garantía Hipotecaria."
+   ],
+   "cifras_oficiales": [
+    "Financiamiento mínimo: US$1,000. Máximo: 100% del costo de los estudios. Se entrega en soles o dólares.",
+    "Plazo sujeto al periodo de estudio (máximo 10 años).",
+    "Gastos de manutención: hasta US$20,000 para posgrados a tiempo completo, si se estudia fuera de la zona de residencia.",
+    "Tasa de estudios desde 13.99% para universidades nacionales y del extranjero.",
+    "Beneficio 25% de descuento con Centrum Católica.",
+    "Seguro de desgravamen individual convencional (sin devolución): 0.069%; individual con devolución: 0.0714%; evaluación de póliza de seguro endosada: US$65."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/credito-estudios.html",
+   "estado": "vigente",
+   "notas": "La página dice «Tasa de estudios desde 13.99%» sin precisar si es TEA o TCEA. La Hoja Resumen enlazada indica «vigente desde el 20.12.2016». Tiene dos garantías con redacción poco clara en la web."
+  },
+  {
+   "id": "prestamo-garantia-hipotecaria",
+   "nombre": "Préstamo Libre Disponibilidad Garantía Hipotecaria",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Préstamo de libre disponibilidad de monto alto respaldado por un inmueble de tu propiedad.",
+   "para_quien": "Personas propietarias de un inmueble que necesitan financiar remodelaciones, compras o viajes con un plazo largo.",
+   "beneficios": [
+    "Plazo de hasta 10 años.",
+    "Cancelar o amortizar sin penalidades.",
+    "Elegir fecha de pago y cambiarla sin penalidades cada 6 meses.",
+    "Débito automático en cuenta."
+   ],
+   "requisitos": [
+    "Ingreso mínimo neto conyugal (de ser el caso) de S/1,000 o su equivalente en dólares.",
+    "Continuidad laboral mínima de 6 meses (demostrable), sujeto a evaluación crediticia.",
+    "Clasificación 100% Normal en el BBVA y Sistema Financiero (titular y cónyuge).",
+    "Boletas de ingreso, copia de DNI, título de propiedad del inmueble en garantía y tasación."
+   ],
+   "cifras_oficiales": [
+    "Financiamiento mínimo: S/30,000 o su equivalente en dólares. Máximo: sujeto a evaluación crediticia.",
+    "Plazo: hasta en 10 años (según evaluación crediticia).",
+    "50.95% TCEA máxima referencial, con TEA de 49.99% para S/5,000 a 12 meses, con seguro de desgravamen convencional individual de 0.069% del saldo insoluto.",
+    "Seguro de desgravamen: individual convencional 0.069%; mancomunado convencional 0.129%; individual con devolución 0.0714%; mancomunado con devolución 0.1428%.",
+    "Estado de cuenta físico S/10."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/garantia-hipotecaria.html",
+   "estado": "vigente",
+   "notas": "Es un préstamo personal garantizado con inmueble; el agente de hipotecarios no lo cubre. La TCEA de ejemplo se calcula sobre S/5,000, aunque el mínimo del producto es S/30,000."
+  },
+  {
+   "id": "prestamo-garantia-liquida",
+   "nombre": "Préstamo Libre Disponibilidad Garantía Líquida",
+   "familia": "prestamos",
+   "subfamilia": "personal",
+   "para_que_sirve": "Préstamo de libre disponibilidad con desembolso inmediato, usando como garantía tus ahorros: depósito a plazo, cuenta de ahorros o fondo mutuo de renta fija.",
+   "para_quien": "Clientes que ya tienen ahorros o un fondo de renta fija en BBVA y quieren liquidez sin romper su ahorro.",
+   "beneficios": [
+    "Período de gracia de 6 meses.",
+    "Pagos anticipados sin penalidades.",
+    "Fecha de pago a tu elección, cambiable cada 6 meses.",
+    "Débito automático en cuenta.",
+    "Se solicita en oficina."
+   ],
+   "requisitos": [
+    "Clasificación 100% Normal en el BBVA y Sistema Financiero (titular y cónyuge).",
+    "Contar con depósito a plazo, cuenta de ahorros o fondo mutuo de renta fija en el banco.",
+    "Verificación domiciliaria y/o laboral.",
+    "Copia de DNI del titular y cónyuge.",
+    "El fondo de renta fija o el depósito a plazo puede ser del cónyuge o de un tercero, quien deberá firmar los documentos."
+   ],
+   "cifras_oficiales": [
+    "Financiamiento mínimo: S/1,000 o su equivalente en dólares. Sujeto a evaluación crediticia.",
+    "Se puede financiar hasta el 100% del valor de la garantía.",
+    "Plazo: desde 6 meses hasta 48 meses (según evaluación crediticia).",
+    "51.19% TCEA máxima, TEA 49.99% para S/5,000 a 12 meses, con seguro de desgravamen convencional individual de 0.069% del saldo insoluto.",
+    "Seguro de desgravamen: individual convencional 0.069%; mancomunado convencional 0.129%; individual con devolución 0.0714%; mancomunado con devolución 0.1428%.",
+    "Estado de cuenta físico S/10.00."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/personales/garantia-liquida.html",
+   "estado": "vigente",
+   "notas": "Contradicción en la página: titula «TCEA máxima 51.19%» pero el detalle dice «TCEA 50.95 Máxima referencial». Se transcriben ambas cifras sin decidir cuál rige."
+  },
+  {
+   "id": "bbva-cash-soles-fmiv",
+   "nombre": "BBVA Cash Soles FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo para tener tu dinero en soles con disponibilidad inmediata y algo más de rendimiento que una cuenta, a plazo muy corto.",
+   "para_quien": "Quien necesita liquidez y solo dejará el dinero unos meses.",
+   "beneficios": [
+    "Invierte principalmente en depósitos a plazo y otros instrumentos de deuda",
+    "No se paga por rescate anticipado",
+    "Puedes disponer de tu inversión al instante"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorro o corriente en soles o dólares."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/100",
+    "Tiempo mínimo de permanencia: no aplica",
+    "Plazo sugerido de inversión: muy corto plazo (3 meses a más)",
+    "Disponibilidad del rescate: inmediato",
+    "Suscripción: 0%. Administración: 0.65% + IGV. Rescate anticipado: 0%."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-cash-soles-y-bbva-cash-dolares.html",
+   "estado": "vigente",
+   "notas": "Página conjunta con Cash Dólares. Categoría de la página: fondos conservadores. Contiene una nota textual \"Los monetarios no deben estar dentro de los fondos cash\" sin explicación."
+  },
+  {
+   "id": "bbva-cash-dolares-fmiv",
+   "nombre": "BBVA Cash Dólares FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo para tener tu dinero en dólares con disponibilidad inmediata, a plazo muy corto.",
+   "para_quien": "Quien necesita liquidez en dólares y dejará el dinero pocos meses.",
+   "beneficios": [
+    "Invierte principalmente en depósitos a plazo y otros instrumentos de deuda",
+    "No se paga por rescate anticipado",
+    "Puedes disponer de tu inversión al instante"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorro o corriente en soles o dólares."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$100",
+    "Tiempo mínimo de permanencia: no aplica",
+    "Plazo sugerido de inversión: muy corto plazo (3 meses a más)",
+    "Disponibilidad del rescate: inmediato",
+    "Suscripción: 0%. Administración: 0.54% + IGV. Rescate anticipado: 0%."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-cash-soles-y-bbva-cash-dolares.html",
+   "estado": "vigente",
+   "notas": "Página conjunta con Cash Soles."
+  },
+  {
+   "id": "bbva-tesoreria-soles-fmiv",
+   "nombre": "BBVA Tesorería Soles FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo en soles para montos altos que estarán parados muy poco tiempo y se quieren disponer al instante.",
+   "para_quien": "Quien tiene un excedente grande de liquidez en soles por menos de 3 meses.",
+   "beneficios": [
+    "Invierte principalmente en depósitos a plazo",
+    "Sin tiempo mínimo de permanencia ni penalidades",
+    "Incrementa tu inversión desde Banca por Internet",
+    "Dispón de tu fondo al instante"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/50,000",
+    "Plazo sugerido de inversión: muy corto plazo (menos de 3 meses)",
+    "Disponibilidad del rescate: inmediato",
+    "Suscripción: 0%. Rescate anticipado: 0%. Administración: 0.4% + IGV."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-tesoreria-soles.html",
+   "estado": "vigente",
+   "notas": "Contradicción menor: la página de atención al cliente de este fondo muestra teléfonos de \"Línea de Negocios y Leasing / Soluciones Empresas\", pero el producto es para personas."
+  },
+  {
+   "id": "bbva-renta-corto-plazo-soles-fmiv",
+   "nombre": "BBVA Renta Corto Plazo Soles FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo en soles para metas de corto plazo, con más recorrido que un fondo cash y sin penalidad de salida.",
+   "para_quien": "Quien ahorra para una meta de hasta un año.",
+   "beneficios": [
+    "Invierte en depósitos a plazo, certificados de depósito, bonos y otros instrumentos de deuda",
+    "Sin penalidades por rescate anticipado",
+    "Disponibilidad de tu inversión al día siguiente de que lo solicites"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/100",
+    "Tiempo mínimo de permanencia: no aplica",
+    "Plazo sugerido de inversión: corto plazo (1 año)",
+    "Disponibilidad del rescate: al día siguiente de solicitado",
+    "Suscripción: 0%. Administración: 0.80% +IGV. Rescate anticipado: 0%."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-soles-monetario-y-bbva-dolares-monetario.html",
+   "estado": "vigente",
+   "notas": "La URL conserva el nombre antiguo \"soles-monetario-y-dolares-monetario\" pero el fondo se llama Renta Corto Plazo. Contradicción: un beneficio dice \"Invierte a corto plazo (6 meses)\" y la sección Plazo dice \"corto plazo (1 año)\"."
+  },
+  {
+   "id": "bbva-renta-corto-plazo-dolares-fmiv",
+   "nombre": "BBVA Renta Corto Plazo Dólares FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo en dólares para metas de corto plazo, sin penalidad de salida.",
+   "para_quien": "Quien ahorra en dólares para una meta de hasta un año.",
+   "beneficios": [
+    "Invierte en depósitos a plazo, certificados de depósito, bonos y otros instrumentos de deuda",
+    "Sin penalidades por rescate anticipado",
+    "Disponibilidad de tu inversión al día siguiente de que lo solicites"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$100",
+    "Tiempo mínimo de permanencia: no aplica",
+    "Plazo sugerido de inversión: corto plazo (1 año)",
+    "Disponibilidad del rescate: al día siguiente de solicitado",
+    "Suscripción: 0%. Administración: 0.70% + IGV. Rescate anticipado: 0%"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-soles-monetario-y-bbva-dolares-monetario.html",
+   "estado": "vigente",
+   "notas": "Misma página y misma contradicción de plazo (6 meses vs 1 año) que la versión en soles."
+  },
+  {
+   "id": "bbva-conservador-global-soles-fmiv",
+   "nombre": "BBVA Conservador Global Soles FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo que combina varios fondos de renta fija y algunos ETF para un inversionista de perfil conservador, con visión de largo plazo.",
+   "para_quien": "Quien tiene perfil conservador y puede dejar el dinero unos 3 años.",
+   "beneficios": [
+    "Combinación de activos pensada para perfil conservador",
+    "Gestión activa, diversificado, con exposición a mercados globales",
+    "Invierte en fondos de renta fija de muy corto, corto y mediano plazo y ETF UCITs de renta fija y renta variable"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 3 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 0.60% + IGV. Rescate anticipado: 0.50% + IGV."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-estrategico-conservador-soles.html",
+   "estado": "vigente",
+   "notas": "Nombre de la página: \"BBVA Conservador Global\"; título interno \"Fondo de Fondos BBVA Conservador Global\". La URL conserva \"estrategico-conservador\"."
+  },
+  {
+   "id": "bbva-conservador-global-dolares-fmiv",
+   "nombre": "BBVA Conservador Global Dólares FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo que combina varios fondos de renta fija y algunos ETF para un inversionista de perfil conservador, con visión de largo plazo.",
+   "para_quien": "Quien tiene perfil conservador y puede dejar el dinero unos 3 años.",
+   "beneficios": [
+    "Combinación de activos pensada para perfil conservador",
+    "Gestión activa, diversificado, con exposición a mercados globales",
+    "Invierte en fondos de renta fija de muy corto, corto y mediano plazo y ETF UCITs de renta fija y renta variable"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 3 años",
+    "Disponibilidad del rescate: Al tercer día de solicitado el rescate",
+    "Suscripción: 0%. Administración: 0.60% + IGV. Rescate anticipado: 0.50% + IGV."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-estrategico-conservador-dolares.html",
+   "estado": "vigente",
+   "notas": "Nombre de la página: \"BBVA Conservador Global\"; título interno \"Fondo de Fondos BBVA Conservador Global\". La URL conserva \"estrategico-conservador\"."
+  },
+  {
+   "id": "fondo-de-fondos-bbva-dolar-flex-global-fmiv",
+   "nombre": "Fondo de Fondos BBVA Dólar Flex Global FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo en dólares para excedentes de liquidez, en instrumentos de corto plazo de emisores globales de alta solvencia.",
+   "para_quien": "Quien tiene dólares sobrantes y los dejará alrededor de un año.",
+   "beneficios": [
+    "Liquidez en dólares con alta calidad crediticia",
+    "Alternativa para excedentes de liquidez con disponibilidad y flexibilidad",
+    "Invierte en instrumentos de corto plazo con emisores globales de alta solvencia"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 1 año",
+    "Disponibilidad del rescate: al tercer día útil solicitado",
+    "Suscripción: 0%. Administración: 0.70% + IGV. Rescate anticipado: 2.00% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/fondo-de-fondos-bbva-dolar-flex-global-fmiv.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "bbva-super-dolares-22-fmiv",
+   "nombre": "BBVA Súper Dólares 22 FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo de plazo fijo de 1 año en dólares: se invierte en depósitos a plazo y cuentas de ahorro y al final se entrega capital más rentabilidad.",
+   "para_quien": "Quien puede dejar dólares inmovilizados 1 año.",
+   "beneficios": [
+    "Rentabilidad en dólares respecto de otras alternativas (según la página)",
+    "El plazo del fondo es de 1 año, luego se entrega el capital más la rentabilidad generada",
+    "Invierte en depósitos a plazo y cuentas de ahorro con vencimientos no mayores a 1 año en bancos locales y del exterior"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$ 500",
+    "Tiempo mínimo de permanencia: 1 año (desde el inicio de la etapa de inversión)",
+    "Plazo sugerido de inversión: 1 año",
+    "Disponibilidad del rescate: Al dia siguiente de la solicitud (sujeto al pago de la comisión de rescate anticipado)",
+    "Suscripción: 0%. Libre durante la etapa de comercialización. Iniciado la etapa de inversión se cobrará 30% + IGV por suscripciones nuevas o adicionales.",
+    "Administración: 0.70% + IGV",
+    "Rescate anticipado: 2% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-super-dolares-22-fmiv.html",
+   "estado": "vigente",
+   "notas": "El fondo Súper Dólares 12 del catálogo previo ya no aparece en el listado oficial."
+  },
+  {
+   "id": "bbva-super-soles-1-fmiv",
+   "nombre": "BBVA Súper Soles 1 FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo de plazo fijo de 1 año en soles: capital más rentabilidad al final del plazo.",
+   "para_quien": "Quien puede dejar soles inmovilizados 1 año.",
+   "beneficios": [
+    "Rentabilidad en soles respecto de otras alternativas (según la página)",
+    "El plazo del fondo es de 1 año, luego se entrega el capital más la rentabilidad generada",
+    "Invierte en depósitos a plazo y cuentas de ahorro con vencimientos no mayores a 1 año"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en soles.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/100",
+    "Tiempo mínimo de permanencia: 1 año (desde el inicio de la etapa de inversión)",
+    "Plazo sugerido de inversión: 1 año",
+    "Disponibilidad del rescate: Al dia siguiente de la solicitud (sujeto al pago de la comisión de rescate anticipado)",
+    "Suscripción: 0%. Libre durante la etapa de comercialización. Iniciado la etapa de inversión se cobrará 5% + IGV por suscripciones nuevas o adicionales.",
+    "Administración: 0.70% + IGV",
+    "Rescate anticipado: 10.00% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-super-soles-1-fmiv.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "bbva-super-dolares-23-fmiv",
+   "nombre": "BBVA Súper Dólares 23 FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo de plazo fijo de 1 año en dólares: capital más rentabilidad al final.",
+   "para_quien": "Quien puede dejar dólares inmovilizados 1 año.",
+   "beneficios": [
+    "Rentabilidad en dólares respecto de otras alternativas (según la página)",
+    "El plazo del fondo es de 1 año, luego se entrega el capital más la rentabilidad generada",
+    "Invierte en depósitos a plazo y cuentas de ahorro con vencimientos no mayores a 1 año"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$ 500",
+    "Tiempo mínimo de permanencia: 1 año (desde el inicio de la etapa de inversión)",
+    "Plazo sugerido de inversión: 1 año",
+    "Disponibilidad del rescate: Al dia siguiente de la solicitud (sujeto al pago de la comisión de rescate anticipado)",
+    "Suscripción: 0%. Libre durante la etapa de comercialización. Iniciado la etapa de inversión se cobrará 30% + IGV por suscripciones nuevas o adicionales.",
+    "Administración: 0.50% + IGV",
+    "Rescate anticipado: 10% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-super-dolares-23-fmiv.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "bbva-super-dolares-24-fmiv",
+   "nombre": "BBVA Súper Dólares 24 FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-conservador",
+   "para_que_sirve": "Fondo de plazo fijo de 12 meses en dólares con tasa fijada al inicio y pagada al vencimiento.",
+   "para_quien": "Quien puede dejar dólares inmovilizados 12 meses.",
+   "beneficios": [
+    "El fondo captura las expectativas de tasas al alza (según la página)",
+    "Cartera de depósitos de bancos internacionales y al menos 70% en entidades con grado de inversión",
+    "Estrategia diseñada para 12 meses donde se negocian las inversiones al inicio y se fija una tasa que se paga al vencimiento"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$ 500",
+    "Tiempo mínimo de permanencia: 1 año (desde el inicio de la etapa de inversión)",
+    "Plazo sugerido de inversión: 1 año",
+    "Disponibilidad del rescate: Al dia siguiente de la solicitud (sujeto al pago de la comisión de rescate anticipado)",
+    "Suscripción: 0%. Libre durante la etapa de comercialización. Iniciado la etapa de inversión se cobrará 30% + IGV por suscripciones nuevas o adicionales.",
+    "Administración: Hasta 1.00% + IGV",
+    "Rescate anticipado: 10% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/conservadores/bbva-super-dolares-24-fmiv.html",
+   "estado": "vigente",
+   "notas": "La página de Conservadores no lista Súper Dólares/Súper Soles en su carrusel, pero los enlaces existen en el menú del sitio."
+  },
+  {
+   "id": "bbva-renta-mediano-plazo-soles-fmiv",
+   "nombre": "BBVA Renta Mediano Plazo Soles FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo de renta fija a mediano plazo, que invierte en deuda emitida por el Estado Peruano.",
+   "para_quien": "Quien busca algo más de rendimiento que un fondo conservador y puede esperar 18 meses o más.",
+   "beneficios": [
+    "Disposición de la inversión al día siguiente de solicitarlo",
+    "Mantén 7 días tu inversión y no pagas penalidad de rescate anticipado",
+    "Invierte en deudas emitidas por el Estado Peruano"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: mediano plazo (18 meses a mas)",
+    "Disponibilidad del rescate: al día siguiente de solicitado",
+    "Suscripción: 0%. Administración: 1.00% +IGV. Rescate anticipado: 0.5%."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/moderados-bbva-soles-y-bbva-dolares.html",
+   "estado": "vigente",
+   "notas": "La página de índice de Moderados lo llama \"BBVA Renta Fija Mediano Plazo Soles/Dólares FMIV\"; la ficha dice \"Renta Mediano Plazo\". Misma página para ambas monedas."
+  },
+  {
+   "id": "bbva-renta-mediano-plazo-dolares-fmiv",
+   "nombre": "BBVA Renta Mediano Plazo Dólares FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo de renta fija a mediano plazo, que invierte en deuda emitida por el Estado Peruano.",
+   "para_quien": "Quien busca algo más de rendimiento que un fondo conservador y puede esperar 18 meses o más.",
+   "beneficios": [
+    "Disposición de la inversión al día siguiente de solicitarlo",
+    "Mantén 7 días tu inversión y no pagas penalidad de rescate anticipado",
+    "Invierte en deudas emitidas por el Estado Peruano"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: mediano plazo (18 meses a mas)",
+    "Disponibilidad del rescate: al día siguiente de solicitado",
+    "Suscripción: 0%. Administración: 0.90% +IGV. Rescate anticipado: 0.5%."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/moderados-bbva-soles-y-bbva-dolares.html",
+   "estado": "vigente",
+   "notas": "La página de índice de Moderados lo llama \"BBVA Renta Fija Mediano Plazo Soles/Dólares FMIV\"; la ficha dice \"Renta Mediano Plazo\". Misma página para ambas monedas."
+  },
+  {
+   "id": "fondo-de-fondos-bbva-distributivo-estrategico-global-fmiv",
+   "nombre": "Fondo de Fondos BBVA Distributivo Estratégico Global FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo en dólares que invierte en bonos globales y paga una renta cada trimestre.",
+   "para_quien": "Quien quiere ingresos periódicos en dólares y puede esperar unos 3 años.",
+   "beneficios": [
+    "Acceso a bonos de mercados desarrollados y emergentes de manera diversificada",
+    "Pagos de rentas de forma trimestral",
+    "Invierte en renta fija internacional gestionada mediante fondos mutuos de gestoras a nivel mundial"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Suscripción inicial: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 3 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: sin costo. Administración: 0.80% + IGV. Rescate anticipado: 2% + IGV",
+    "Cronograma 2026 (corte / pago): 1T 24/03 / 09/04; 2T 23/06 / 07/07; 3T 23/09 / 12/10; 4T 21/12 / 08/01/2027"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/bbva-renta-global.html",
+   "estado": "vigente",
+   "notas": "URL conserva \"bbva-renta-global\"."
+  },
+  {
+   "id": "bbva-renta-fija-mercados-emergentes-fmiv",
+   "nombre": "BBVA Renta Fija Mercados Emergentes FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo en dólares que invierte en deuda de países emergentes.",
+   "para_quien": "Quien tolera cierta variación y puede esperar unos 3 años.",
+   "beneficios": [
+    "Acceso a deuda de mercados emergentes en dólares de forma diversificada",
+    "Rentabilidad atractiva en dólares respecto de otras alternativas (según la página)",
+    "Renta fija internacional gestionada mediante fondos de gestoras a nivel mundial"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$ 100",
+    "Tiempo mínimo de permanencia: 30 días calendario",
+    "Plazo sugerido de inversión: 3 años",
+    "Disponibilidad del rescate: al tercer día útil solicitado",
+    "Suscripción: 0%. Administración: 0.85% + IGV. Rescate anticipado: 0.50% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/bbva-renta-fija-mercados-emergentes-fmiv.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "bbva-distributivo-dolares-fmiv",
+   "nombre": "BBVA Distributivo Dólares FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo cerrado a 3 años en dólares que invierte en bonos corporativos latinoamericanos y devuelve flujos cada trimestre. Su periodo de comercialización terminó.",
+   "para_quien": "Solo informativo: ya no se abre para nuevos clientes según la página.",
+   "beneficios": [
+    "Plazo del fondo de 3 años con distribución trimestral de flujos y entrega del capital a partir del tercer año",
+    "Invierte en bonos corporativos con vencimientos no mayor a 3 años de empresas latinoamericanas"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$ 1,000",
+    "Tiempo mínimo de permanencia: 3 años (desde el inicio de la etapa de inversión)",
+    "Plazo sugerido de inversión: 3 años",
+    "Disponibilidad del rescate: Al tercer día útil de solicitado (sujeto a comisión de rescate anticipado)",
+    "Suscripción: 0%. Libre durante la etapa de comercialización. Iniciado la etapa de inversión se cobrará 30% + IGV por suscripciones nuevas o adicionales.",
+    "Administración: 0.10% + IGV",
+    "Rescate anticipado: 20% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/bbva-distributivo-dolares-fmiv.html",
+   "estado": "vigente",
+   "notas": "La página dice: \"El periodo de comercialización ha finalizado\". No aparece en el carrusel de la página de Moderados."
+  },
+  {
+   "id": "bbva-distributivo-dolares-ii-fmiv",
+   "nombre": "BBVA Distributivo Dólares II FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo cerrado a 3 años en dólares que invierte en bonos corporativos latinoamericanos y devuelve flujos cada trimestre. Su periodo de comercialización terminó.",
+   "para_quien": "Solo informativo: ya no se abre para nuevos clientes según la página.",
+   "beneficios": [
+    "Plazo del fondo de 3 años con distribución trimestral de flujos y entrega del capital a partir del tercer año",
+    "Invierte en bonos corporativos con vencimientos no mayor a 3 años de empresas latinoamericanas"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$ 1,000",
+    "Tiempo mínimo de permanencia: 3 años (desde el inicio de la etapa de inversión)",
+    "Plazo sugerido de inversión: 3 años",
+    "Disponibilidad del rescate: Al tercer día útil de solicitado (sujeto a comisión de rescate anticipado)",
+    "Suscripción: 0%. Libre durante la etapa de comercialización. Iniciado la etapa de inversión se cobrará 30% + IGV por suscripciones nuevas o adicionales.",
+    "Administración: 0.50% + IGV",
+    "Rescate anticipado: 20% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/bbva-distributivo-dolares-2-fmiv.html",
+   "estado": "vigente",
+   "notas": "La página dice: \"El periodo de comercialización ha finalizado\". No aparece en el carrusel de la página de Moderados."
+  },
+  {
+   "id": "bbva-equilibrado-global-soles-fmiv",
+   "nombre": "BBVA Equilibrado Global Soles FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo que mezcla renta fija y variable globales para un inversionista de perfil moderado, a largo plazo.",
+   "para_quien": "Quien tiene perfil moderado y puede esperar unos 5 años.",
+   "beneficios": [
+    "Combinación de activos pensada para perfil moderado",
+    "Gestión activa, diversificado, con exposición a mercados globales",
+    "Invierte en fondos de renta fija de muy corto, corto y mediano plazo y ETF UCITs de renta fija y renta variable"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en soles.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 5 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 0.70% + IGV. Rescate anticipado: 0.50% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/bbva-estrategico-equilibrado-soles.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "bbva-equilibrado-global-dolares-fmiv",
+   "nombre": "BBVA Equilibrado Global Dólares FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo que mezcla renta fija y variable globales para un inversionista de perfil moderado, a largo plazo.",
+   "para_quien": "Quien tiene perfil moderado y puede esperar unos 5 años.",
+   "beneficios": [
+    "Combinación de activos pensada para perfil moderado",
+    "Gestión activa, diversificado, con exposición a mercados globales",
+    "Invierte en fondos de renta fija de muy corto, corto y mediano plazo y ETF UCITs de renta fija y renta variable"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en soles o dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 5 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 0.70% + IGV. Rescate anticipado: 0.50% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/bbva-estrategico-equilibrado-dolares.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "fondo-de-fondos-bbva-deuda-financiera-global-fmiv",
+   "nombre": "Fondo de Fondos Deuda Financiera Global FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-moderado",
+   "para_que_sirve": "Fondo en dólares que invierte en deuda de grandes bancos y aseguradoras, sobre todo europeos.",
+   "para_quien": "Quien busca renta fija en dólares y puede esperar unos 3 años.",
+   "beneficios": [
+    "Acceso a renta fija subordinada emitida por grandes bancos y aseguradoras",
+    "Acceso al mercado financiero europeo de mayor calidad crediticia"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Suscripción inicial: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 3 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 0.85% + IGV. Rescate anticipado: 2% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/moderados/generacion-de-flujo.html",
+   "estado": "vigente",
+   "notas": "URL conserva \"generacion-de-flujo\". El catálogo previo no lo tenía; la página de Moderados no lo muestra en su carrusel pero está enlazado en el menú."
+  },
+  {
+   "id": "fondo-de-fondos-bbva-acciones-marcas-globales-fmiv",
+   "nombre": "Fondo de Fondos BBVA Acciones Marcas Globales FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-agresivo",
+   "para_que_sirve": "Fondo en dólares que invierte en acciones de empresas con marcas globales fuertes.",
+   "para_quien": "Quien acepta variaciones fuertes y puede esperar unos 5 años.",
+   "beneficios": [
+    "Compañías de alta calidad con marcas reconocidas a nivel global",
+    "Gestionado a través de fondos mutuos de gestoras a nivel mundial",
+    "Exposición a renta variable internacional"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en dólares.",
+    "Contar con el monto mínimo de inversión de dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Suscripción inicial: USD 500",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 5 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 1.00% + IGV. Rescate anticipado: 3.00% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/agresivos/fondo-de-fondos-bbva-global-equity-fmiv.html",
+   "estado": "vigente",
+   "notas": "URL conserva \"global-equity\"."
+  },
+  {
+   "id": "fondo-de-fondos-bbva-acciones-ee-uu-fmiv",
+   "nombre": "Fondo de Fondos BBVA Acciones EE.UU. FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-agresivo",
+   "para_que_sirve": "Fondo en dólares que invierte en acciones del mercado de EE.UU.",
+   "para_quien": "Quien acepta variaciones fuertes y puede esperar unos 5 años.",
+   "beneficios": [
+    "Disposición de la inversión al tercer día útil de solicitar el rescate",
+    "Invierte en gestores de fondos de renta variable estadounidense",
+    "Exposición al mercado accionario de EE.UU."
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión de dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Suscripción inicial: USD 100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 5 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 1.00% + IGV. Rescate anticipado: 3.00% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/agresivos/fondo-de-fondos-bbva-acciones-globales-real-estate-fmiv-.html",
+   "estado": "vigente",
+   "notas": "La URL dice \"acciones-globales-real-estate\" pero el contenido es Acciones EE.UU.: la URL no coincide con el nombre del fondo."
+  },
+  {
+   "id": "fondo-de-fondos-bbva-deuda-high-yield-fmiv",
+   "nombre": "Fondo de Fondos BBVA Deuda High Yield FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-agresivo",
+   "para_que_sirve": "Fondo en dólares que invierte en bonos de alto rendimiento (y mayor riesgo) de EE.UU. y genera renta periódica.",
+   "para_quien": "Quien acepta más riesgo para buscar renta y puede esperar unos 3 años.",
+   "beneficios": [
+    "Acceso a bonos de alto rendimiento del mercado estadounidense",
+    "Renta fija internacional gestionada mediante fondos de gestoras a nivel mundial"
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 3 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 1.00% +IGV. Rescate anticipado: 0.50% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/agresivos/fondo-de-fondos-bbva-deuda-high-yield-fmiv.html",
+   "estado": "vigente",
+   "notas": "La página de Agresivos lo llama \"Distributivo High Yield EE.UU.\"; la ficha, \"Deuda High Yield\". Esta ficha no publica sección de requisitos."
+  },
+  {
+   "id": "fondo-de-fondos-bbva-acciones-globales-millennials-fmiv",
+   "nombre": "Fondo de Fondos BBVA Acciones Globales Millennials FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-agresivo",
+   "para_que_sirve": "Fondo en dólares que invierte en empresas globales ligadas a los hábitos de consumo de la generación millennial.",
+   "para_quien": "Quien acepta variaciones fuertes y puede esperar unos 5 años.",
+   "beneficios": [
+    "Empresas globales vinculadas al consumo de la generación millennial (nacidas entre 1980-1999)",
+    "Disposición de la inversión al tercer día útil de solicitar el rescate",
+    "Cartera diversificada que busca maximizar la rentabilidad en el largo plazo"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en soles o dólares.",
+    "Contar con el monto mínimo de inversión de dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Suscripción inicial: USD 1,000",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 5 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 1.00% + IGV. Rescate anticipado: 2.00%+ IGV."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/agresivos/fondo-de-fondos-bbva-acciones-globales-millenials-fmiv.html",
+   "estado": "vigente",
+   "notas": "El catálogo previo copió el texto de otro fondo; esta ficha sí tiene datos propios. No aparece en el carrusel de Agresivos."
+  },
+  {
+   "id": "fondo-de-fondos-bbva-acciones-globales-tecnologicas",
+   "nombre": "Fondo de Fondos BBVA Acciones Globales Tecnológicas",
+   "familia": "inversiones",
+   "subfamilia": "fondo-agresivo",
+   "para_que_sirve": "Fondo en dólares que invierte en empresas tecnológicas líderes del mundo.",
+   "para_quien": "Quien acepta variaciones fuertes y puede esperar unos 5 años.",
+   "beneficios": [
+    "Empresas tecnológicas líderes del mundo",
+    "Gestores profesionales de primer nivel",
+    "Potencial de crecimiento desde montos accesibles"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Suscripción inicial: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 5 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 1.00% + IGV. Rescate anticipado: 2% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/agresivos/apreciacion-de-capital.html",
+   "estado": "vigente",
+   "notas": "URL conserva \"apreciacion-de-capital\"."
+  },
+  {
+   "id": "bbva-dinamico-global-soles-fmiv",
+   "nombre": "BBVA Dinámico Global Soles FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-agresivo",
+   "para_que_sirve": "Fondo que mezcla activos globales para un inversionista de perfil agresivo, a largo plazo.",
+   "para_quien": "Quien tiene perfil agresivo y puede esperar unos 5 años.",
+   "beneficios": [
+    "Combinación de activos pensada para perfil agresivo",
+    "Gestión activa, diversificado, con exposición a mercados globales",
+    "Invierte en fondos de renta fija de muy corto, corto y mediano plazo y ETF UCITs de renta fija y renta variable"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta de ahorros o corriente en soles",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 5 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 0.80% + IGV. Rescate anticipado: 0.50% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/agresivos/bbva-estrategico-dinamico-soles.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "bbva-dinamico-global-dolares-fmiv",
+   "nombre": "BBVA Dinámico Global Dólares FMIV",
+   "familia": "inversiones",
+   "subfamilia": "fondo-agresivo",
+   "para_que_sirve": "Fondo que mezcla activos globales para un inversionista de perfil agresivo, a largo plazo.",
+   "para_quien": "Quien tiene perfil agresivo y puede esperar unos 5 años.",
+   "beneficios": [
+    "Combinación de activos pensada para perfil agresivo",
+    "Gestión activa, diversificado, con exposición a mercados globales",
+    "Invierte en fondos de renta fija de muy corto, corto y mediano plazo y ETF UCITs de renta fija y renta variable"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA y tener activa una cuenta corriente o de ahorro en dólares.",
+    "Contar con el monto mínimo de inversión en dicha cuenta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: US$100",
+    "Tiempo mínimo de permanencia: 7 días calendario",
+    "Plazo sugerido de inversión: 5 años",
+    "Disponibilidad del rescate: al tercer día útil de solicitado",
+    "Suscripción: 0%. Administración: 0.80% + IGV. Rescate anticipado: 0.50% + IGV"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://fondos.bbva.pe/personas/productos/agresivos/bbva-estrategico-dinamico-dolares.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "smart-deposit-prime-estructurado",
+   "nombre": "Smart Deposit (Prime Estructurado)",
+   "familia": "inversiones",
+   "subfamilia": "deposito-estructurado",
+   "para_que_sirve": "Depósito con capital 100% garantizado al vencimiento más un rendimiento variable que depende de un activo de referencia.",
+   "para_quien": "Clientes Prime, Privados o Patrimoniales que no usarán el dinero hasta el vencimiento.",
+   "beneficios": [
+    "Acceso a mercados internacionales sin poner el capital en riesgo, sin costos ni comisiones adicionales",
+    "Capital 100% garantizado a la fecha final del contrato",
+    "Se puede usar como garantía de operaciones de crédito"
+   ],
+   "requisitos": [
+    "Ser cliente Prime, Privado o Patrimonial de BBVA.",
+    "Realizar una inversión mínima de S/40,000 o US$10,000.",
+    "Cliente Prime: poseer un crédito de consumo y/o hipotecario mayor a S/1,000,000; o productos pasivos mayor a S/200,000; o Cuenta PH con un ingreso neto de S/18,000.",
+    "Cliente Privado: poseer más de PEN 2,000,000 en saldos mínimos por administrar."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de inversión: S/40,000 o US$10,000",
+    "Comisiones: 0%. No se aplican comisiones",
+    "Si lo suscribe una persona natural, la ganancia obtenida por la bonificación está sujeta a retención del 5% por concepto de impuesto a la renta.",
+    "Precancelación: penalidad descontada del capital; corresponde al interés pagado por adelantado pendiente de devengar."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/inversiones/prime-estructurado.html",
+   "estado": "vigente",
+   "notas": "CONTRADICCIÓN: la página índice de Inversiones dice \"Monto mínimo de inversión S/50,000 y US$30,000\" mientras la ficha del producto dice S/40,000 o US$10,000. También: la ficha titula \"Smart Deposit\" y la URL/índice dicen \"Prime Estructurado\". La rentabilidad variable no está garantizada; solo el capital al vencimiento. Se contrata en oficina."
+  },
+  {
+   "id": "bbva-bolsa",
+   "nombre": "BBVA Bolsa",
+   "familia": "inversiones",
+   "subfamilia": "bolsa",
+   "para_que_sirve": "Servicio para comprar y vender acciones, ETF y bonos en el mercado de valores a través de la sociedad agente de bolsa de BBVA.",
+   "para_quien": "Quien ya quiere invertir por su cuenta en acciones o bonos y acepta el riesgo de mercado.",
+   "beneficios": [
+    "Consulta tus custodias de valores en Banca por Internet",
+    "Asesoría especializada",
+    "Consulta de operaciones bursátiles en Banca por Internet",
+    "Inversión en valores de renta fija y variable"
+   ],
+   "requisitos": [
+    "Abrir una cuenta valor",
+    "Firmar el Contrato de Intermediación de Valores.",
+    "Presentar el Documento de Identidad",
+    "Código RUT - Registro Único de Titular (la creación de dicho código se solicitará al momento de firmar el contrato).",
+    "Contar con fondos en una cuenta (para las operaciones de compra a realizarse)."
+   ],
+   "cifras_oficiales": [
+    "Valores representativos de participación, operaciones al contado: 0.01% a 1.50%",
+    "Valores representativos de deuda, mercado de subasta: hasta 1.50%",
+    "Mantenimiento de cuenta valor en soles: S/15.00; en dólares: US$4.50",
+    "Cobro de dividendos: sin costo. Estado de cuentas: sin costo."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/inversiones/bbva-bolsa.html",
+   "estado": "vigente",
+   "notas": "La URL de bbva.pe redirige a https://bolsa.bbva.pe/ (URL real de los datos). Aviso en esa página: el tarifario se actualiza y los cambios rigen desde el 27 de noviembre de 2026; estas comisiones son las vigentes hoy. Producto de BBVA Sociedad Agente de Bolsa."
+  },
+  {
+   "id": "certificados-bancarios",
+   "nombre": "Certificados Bancarios",
+   "familia": "inversiones",
+   "subfamilia": "deposito",
+   "para_que_sirve": "Depósito en dólares a plazo fijo que rinde más que una cuenta de ahorros y sirve también como medio de pago negociable.",
+   "para_quien": "Personas que quieren colocar dólares a 30 a 360 días.",
+   "beneficios": [
+    "Medio de pago negociable en el país y el extranjero",
+    "Gana más intereses que una cuenta de ahorros",
+    "Plazos de 30, 60, 90, 180 o 360 días",
+    "Intereses por abono en cuenta o cheque de gerencia"
+   ],
+   "requisitos": [
+    "Realizar un depósito mínimo de US$1,000.",
+    "Documento Nacional de Identidad (DNI) original y copia.",
+    "Si la dirección no está actualizada en el DNI, presentar un recibo de servicio público con la dirección correcta."
+   ],
+   "cifras_oficiales": [
+    "Monto mínimo de apertura: US$1,000 (solo en dólares)",
+    "Plazos: 30, 60, 90, 180 o 360 días",
+    "Los intereses se pagan al vencimiento del plazo"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/inversiones/certificados-bancarios.html",
+   "estado": "vigente",
+   "notas": "La página no publica tasa en el texto principal (puede estar en el PDF de liquidación enlazado, no leído). Menciona también a personas jurídicas, pero se incluye por servir a personas naturales."
+  },
+  {
+   "id": "deposito-a-plazo",
+   "nombre": "Depósito a Plazo",
+   "familia": "inversiones",
+   "subfamilia": "deposito",
+   "para_que_sirve": "Dejas dinero en el banco por un plazo fijo y recibes un interés conocido al final o cada mes.",
+   "para_quien": "Quien quiere un rendimiento asegurado y no necesitará el dinero durante el plazo.",
+   "beneficios": [
+    "Abre tu depósito desde S/500",
+    "Plazos de 3, 6 o 9 meses y 1, 2 o 3 años",
+    "Elige si los intereses se depositan cada mes en la cuenta asociada o al vencimiento",
+    "Se puede usar como garantía de préstamos"
+   ],
+   "requisitos": [
+    "Ser cliente BBVA (puedes abrir una cuenta digital desde la app y luego el depósito)."
+   ],
+   "cifras_oficiales": [
+    "Desde S/500",
+    "Soles: Hasta 4.40% TREA soles a 1 año.",
+    "Dólares: Hasta 3.30% TREA dólares a 1 año",
+    "Plazos: 3, 6 o 9 meses y 1, 2 o 3 años"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/inversiones/depositos/deposito-plazo.html",
+   "estado": "vigente",
+   "notas": "Probable solapamiento con la familia de ahorro/plazo de otro agente; se incluye porque cuelga del menú Inversiones. No se leyó la sección \"Requisitos\" ni las tasas por plazo (pestañas cerradas); las TREA son \"hasta\" y el tarifario vigente manda."
+  },
+  {
+   "id": "cuenta-digital",
+   "nombre": "Cuenta Digital",
+   "familia": "cuentas",
+   "subfamilia": "Cuentas de ahorro",
+   "para_que_sirve": "Cuenta de ahorro que se abre y usa desde el celular, para el día a día.",
+   "para_quien": "Personas que quieren una cuenta sin costo de mantenimiento.",
+   "beneficios": [],
+   "requisitos": [
+    "Documento Nacional de Identidad (DNI) original y copia."
+   ],
+   "cifras_oficiales": [
+    "Sin costo de mantenimiento sin importar el saldo.",
+    "Transferencias Interbancarias sin costo hasta S/1,000 o $280.",
+    "Depósitos y retiros ilimitados y sin costo en cajeros y agentes BBVA."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/ahorro/cuenta-digital.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "cuenta-sueldo",
+   "nombre": "Cuenta Sueldo",
+   "familia": "cuentas",
+   "subfamilia": "Cuentas de ahorro",
+   "para_que_sirve": "Cuenta donde el empleador deposita el sueldo.",
+   "para_quien": "Trabajadores dependientes cuya empresa paga planilla en BBVA.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Sin costo de mantenimiento No importa el saldo de tu Cuenta.",
+    "Realiza transferencias interbancarias digitales ilimitadas y gratis.",
+    "Paga las tarjetas de otros bancos sin comisión y membresía gratis en nuevas Tarjetas de Crédito BBVA."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/ahorro/sueldo.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "cuenta-independencia",
+   "nombre": "Cuenta Independencia",
+   "familia": "cuentas",
+   "subfamilia": "Cuentas de ahorro",
+   "para_que_sirve": "Cuenta de ahorro para manejar el dinero propio y recibir remesas.",
+   "para_quien": "Personas que trabajan por su cuenta o reciben dinero de familiares.",
+   "beneficios": [
+    "Retiros, depósitos y transferencias ilimitadas y sin costo en cajeros, agentes y oficinas BBVA."
+   ],
+   "requisitos": [
+    "DNI original y copia."
+   ],
+   "cifras_oficiales": [
+    "Transferencias Interbancarias Inmediatas sin costo hasta S/1,000 o US $280.",
+    "No te cobramos mantenimiento si tienes un saldo promedio mensual a partir de S/100.00 o US$30.00(*)."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/ahorro/independencia.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "cuenta-ganadora",
+   "nombre": "Cuenta Ganadora",
+   "familia": "cuentas",
+   "subfamilia": "Cuentas de ahorro",
+   "para_que_sirve": "Cuenta de ahorro que, según el saldo, da opciones para sorteos.",
+   "para_quien": "Personas que pueden mantener un saldo ahorrado.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Abres tu Cuenta Ganadora desde S/1.500 o $500.",
+    "S/0 costo de mantenimiento si mantienes un saldo promedio de S/1500.",
+    "Cada S/1 = Acumulas 1 opción"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/ahorro/ganadora.html",
+   "estado": "vigente",
+   "notas": "La web anuncia sorteos de hasta S/10 millones; un sorteo no es un rendimiento asegurado."
+  },
+  {
+   "id": "cuenta-en-dolares",
+   "nombre": "Cuenta en dólares",
+   "familia": "cuentas",
+   "subfamilia": "Cuentas de ahorro",
+   "para_que_sirve": "Cuenta para guardar dinero en dólares.",
+   "para_quien": "Personas que cobran, ahorran o pagan en dólares.",
+   "beneficios": [],
+   "requisitos": [
+    "Ser mayor de edad."
+   ],
+   "cifras_oficiales": [
+    "Sin costo de mantenimiento Sin importar el saldo de tu cuenta",
+    "Transferencias inmediatas interbancarias GRATIS Hasta 280 dólares"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/ahorro-dolares.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "cuenta-cts",
+   "nombre": "Cuenta CTS",
+   "familia": "cuentas",
+   "subfamilia": "Cuentas CTS",
+   "para_que_sirve": "Cuenta donde el empleador deposita la Compensación por Tiempo de Servicios (un ahorro para cuando dejes el trabajo).",
+   "para_quien": "Trabajadores en planilla con derecho a CTS.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "S/0 costo de mantenimiento",
+    "S/0 Depósito mínimo de apertura",
+    "Hasta S/20,000 1,10%",
+    "Hasta S/50,000 1,85%",
+    "Hasta S/100,000 2,10%",
+    "Mayor a S/100,000 2,60%",
+    "Hasta US$5,000 0,60%",
+    "Hasta US$50,000 0,85%",
+    "Mayor a US$50,000 1,10%"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/cts.html",
+   "estado": "vigente",
+   "notas": "La página lista los porcentajes por tramo de saldo sin decir en la misma línea si son TEA o TREA: confírmalo en la web antes de comparar."
+  },
+  {
+   "id": "cuenta-corriente-persona-natural",
+   "nombre": "Cuenta Corriente Persona Natural",
+   "familia": "cuentas",
+   "subfamilia": "Cuentas corrientes",
+   "para_que_sirve": "Cuenta para mover dinero a diario que permite girar cheques.",
+   "para_quien": "Personas mayores de 18 años que necesitan una cuenta transaccional con chequera.",
+   "beneficios": [],
+   "requisitos": [
+    "Ser mayor de 18 años.",
+    "Cubrir un depósito mínimo de apertura de S/300 o US$100."
+   ],
+   "cifras_oficiales": [
+    "El costo de mantenimiento mensual de tu cuenta es fijo: S/10.00 o US$3.30",
+    "Conversión de moneda: 3%",
+    "Consulta de saldos por ventanilla: S/10.00 o US$3.30",
+    "Realiza hasta 20 retiros sin costo en nuestros cajeros automáticos BBVA"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/corriente/persona-natural.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "cuenta-vip",
+   "nombre": "Cuenta VIP",
+   "familia": "cuentas",
+   "subfamilia": "Cuentas corrientes",
+   "para_que_sirve": "Cuenta para saldos altos que paga intereses y no cobra mantenimiento si se mantiene el saldo.",
+   "para_quien": "Personas con saldos altos.",
+   "beneficios": [],
+   "requisitos": [
+    "Ser mayor de 18 años."
+   ],
+   "cifras_oficiales": [
+    "TREA Soles: Mínima: 0,50% Máxima: 4,50% Dólares: Mínima: 0,20% Máxima: 1,50%",
+    "Monto mínimo de apertura: S/10,000 o US $3.000",
+    "Si mantienes un saldo promedio mensual mayor o igual a S/10,000 ó $3,000, la cuenta no tendrá costo de mantenimiento mensual",
+    "Transferencias interbancarias inmediatas hasta S/500 o $140 sin costo"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/corriente/vip.html",
+   "estado": "renombrado",
+   "notas": "Antes se llamaba Cuenta VIP Wellness; hoy la web la presenta como Cuenta VIP."
+  },
+  {
+   "id": "tarjeta-de-debito",
+   "nombre": "Tarjeta de Débito",
+   "familia": "cuentas",
+   "subfamilia": "Tarjetas de débito",
+   "para_que_sirve": "Tarjeta para pagar y retirar con el dinero que ya tienes en tu cuenta (no es crédito).",
+   "para_quien": "Clientes con cuenta de ahorro.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Cero costo de mantenimiento, sin importar el saldo de tu cuenta.",
+    "Transferencias interbancarias inmediatas GRATIS hasta S/1,000."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/tarjetas/debito.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "credito-hipotecario-bbva",
+   "nombre": "Crédito Hipotecario BBVA",
+   "familia": "vivienda_y_auto",
+   "subfamilia": "Crédito hipotecario",
+   "para_que_sirve": "Préstamo de largo plazo para comprar una vivienda, que queda como garantía.",
+   "para_quien": "Personas con ingresos estables que quieren comprar su primera o segunda vivienda.",
+   "beneficios": [],
+   "requisitos": [
+    "Ser mayor de 18 años.",
+    "Percibir ingresos mínimos desde S/1,500 neto o su equivalente en dólares (Titular y/o Cónyuge/Cotitular)."
+   ],
+   "cifras_oficiales": [
+    "Financiamos desde S/15,000 o US$5,000.",
+    "hasta el 90% del valor del inmueble ... plazo de 6 hasta 360 meses",
+    "Primera vivienda: hasta 360 meses, 90% en soles y 80% en dólares",
+    "Segunda vivienda: hasta 240 meses, 80% en soles y 70% en dólares",
+    "Para la tasación del inmueble, se aplicará un costo de S/265."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/credito-hipotecario/hipotecario-bbva.html",
+   "estado": "vigente",
+   "notas": "La antigua página «Hipotecario Flexible» redirige a esta: no es un producto aparte."
+  },
+  {
+   "id": "construyo",
+   "nombre": "ConstruYo",
+   "familia": "vivienda_y_auto",
+   "subfamilia": "Crédito hipotecario",
+   "para_que_sirve": "Préstamo para construir, ampliar o remodelar tu vivienda en un terreno propio.",
+   "para_quien": "Dueños de terreno o vivienda que quieren construir o remodelar.",
+   "beneficios": [
+    "Incluye Seguro CAR (todo riesgo de construcción)."
+   ],
+   "requisitos": [
+    "Ser mayor de 18 años.",
+    "Percibir ingresos mínimos desde S/1,500 neto o su equivalente en dólares (Titular y/o Cónyuge/Cotitular)."
+   ],
+   "cifras_oficiales": [
+    "En Lima, el valor mínimo es de US $10,000, mientras que en provincias es de US$6,000",
+    "Para la tasación del inmueble, se aplicará un costo de S/265."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/credito-hipotecario/construyo.html",
+   "estado": "vigente",
+   "notas": "El valor mínimo citado es el del terreno."
+  },
+  {
+   "id": "hipotecario-verde",
+   "nombre": "Hipotecario Verde",
+   "familia": "vivienda_y_auto",
+   "subfamilia": "Crédito hipotecario",
+   "para_que_sirve": "Crédito hipotecario para viviendas en proyectos con certificación ambiental (EDGE o LEED).",
+   "para_quien": "Quien compra en un proyecto con certificación verde.",
+   "beneficios": [],
+   "requisitos": [
+    "Ser mayor de 18 años.",
+    "Percibir ingresos mínimos desde S/1,500 neto o su equivalente en dólares (Titular y/o Cónyuge/Cotitular)."
+   ],
+   "cifras_oficiales": [
+    "Ahorra hasta un 30% en el mantenimiento y servicios mensuales",
+    "Financiamos desde S/15,000 o US$5,000.",
+    "hasta el 90% del valor del inmueble ... plazo de 6 hasta 360 meses",
+    "Para la tasación del inmueble, se aplicará un costo de S/265."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/credito-hipotecario/hipotecario-verde.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "mivivienda-bbva",
+   "nombre": "Mivivienda BBVA",
+   "familia": "vivienda_y_auto",
+   "subfamilia": "Crédito hipotecario con bono del Estado",
+   "para_que_sirve": "Crédito del programa estatal Mivivienda, con Bono al Buen Pagador, para la primera vivienda.",
+   "para_quien": "Personas que no tienen otra vivienda.",
+   "beneficios": [],
+   "requisitos": [
+    "No ser propietario de otra vivienda."
+   ],
+   "cifras_oficiales": [
+    "Bono al Buen Pagador hasta S/27,800",
+    "Financiamiento mínimo de S/10,000.",
+    "hasta el 92.5% ... 6 hasta 300 meses",
+    "mínima del 7.5% del valor de la vivienda de hasta S/248,300 o mínimo del 10% para valor de vivienda desde S/248,601 hasta S/367,600",
+    "Para la tasación del inmueble, se aplicará un costo de S/265."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/credito-hipotecario/mi-vivienda.html",
+   "estado": "vigente",
+   "notas": "La web da el Bono al Buen Pagador «entre S/7,900 y S/27,800» según el valor de la vivienda."
+  },
+  {
+   "id": "mivivienda-verde-bbva",
+   "nombre": "Mivivienda Verde BBVA",
+   "familia": "vivienda_y_auto",
+   "subfamilia": "Crédito hipotecario con bono del Estado",
+   "para_que_sirve": "Crédito Mivivienda para viviendas sostenibles, con Bono Sostenible.",
+   "para_quien": "Personas que no tienen otra vivienda y compran en un proyecto sostenible.",
+   "beneficios": [],
+   "requisitos": [
+    "No ser propietario de otra vivienda."
+   ],
+   "cifras_oficiales": [
+    "Bono Sostenible hasta S/34,100",
+    "Financiamiento mínimo de S/10,000.",
+    "hasta el 92.5% ... 6 hasta 300 meses",
+    "Para la tasación del inmueble, se aplicará un costo de S/265."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/credito-hipotecario/mi-vivienda-verde-bbva.html",
+   "estado": "vigente",
+   "notas": "Contradicción de la web: el tramo de cuota inicial dice «desde S/248,300» aquí y «desde S/248,601» en Mivivienda."
+  },
+  {
+   "id": "techo-propio-bbva",
+   "nombre": "Techo Propio BBVA",
+   "familia": "vivienda_y_auto",
+   "subfamilia": "Crédito hipotecario con bono del Estado",
+   "para_que_sirve": "Crédito del programa estatal Techo Propio, con Bono Familiar Habitacional, para familias de ingresos bajos.",
+   "para_quien": "Familias con ingreso familiar bajo.",
+   "beneficios": [],
+   "requisitos": [
+    "El Ingreso Familiar Mensual no debe superar los S/3715."
+   ],
+   "cifras_oficiales": [
+    "Cuota inicial mínima del 5%",
+    "El Ingreso Familiar Mensual no debe superar los S/3715.",
+    "Para la tasación del inmueble, se aplicará un costo de S/265."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/credito-hipotecario/techo-propio.html",
+   "estado": "vigente",
+   "notas": "Contradicciones de la misma página: Bono Familiar Habitacional «hasta S/46,545» y «hasta por S/44,805»; financiamiento «hasta S/76,920» y «hasta S/78,660»; plazo «de 60 hasta 360 meses» y «hasta en 25 años». Confirmar en la web antes de dar un número."
+  },
+  {
+   "id": "credito-vehicular",
+   "nombre": "Crédito Vehicular",
+   "familia": "vivienda_y_auto",
+   "subfamilia": "Crédito vehicular",
+   "para_que_sirve": "Préstamo para comprar un auto nuevo, seminuevo o usado.",
+   "para_quien": "Personas que quieren comprar auto.",
+   "beneficios": [
+    "Seminuevos de concesionario de hasta 8 años de antigüedad, con cuotas dobles en julio y diciembre.",
+    "Autos usados vendidos entre personas, de hasta 5 años de antigüedad."
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "0% de inicial",
+    "Plazo desde 6 meses hasta 6 años",
+    "financiamos hasta el 100%"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/prestamos/credito-vehicular.html",
+   "estado": "vigente",
+   "notas": "«financiamos hasta el 100%» sale de la descripción de la página. La tasa no se publica: se cotiza."
+  },
+  {
+   "id": "soat",
+   "nombre": "SOAT",
+   "familia": "seguros",
+   "subfamilia": "Seguros de auto",
+   "para_que_sirve": "Seguro obligatorio para circular con tu vehículo.",
+   "para_quien": "Dueños de vehículos.",
+   "beneficios": [
+    "Coberturas por ley incluidas."
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Contrátalo 100% digital y evita pagar una multa de más de S/600.",
+    "Emergencias viales: 4 eventos al año",
+    "Servicio de Grúa: 2 eventos al año",
+    "Chofer de reemplazo: 2 eventos al año"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/autos/soat.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "seguro-vehicular",
+   "nombre": "Seguro Vehicular",
+   "familia": "seguros",
+   "subfamilia": "Seguros de auto",
+   "para_que_sirve": "Seguro que cubre tu auto ante robo, choque y daños a terceros.",
+   "para_quien": "Dueños de autos.",
+   "beneficios": [
+    "SOAT gratis"
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "te devolvemos el 100% del valor de tu auto por robo total o parcial, choque, desastres naturales",
+    "hasta $200,000 de cobertura",
+    "Hasta S/2 por galón"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/autos/vehicular.html",
+   "estado": "vigente",
+   "notas": "La prima depende del auto: no hay precio publicado, se cotiza. Los US$200,000 son cobertura a terceros; el descuento por galón es en Repsol."
+  },
+  {
+   "id": "seguro-vehicular-por-kilometro",
+   "nombre": "Seguro Vehicular Pago por Kilómetros",
+   "familia": "seguros",
+   "subfamilia": "Seguros de auto",
+   "para_que_sirve": "Seguro vehicular que cobra según los kilómetros que manejas.",
+   "para_quien": "Quien usa poco el auto.",
+   "beneficios": [
+    "GPS gratis",
+    "Mismas coberturas que el plan Full."
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Ahorra hasta un 40% respecto a un plan regular.",
+    "Hasta 8% de descuento en gasolina."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/autos/seguro-vehicular-por-kilometro.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "camina-seguro",
+   "nombre": "Camina Seguro",
+   "familia": "seguros",
+   "subfamilia": "Seguros de bienes",
+   "para_que_sirve": "Seguro contra robo de cartera, mochila o maleta, con gastos médicos y muerte accidental.",
+   "para_quien": "Personas que se mueven a pie o en transporte público.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Robo de cartera, mochila, maletín o maleta y su contenido: máximo S/1,000",
+    "Reembolso por gastos médicos: máximo S/400",
+    "Muerte accidental: S/50,000",
+    "5% del monto asegurado"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/bienes/camina-seguro.html",
+   "estado": "vigente",
+   "notas": "El 5% del monto asegurado es el deducible. La prima varía por rango de edad."
+  },
+  {
+   "id": "seguro-hogar-total",
+   "nombre": "Hogar Total",
+   "familia": "seguros",
+   "subfamilia": "Seguros de bienes",
+   "para_que_sirve": "Seguro para tu casa ante robo, incendio y desastres, con asistencias de emergencia.",
+   "para_quien": "Dueños o inquilinos de una vivienda.",
+   "beneficios": [
+    "Asistencia de cerrajero, gasfitero, electricista y vidriero en emergencias."
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [],
+   "sin_cifras_publicadas": true,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/bienes/hogar-total.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "seguro-proteccion-de-tarjetas",
+   "nombre": "Seguro Protección de Tarjetas",
+   "familia": "seguros",
+   "subfamilia": "Seguros de bienes",
+   "para_que_sirve": "Seguro que te devuelve compras no reconocidas hechas con tus tarjetas.",
+   "para_quien": "Clientes con tarjetas BBVA.",
+   "beneficios": [],
+   "requisitos": [
+    "Edad mínima de ingreso : 18 años",
+    "Edad máxima de ingreso : 80 años"
+   ],
+   "cifras_oficiales": [
+    "Desde S/17.90 al mes",
+    "Hasta S/15,000 por compras no reconocidas con tus tarjetas BBVA",
+    "Cashback de hasta S/500"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/bienes/nuevo-seguro-de-proteccion-de-tarjetas.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "retiro-seguro",
+   "nombre": "Retiro Seguro",
+   "familia": "seguros",
+   "subfamilia": "Seguros de bienes",
+   "para_que_sirve": "Seguro que te protege si te roban el dinero justo después de retirarlo.",
+   "para_quien": "Personas que retiran efectivo con frecuencia.",
+   "beneficios": [],
+   "requisitos": [
+    "Edad mínima: 18 años.",
+    "Edad máxima: 85 años y 364 días."
+   ],
+   "cifras_oficiales": [
+    "Retiros desde S/100 hasta S/2,000.",
+    "Te protege hasta 2 horas luego del retiro",
+    "Costos Desde S/3.50"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/bienes/retiro-seguro.html",
+   "estado": "vigente",
+   "notas": "La aseguradora es Cardif."
+  },
+  {
+   "id": "seguro-de-desempleo",
+   "nombre": "Seguro de Desempleo",
+   "familia": "seguros",
+   "subfamilia": "Seguros de bienes",
+   "para_que_sirve": "Seguro que paga cuotas de tu préstamo si pierdes el trabajo sin querer, quedas incapacitado temporalmente o te diagnostican una enfermedad grave.",
+   "para_quien": "Personas con un préstamo BBVA.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Suma asegurada de hasta S/ 30,000 y hasta S/ 5,000 por cuota.",
+    "Indemnización por este concepto de S/ 4,000",
+    "Vehicular - PLD: 3.04%",
+    "La prima se calcula sobre la cuota mensual del préstamo desembolsado."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/bienes/seguro-desempleo.html",
+   "estado": "vigente",
+   "notas": "No cubre enfermedades preexistentes."
+  },
+  {
+   "id": "seguro-cuida-mas",
+   "nombre": "Seguro Cuida+",
+   "familia": "seguros",
+   "subfamilia": "Seguros de salud",
+   "para_que_sirve": "Seguro que paga por día de hospitalización y una indemnización ante un primer diagnóstico de cáncer.",
+   "para_quien": "Personas de 18 a 65 años.",
+   "beneficios": [],
+   "requisitos": [
+    "Edad mínima de ingreso: 18 años.",
+    "Edad máxima de ingreso: 65 años."
+   ],
+   "cifras_oficiales": [
+    "Contrátalo desde S/59.90 al mes",
+    "Recibe hasta S/250 por cada día de hospitalización",
+    "Obtén S/15,000 de indemnización ante tu primer diagnóstico de cáncer"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/salud/Seguro%20Cuida.html",
+   "estado": "vigente",
+   "notas": "No cubre enfermedades preexistentes."
+  },
+  {
+   "id": "renta-hospitalaria",
+   "nombre": "Renta Hospitalaria",
+   "familia": "seguros",
+   "subfamilia": "Seguros de salud",
+   "para_que_sirve": "Seguro que te paga un monto por cada día que estés hospitalizado.",
+   "para_quien": "Personas que quieren un respaldo de ingresos si se internan.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "hasta S/500 por cada día de hospitalización, ya sea por enfermedad o accidente"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/salud/renta-hospitalaria.html",
+   "estado": "vigente",
+   "notas": "Tiene 2 planes."
+  },
+  {
+   "id": "salud-a-tu-alcance",
+   "nombre": "Salud a tu Alcance",
+   "familia": "seguros",
+   "subfamilia": "Seguros de salud",
+   "para_que_sirve": "Plan de salud con consultas y atención a domicilio a precio fijo, más indemnizaciones.",
+   "para_quien": "Personas sin seguro de salud privado.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Consulta médica por S/40.00 en Medicina General, Ginecología y Pediatría",
+    "Atención médica a domicilio por S/30.00",
+    "Chequeo Oncológico anual por S/ 60",
+    "S/ 30,000 por Indemnización por primer Diagnóstico de Cáncer",
+    "S/10,000 por Muerte Accidental",
+    "S/100 al día por ... Hospitalización por Accidente (Max.60 días por evento)"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/salud/salud-alcance.html",
+   "estado": "vigente",
+   "notas": "Contradicción de la web: la descripción de la página dice consultas a S/8.00 y el contenido dice S/40.00. Confirmar antes de citar el precio."
+  },
+  {
+   "id": "adulto-seguro",
+   "nombre": "Adulto Seguro",
+   "familia": "seguros",
+   "subfamilia": "Seguros de salud",
+   "para_que_sirve": "Seguro de accidentes para adultos mayores, con ambulancia.",
+   "para_quien": "Adultos de 50 a 74 años con tarjeta de crédito BBVA.",
+   "beneficios": [],
+   "requisitos": [
+    "Contar con una tarjeta de crédito del BBVA.",
+    "Ser adulto mayor.",
+    "Edad mínima de ingreso: 50 años.",
+    "Edad máxima de ingreso: 74 años."
+   ],
+   "cifras_oficiales": [
+    "Muerte accidental Plan 1 (solo titular): S/15,000 Plan 2 (titular + 1 dependiente): S/15,000",
+    "Reembolso de gastos médicos por accidente Plan 1 (solo para el titular): S/1,500 Plan 2 (titular + 1 dependiente): S/1,500"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/salud/adulto-seguro.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "seguro-proteccion-multiple",
+   "nombre": "Seguro de Protección Múltiple",
+   "familia": "seguros",
+   "subfamilia": "Seguros de salud",
+   "para_que_sirve": "Seguro de accidentes que indemniza a tus beneficiarios si falleces, con asistencias de salud y del hogar.",
+   "para_quien": "Personas que quieren proteger a su familia.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Muerte accidental Plan 1: S/140,000 Plan 2: S/170,000",
+    "Solicita un médico a domicilio con un co-pago de S/35.00"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/salud/proteccion-multiple.html",
+   "estado": "vigente",
+   "notas": "La web dice que el periodo de carencia y el deducible no aplican, que no tiene rangos de edad en la prima y que se renueva cada año."
+  },
+  {
+   "id": "seguro-multiple",
+   "nombre": "Seguro Múltiple BBVA",
+   "familia": "seguros",
+   "subfamilia": "Seguros de vida",
+   "para_que_sirve": "Seguro ligado a tu cuenta que cubre fallecimiento, accidentes y cáncer, con asistencias.",
+   "para_quien": "Clientes con cuenta BBVA.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Hasta 30 veces el saldo de tu cuenta",
+    "90 días Solo aplica para la cobertura oncológica"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/vida/seguro-multiple.html",
+   "estado": "vigente",
+   "notas": "Los 90 días son el periodo de carencia de la cobertura oncológica."
+  },
+  {
+   "id": "seguro-vida-renta",
+   "nombre": "Seguro Vida Renta",
+   "familia": "seguros",
+   "subfamilia": "Seguros de vida",
+   "para_que_sirve": "Seguro de vida que, al terminar el plazo, devuelve parte de las primas pagadas.",
+   "para_quien": "Personas que quieren protección de vida con devolución.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "devolución del 50% de las primas pagadas"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/vida/nuevo-seguro-vida-renta.html",
+   "estado": "vigente",
+   "notas": "La web enlaza también una página antigua (seguros/vida/vida-renta.html) con otras cifras: indemnización de hasta US$100,000, planes desde US$7 mensuales y devolución de hasta 70%. No está claro cuál rige: confirmar."
+  },
+  {
+   "id": "seguro-respaldo-total",
+   "nombre": "Seguro Respaldo Total",
+   "familia": "seguros",
+   "subfamilia": "Seguros de vida",
+   "para_que_sirve": "Seguro de vida con devolución que además puede respaldar un crédito.",
+   "para_quien": "Personas que quieren protección de vida con ahorro.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Hasta 150% de devolución del monto aportado al finalizar el plazo",
+    "endosarlo a un crédito ... hasta por S/280,000",
+    "por hasta 20 años"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/vida/seguro-respaldo-total.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "seguro-vida-ya",
+   "nombre": "Seguro Vida Ya",
+   "familia": "seguros",
+   "subfamilia": "Seguros de vida",
+   "para_que_sirve": "Seguro de vida simple con varias sumas aseguradas a elegir.",
+   "para_quien": "Personas de 18 a 69 años.",
+   "beneficios": [],
+   "requisitos": [
+    "Edad mínima de ingreso: 18 años",
+    "Edad máxima de ingreso: 69 años y 364 días.",
+    "Edad máxima de permanencia: 79 años y 364 días."
+   ],
+   "cifras_oficiales": [
+    "S/20,000 | S/40,000 | S/80,000 | S/160,000"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/vida/seguro-vida-ya.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "seguro-desgravamen-tarjetas",
+   "nombre": "Seguro de Desgravamen Tarjetas de Crédito",
+   "familia": "seguros",
+   "subfamilia": "Seguros de vida",
+   "para_que_sirve": "Seguro que paga la deuda de tu tarjeta si falleces o quedas inválido, para que no pase a tu familia.",
+   "para_quien": "Titulares de tarjetas de crédito BBVA.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Tu prima es 0.39% del saldo promedio de tu deuda durante tu periodo de facturación. El monto máximo es de S/ 20 o $ 5.5.",
+    "Suma asegurada de hasta S/ 750,000",
+    "Tu prima incluye un 74.20 % por nuestra comisión como comercializador."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/vida/seguro-desgravamen-tarjetas-de-credito.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "seguro-de-desgravamen",
+   "nombre": "Seguro de Desgravamen",
+   "familia": "seguros",
+   "subfamilia": "Seguros de vida",
+   "para_que_sirve": "Seguro que paga tu préstamo si falleces o quedas inválido, para que la deuda no pase a tu familia.",
+   "para_quien": "Personas con un préstamo que lo pide como requisito.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [],
+   "sin_cifras_publicadas": true,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/seguros/vida/seguro-desgravamen.html",
+   "estado": "vigente",
+   "notas": "Suele ser requisito del préstamo; también se puede contratar aparte y endosarlo después. La web no publica la prima en la ficha."
+  },
+  {
+   "id": "plin",
+   "nombre": "Plin",
+   "familia": "servicios",
+   "subfamilia": "Pagos y transferencias",
+   "para_que_sirve": "Enviar y recibir dinero al instante con el número de celular.",
+   "para_quien": "Cualquier cliente con la app.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Gratis e inmediato Transfiere dinero fácil y rápido, sin comisiones.",
+    "Envía hasta s/500 en una operación",
+    "Para pagos a comercios con Plin QR, a través de POS, el monto máximo por operación es de S/10,000"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/servicios-digitales/plin.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "giros-y-transferencias-internacionales",
+   "nombre": "Giros Nacionales y Transferencias Internacionales",
+   "familia": "servicios",
+   "subfamilia": "Pagos y transferencias",
+   "para_que_sirve": "Enviar dinero a otra ciudad del Perú o al extranjero.",
+   "para_quien": "Personas que envían dinero a familiares o pagan fuera.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Giro con cargo en cuenta Moneda nacional: Mínimo: S/15.00.Máximo: S/700.00. Moneda extranjera: Mínimo: US$5.00.Máximo: US$350.00.",
+    "Agente Express S/4.50 Monto máx. por operación: S/1,000 No aplica para operaciones en dólares."
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/servicios/giros-transferencias.html",
+   "estado": "vigente",
+   "notas": "Los mínimos y máximos del giro con cargo en cuenta son la comisión, no el monto que se puede enviar."
+  },
+  {
+   "id": "remesas",
+   "nombre": "Remesas",
+   "familia": "servicios",
+   "subfamilia": "Pagos y transferencias",
+   "para_que_sirve": "Recibir dinero enviado desde el extranjero o desde otra ciudad.",
+   "para_quien": "Personas que reciben dinero de familiares.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [
+    "Remesas sin Costo Obtén tu remesa sin costo a nivel nacional.",
+    "No cobramos mantenimiento si tienes un saldo promedio mensual de S/ 100.00 o US$30.00"
+   ],
+   "sin_cifras_publicadas": false,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/servicios/remesas.html",
+   "estado": "vigente",
+   "notas": "El cobro sin costo va con la Cuenta Independencia; la web dice que no hace falta ser cliente."
+  },
+  {
+   "id": "cambio-de-moneda",
+   "nombre": "Cambio de moneda",
+   "familia": "servicios",
+   "subfamilia": "Pagos y transferencias",
+   "para_que_sirve": "Cambiar dólares a soles o soles a dólares desde la app.",
+   "para_quien": "Quien cobra o paga en otra moneda.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [],
+   "sin_cifras_publicadas": true,
+   "moneda": [
+    "PEN",
+    "USD"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/servicios/cambia-dolares-a-soles.html",
+   "estado": "vigente",
+   "notas": "El tipo de cambio cambia a diario: nunca dar uno; mirarlo en la app o en la web."
+  },
+  {
+   "id": "mis-metas",
+   "nombre": "Mis Metas",
+   "familia": "servicios",
+   "subfamilia": "Herramientas de la app",
+   "para_que_sirve": "Separar dinero automáticamente para una meta de ahorro dentro de la app.",
+   "para_quien": "Cualquier cliente con la app.",
+   "beneficios": [
+    "Totalmente gratis"
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [],
+   "sin_cifras_publicadas": true,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/servicios/mis-metas.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "mis-presupuestos",
+   "nombre": "Mis Presupuestos",
+   "familia": "servicios",
+   "subfamilia": "Herramientas de la app",
+   "para_que_sirve": "Poner un tope de gasto por categoría y ver cuánto llevas, en «Mi Día a Día» de la app.",
+   "para_quien": "Cualquier cliente con la app.",
+   "beneficios": [
+    "Totalmente gratis"
+   ],
+   "requisitos": [],
+   "cifras_oficiales": [],
+   "sin_cifras_publicadas": true,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/servicios/mis-presupuestos.html",
+   "estado": "vigente",
+   "notas": ""
+  },
+  {
+   "id": "apartados-bbva",
+   "nombre": "Apartados BBVA",
+   "familia": "servicios",
+   "subfamilia": "Herramientas de la app",
+   "para_que_sirve": "Separar parte del saldo de tu cuenta en apartados para no gastarlo.",
+   "para_quien": "Cualquier cliente con la app.",
+   "beneficios": [],
+   "requisitos": [],
+   "cifras_oficiales": [],
+   "sin_cifras_publicadas": true,
+   "moneda": [
+    "PEN"
+   ],
+   "url_oficial": "https://www.bbva.pe/personas/productos/cuentas/servicios/apartados-bbva.html",
+   "estado": "vigente",
+   "notas": ""
+  }
+ ]
+}

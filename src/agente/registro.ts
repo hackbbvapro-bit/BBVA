@@ -340,6 +340,8 @@ const INGRESO_PASADO = /(^| )(me pagaron|me dieron|me depositaron|me yapearon|me
 /** Plata que cayó de sorpresa y ya está en la mano: un ingreso de una sola vez, sin juicios. */
 const HALLAZGO = /(^| )(me encontre|encontre|halle|me halle|me tope con)( |$)/;
 const REGALO = /(^| )(me regalaron|me regalo|me obsequiaron|me obsequio)( |$)/;
+/** Pensar en endeudarse (o en que le presten) es plata que se debe, no plata que llega: nunca se anota como ingreso. */
+const ENDEUDARSE = /(^| )(endeudar(me|nos|se|te)?|me van a prestar|me prestaran|prestarme|pedir prestado|pedire prestado)( |$)/;
 const INGRESO_GENERAL = /(^| )(gano|me pagan|cobro|recibo|sueldo|salario|ingreso)( |$)/;
 
 /** Con qué empieza una pregunta: «cuánto gasté…», «qué pasa…», «por qué…». Va sobre el texto ya normalizado. */
@@ -355,6 +357,9 @@ export function soloAfirmaciones(texto: string): string {
   return texto
     .split(/(?<=[.!?])\s+|(?=¿)/)
     .filter(oracion => !oracion.trimStart().startsWith("¿") && !INTERROGATIVA.test(normalizar(oracion)))
+    // «¿Voy a ganar la hackathon? para… endeudarme con 1000»: una pregunta sin cifra (aunque falte el «¿») no presta
+    // su verbo a la cifra de otra frase. Con cifra se queda: «gasté 80 en el mercado, cómo voy?» sí se anota.
+    .filter(oracion => !(oracion.trimEnd().endsWith("?") && !buscarMonto(sinFechasNiPorcentajes(oracion))))
     .join(" ")
     .trim();
 }
@@ -410,6 +415,9 @@ export function interpretarRegistro(texto: string, hoy: FechaISO, previa?: strin
       texto: `Para anotar una deuda de ${soles(monto)} necesito saber con quién es, cuánto pagas al mes y qué día. Con el asistente activado basta con decírmelo; si no, agrégala en Deudas.`,
     };
   }
+
+  // Un plan de endeudarse no se anota: lo responde quien explica (la IA, con el costo que calcula el motor).
+  if (ENDEUDARSE.test(t)) return null;
 
   if (MENSUAL.test(t)) {
     const sentido = INGRESO_GENERAL.test(t) || INGRESO_FUTURO.test(t) ? "ingreso" : "gasto";
