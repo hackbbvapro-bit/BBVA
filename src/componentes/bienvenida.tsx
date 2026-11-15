@@ -60,7 +60,7 @@ function MiniProyeccion() {
         <circle cx="202" cy="97.5" r="9" className="fill-coral-fuerte/15" />
         <circle cx="202" cy="97.5" r="4.5" className="fill-coral-fuerte stroke-white" strokeWidth="2" />
       </svg>
-      <div className="mt-1.5 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.08em] text-gris">
+      <div className="mt-1.5 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.08em] text-gris">
         <span>Hoy</span>
         <span className="inline-flex items-center gap-1.5 normal-case tracking-normal text-coral-fuerte">
           <span className="size-1.5 rounded-full bg-coral-fuerte" />
@@ -138,7 +138,7 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
                     <Icono nombre={icono} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[11px] font-semibold tabular-nums tracking-[0.08em] text-agua-fuerte">
+                    <span className="block text-xs font-semibold tabular-nums tracking-[0.08em] text-agua-fuerte">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <span className="block text-base font-semibold leading-snug text-noche md:text-[17px]">{titulo}</span>

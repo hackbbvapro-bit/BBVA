@@ -64,7 +64,7 @@ describe("Interfaz con perfiles sintéticos", () => {
     expect(JSON.stringify(perfil.deudas)).toBe(antes);
     expect(
       renderToStaticMarkup(<DatosDePrueba datos={{ ...datosDeEjemplo(), deudas: [] }}><Deudas perfil={perfil} analisis={{ ...analisis, deudas: null }} /></DatosDePrueba>),
-    ).toContain("No tienes deudas abiertas");
+    ).toContain("Aún no registraste deudas");
   });
 });
 describe("Perfil y menú de usuario", () => {

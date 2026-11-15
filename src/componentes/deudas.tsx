@@ -102,7 +102,7 @@ export function Deudas({
   const soles = (c: number) => unido(formatoSoles(c));
   const tope = comparacion ? Math.max(comparacion.avalancha.meses, comparacion.minimos.meses, 1) : 1;
 
-  const resumen = (
+  const resumen = !comparacion ? null : (
     <section className={`${tarjeta} aparecer`} aria-labelledby="resumen-deudas">
       {!comparacion ? (
         <>
@@ -154,7 +154,7 @@ export function Deudas({
               <span className="font-semibold tabular-nums">{soles(comparacion.ahorroVsMinimos)}</span> en intereses.
             </p>
           )}
-          <p className="mt-3 text-[11px] leading-snug text-gris md:text-xs">
+          <p className="mt-3 text-xs leading-snug text-gris md:text-xs">
             Estimado por el código con las tasas y los pagos del caso, sin compras nuevas. Tu entidad puede cobrar distinto.
           </p>
         </>
@@ -165,17 +165,17 @@ export function Deudas({
   const lista = (
     <section className={`${tarjeta} aparecer`}>
       <Pestanas actual={pestana} cambiar={setPestana} debo={debo.n} medeben={meDeben.n} />
-      <p className="mt-3 text-sm text-gris md:mt-5 md:text-base">
+      {!(pestana === "debo" && debo.n === 0) && <p className="mt-3 text-sm text-gris md:mt-5 md:text-base">
         {pestana === "sbs"
           ? "Clasificación simulada según los días de atraso del caso y en qué orden conviene pagar."
           : pestana === "debo"
           ? debo.n === 0
-            ? "No tienes deudas abiertas."
+            ? null
             : <>De la más cara a la más barata. El <span className="font-semibold text-noche">interés al año</span> es la TCEA: lo que te cuesta deber. Toca una deuda para editarla.</>
           : meDeben.n === 0
             ? "Nadie te debe por ahora."
             : <>Te deben <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(meDeben.total))}</span> en {meDeben.n} {meDeben.n === 1 ? "cobro" : "cobros"}.</>}
-      </p>
+      </p>}
       <div id="panel-deudas" role="tabpanel" aria-labelledby={`pestana-${pestana}`} className="mt-2">
         {pestana === "debo" ? <ListaDebo primeraId={comparacion?.primera?.id ?? null} avisar={setAviso} abrirNuevo={abrirNuevo} /> : pestana === "medeben" ? <ListaMeDeben avisar={setAviso} /> : <ReporteSbs analisis={analisis} />}
       </div>
@@ -205,10 +205,12 @@ export function Deudas({
         bajada="Lo que debes, lo que te deben y en qué orden pagar."
         acciones={
           <div className="grid w-full grid-cols-2 gap-2 lg:flex lg:w-auto">
-            <button onClick={agregar} className={botonPrincipal}>
-              <Icono nombre="mas" />
-              Agregar deuda
-            </button>
+            {!(pestana === "debo" && debo.n === 0) && (
+              <button onClick={agregar} className={botonPrincipal}>
+                <Icono nombre="mas" />
+                Agregar deuda
+              </button>
+            )}
             <button onClick={() => setEscaner(e => !e)} aria-expanded={escaner} aria-controls="escaner" className={botonSecundario}>
               <Icono nombre="camara" />
               <span className="md:hidden">Ver ejemplo</span>
