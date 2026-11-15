@@ -8,7 +8,8 @@ import { CAUSA_DIA_A_DIA, costoCorto, crecimientoDelHueco, enLista, mejorJugada 
 export function alertaPrincipal(analisis: Analisis) {
   const d = analisis.proyeccion.deficit;
   if (!d) return undefined;
-  const causas = enLista(d.causas.map(c => c.descripcion.toLowerCase()));
+  // Cada causa con su monto del motor: «alquiler (S/ 850.00)».
+  const causas = enLista(d.causas.map(c => `${c.descripcion.toLowerCase()} (${formatoSoles(-c.monto)})`));
   const queSale = d.causas.length === 0 ? `Para ese día ${CAUSA_DIA_A_DIA}.` : d.causas.length > 1 ? `Ese día se juntan ${causas}.` : `Ese día sale ${causas}.`;
   const plazo = d.diasRestantes <= 0 ? "Es hoy: actúa ya." : d.diasRestantes === 1 ? "Queda 1 día para evitarlo." : `Quedan ${d.diasRestantes} días para evitarlo.`;
   return {
