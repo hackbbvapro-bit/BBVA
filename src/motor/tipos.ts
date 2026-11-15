@@ -155,6 +155,12 @@ export interface Proyeccion {
   saldoFinal: Centimos;
   /** null si el saldo nunca baja de cero. */
   deficit: Deficit | null;
+  /**
+   * Pagos que un ajuste «mover» llevó más allá de `hasta`. No caben en los días proyectados, pero se
+   * siguen debiendo: se guardan aquí (sin duplicar ni perder) para que nadie confunda «salió de la
+   * ventana» con «se resolvió». Sin ajustes, siempre está vacío.
+   */
+  fueraDeVentana: EventoProyectado[];
 }
 
 /** Cambios «qué pasa si…» que se aplican sobre la proyección base. */
@@ -165,6 +171,24 @@ export type Ajuste =
 
 export type TipoJugada = "pausar_suscripciones" | "pagar_minimo" | "recortar_gasto";
 
+/**
+ * Qué hace un ajuste con el déficit, comparado con no hacer nada:
+ * - elimina: dentro de los 30 días ya no hay día en rojo y ningún pago quedó empujado fuera;
+ * - reduce: sigue habiendo día en rojo, pero falta menos en el peor día;
+ * - posterga: el rojo solo se corre a más tarde o algún pago salió de la ventana (se sigue debiendo);
+ * - no_mejora: falta lo mismo o más, o no había rojo que arreglar.
+ */
+export type EfectoDeficit = "elimina" | "reduce" | "posterga" | "no_mejora";
+
+/**
+ * Qué tan seguro es el costo de una jugada:
+ * - conocido: sale de reglas exactas (p. ej. gastar menos no le paga nada a nadie);
+ * - estimado: hay cálculo con supuestos (intereses a la TCEA, o cargos que no vemos en los datos);
+ * - desconocido: depende de la entidad y no hay cómo calcularlo. Nunca se muestra como monto ni se
+ *   elige como «la más barata».
+ */
+export type CertezaCosto = "conocido" | "estimado" | "desconocido";
+
 export interface Jugada {
   id: string;
   tipo: TipoJugada;
@@ -173,12 +197,17 @@ export interface Jugada {
   detalle: string;
   /** Cuánto dinero libera antes del día crítico (positivo). */
   libera: Centimos;
-  /** Cuánto cuesta en soles (intereses o comisiones estimadas). 0 si no cuesta. */
+  /**
+   * Cuánto cuesta en soles (intereses o comisiones). Se lee junto con `certezaCosto`: si es
+   * «desconocido», este número no significa nada y no se muestra.
+   */
   costo: Centimos;
+  certezaCosto: CertezaCosto;
   /** Explicación del costo (p. ej. «intereses de 30 días a TCEA 89.99 %»). */
   costoDetalle: string;
-  /** Si aplicándola sola desaparece el déficit del periodo. */
+  /** Si aplicándola sola desaparece el déficit del periodo sin empujar pagos fuera de él (efecto «elimina»). */
   resuelve: boolean;
+  efecto: EfectoDeficit;
   /** Saldo mínimo del periodo tras aplicarla. */
   saldoMinimoDespues: Centimos;
   /** Ajustes que la representan, para volver a proyectar y dibujar el «después». */

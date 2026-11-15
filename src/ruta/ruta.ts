@@ -11,6 +11,7 @@ import { formatoLargo, formatoSoles, redondear, sumar } from "../motor";
 import type { Analisis, Centimos, Perfil, Recurrente } from "../motor";
 import { CATALOGO, type EntradaCatalogo } from "../recomendaciones/catalogo";
 import { crecimientoDelHueco } from "../explica/hueco";
+import { costoEnPalabras } from "../explica/costo";
 import type { Datos } from "../datos/tipos";
 
 /** Texto fijo que acompaña toda orientación. Lo escribe el código, no la IA. */
@@ -236,9 +237,10 @@ function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: 
 
   if (atraso) paso("verde_ponerse_al_dia", "Ponte al día con la deuda atrasada antes que nada. Si no llegas, pide un nuevo plan de pago a quien le debes antes de que el atraso crezca.");
   if (deficit) {
-    const jugada = analisis.jugadas.find(j => j.resuelve);
+    // La misma que «la más barata» de Inicio: resuelve sola y su costo se conoce o se estima.
+    const jugada = analisis.jugadas.find(j => j.resuelve && j.certezaCosto !== "desconocido");
     const dia = formatoLargo(deficit.fecha);
-    if (jugada) paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: ${minuscula(jugada.titulo)}, que ${jugada.costo > 0 ? `cuesta ${formatoSoles(jugada.costo)}` : "no cuesta dinero"}.`);
+    if (jugada) paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: ${minuscula(jugada.titulo)}, que ${costoEnPalabras(jugada)}.`);
     else if (analisis.jugadas.length > 0) paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: ninguna jugada alcanza sola, así que combina dos de las que ves en Inicio.`);
     else paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: aplaza un gasto que no sea urgente o adelanta un ingreso, porque hoy no hay un pago que se pueda mover.`);
     if (deudas.length > 0) paso("verde_pagar_minimos", REGLA_DEUDAS_EN_ROJO(dia));

@@ -11,7 +11,7 @@ import {
   type Proyeccion,
   type CobroPendiente,
 } from "@/motor";
-import { avisos, mejorJugada, proximosPagos, resumenHablado } from "@/explica/explica";
+import { avisos, costoCorto, mejorJugada, proximosPagos, resumenHablado } from "@/explica/explica";
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Cifras, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
@@ -287,6 +287,14 @@ function Resultado({ jugada, despues }: { jugada: Jugada; despues: Proyeccion })
   );
 }
 
+/** Qué le hace la jugada al día en rojo. Sacar un pago de la ventana no es «resolver». */
+const INSIGNIA_EFECTO: Record<Jugada["efecto"], string> = {
+  elimina: "Resuelve el problema",
+  reduce: "Lo reduce, sola no alcanza",
+  posterga: "Solo lo aplaza",
+  no_mejora: "Sola no alcanza",
+};
+
 function TarjetaJugada({
   jugada: j,
   orden,
@@ -312,10 +320,10 @@ function TarjetaJugada({
           <div className="flex flex-wrap gap-1.5">
             {barata && <span className="rounded-full bg-agua-suave px-2 py-0.5 text-[11px] font-semibold text-electrico">La más barata</span>}
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${j.resuelve ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${j.efecto === "elimina" ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
             >
               <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-              {j.resuelve ? "Resuelve el problema" : "Sola no alcanza"}
+              {INSIGNIA_EFECTO[j.efecto]}
             </span>
           </div>
         </div>
@@ -328,8 +336,8 @@ function TarjetaJugada({
           </div>
           <div className="min-w-0 px-3 py-2.5">
             <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">Te cuesta</dt>
-            <dd className={`mt-1 text-lg font-semibold leading-tight tracking-[-0.01em] tabular-nums ${j.costo === 0 ? "text-verde-fuerte" : "text-noche"}`}>
-              {j.costo === 0 ? "Sin costo" : unido(formatoSoles(j.costo))}
+            <dd className={`mt-1 text-lg font-semibold leading-tight tracking-[-0.01em] tabular-nums ${j.costo === 0 && j.certezaCosto === "conocido" ? "text-verde-fuerte" : "text-noche"}`}>
+              {unido(costoCorto(j))}
             </dd>
           </div>
         </dl>
