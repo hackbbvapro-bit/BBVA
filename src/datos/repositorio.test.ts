@@ -191,7 +191,8 @@ describe("PGlite · esquema versionado y persistencia", () => {
       expect((await (await crearRepositorioPGlite(db4)).leerTodo()).perfil.nombre).toBe(perfil.nombre);
       await db4.close();
     }
-  });
+    // Arranca seis bases PGlite seguidas: en el servidor de la CI tarda más que los 5 s por defecto.
+  }, 30_000);
 
   it("rechaza en la base valores que rompen las reglas (CHECK)", async () => {
     const db = new PGlite();
