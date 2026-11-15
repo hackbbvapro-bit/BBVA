@@ -1,5 +1,6 @@
 "use client";
 
+import { ClimaRuta } from "@/componentes/clima-ruta";
 import { Encabezado, Icono, botonPrincipal, tarjeta, unido } from "@/componentes/ui";
 import { formatoSoles } from "@/motor";
 import { contadorDeAvance, type Avance, type IdPaso, type IdRuta, type Ruta } from "@/ruta/ruta";
@@ -300,12 +301,17 @@ export function MiRuta({
       <div className="grid gap-3 md:gap-5 lg:grid-cols-3">
         <div className="space-y-3 md:space-y-5 lg:col-span-2">
           <section className={tarjeta} aria-labelledby="tus-pasos">
-            <h2 id="tus-pasos" className="text-base font-semibold text-noche md:text-lg">
-              Tus pasos, en orden
-            </h2>
-            <p className="mt-0.5 text-sm text-gris">
-              Toca un paso cuando lo hayas hecho; el asistente sigue desde ahí.
-            </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 id="tus-pasos" className="text-base font-semibold text-noche md:text-lg">
+                  Tus pasos, en orden
+                </h2>
+                <p className="mt-0.5 text-sm text-gris">
+                  Toca un paso cuando lo hayas hecho; el asistente sigue desde ahí.
+                </p>
+              </div>
+              <ClimaRuta cumplidos={avance.cumplidos} total={avance.total} />
+            </div>
             <ol className="mt-3 space-y-1" aria-labelledby="tus-pasos">
               {avance.pasos.map((p, i) => {
                 const toca = i === siguiente;
