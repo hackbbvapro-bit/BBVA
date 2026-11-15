@@ -281,6 +281,10 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
     if (saludoInicial.current) leer(saludoInicial.current);
     // Solo al montar: `leer` cambia en cada render y no debe repetir el saludo.
   }, []);
+  // Al cambiar de pestaña principal o de caso (entrar al ejemplo), la página arranca arriba del todo.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pestana, demo]);
   /** Carga un cliente de «Datos de prueba» como caso de ejemplo y vuelve a Inicio. */
   async function probarCliente(nuevos: Datos) {
     if (!demo && !window.confirm("Se va a reemplazar el caso que armaste, guardado en este equipo, por este cliente de prueba. ¿Continuar?")) return;
