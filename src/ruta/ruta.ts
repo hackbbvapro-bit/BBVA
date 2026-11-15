@@ -454,8 +454,16 @@ const PREGUNTAS: Record<IdRuta, string[]> = {
   hacer_crecer: ["¿Por dónde empiezo?", "¿De cuánto debe ser mi colchón?", "¿Dónde guardo lo que me sobra?", "¿Cuánto me queda libre al mes?"],
 };
 
+const SOBRE_DEUDAS = new Set(["¿Qué deuda pago primero?", "¿Qué pasa si solo pago el mínimo?"]);
+const DE_RELEVO = ["¿Cuánto me queda libre al mes?", "¿De cuánto debe ser mi colchón?"];
+
+/** Preguntas de arranque; sin cuotas de deuda no sugiere preguntas sobre deudas. */
 export function preguntasSugeridas(ruta: Ruta): string[] {
-  return PREGUNTAS[ruta.id];
+  const base = PREGUNTAS[ruta.id];
+  if (ruta.flujo.cuotas > 0 || ruta.id === "salir_deudas") return base;
+  const sinDeudas = base.filter(p => !SOBRE_DEUDAS.has(p));
+  const relevos = DE_RELEVO.filter(p => !sinDeudas.includes(p));
+  return [...sinDeudas, ...relevos].slice(0, Math.max(3, sinDeudas.length));
 }
 
 export function opcionesDeRuta(perfil: Perfil, analisis: Analisis, hechos: Hechos = SIN_HECHOS): Ruta[] {
