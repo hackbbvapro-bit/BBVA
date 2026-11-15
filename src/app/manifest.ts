@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Copiloto anticipador",
-    short_name: "Copiloto",
+    name: "Finance Pro",
+    short_name: "Finance Pro",
     description: "Te avisa antes de que te falte plata y te propone qué hacer, con su costo en soles.",
     lang: "es-PE",
     start_url: "/",

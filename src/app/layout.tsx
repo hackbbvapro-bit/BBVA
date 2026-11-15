@@ -10,10 +10,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Copiloto · prototipo de hackathon",
+  title: "Finance Pro · Tu copiloto financiero con IA",
   description: "Te avisa antes de que te falte dinero y te propone qué hacer, con su costo en soles.",
-  applicationName: "Copiloto",
-  appleWebApp: { capable: true, title: "Copiloto", statusBarStyle: "default" },
+  applicationName: "Finance Pro",
+  appleWebApp: { capable: true, title: "Finance Pro", statusBarStyle: "default" },
   icons: { icon: "/icono-192.png", apple: "/apple-touch-icon.png" },
   formatDetection: { telephone: false },
 };

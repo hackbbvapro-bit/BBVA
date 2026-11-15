@@ -23,7 +23,7 @@ describe("Portada", () => {
       "Un copiloto con IA que te guía para ordenar tus deudas, fortalecer tu historial y descubrir opciones bancarias que se ajusten a ti, paso a paso.",
       "Productos sujetos a evaluación bancaria.",
       "Aprende sin miedo", "Construye tu ruta", "Decide con criterio",
-      "Así te ayuda Copiloto", "Proyecta tu saldo día a día", "Ordena tus deudas", "Te propone cómo evitarlo",
+      "Así te ayuda Finance Pro", "Proyecta tu saldo día a día", "Ordena tus deudas", "Te propone cómo evitarlo",
       "Nunca escribas datos reales",
     ])
       expect(t).toContain(frase);

@@ -1,41 +1,93 @@
 "use client";
 
-import { useCallback, useId, useState, type ReactNode } from "react";
+import { useCallback, useId, useState } from "react";
 import type { Cuenta } from "@/datos/tipos";
 import { saldoDeCuentas } from "@/cliente/cuentas";
 import { formatoSoles } from "@/motor/dinero";
 import { formatoLargo } from "@/motor/fechas";
 import { IconoCifra, type TipoIconoCifra } from "./icono-cifra";
 import { SelectorCuentas } from "./selector-cuentas";
-import { unido } from "./ui";
+import { Icono, unido } from "./ui";
+import type { EstadoSaldo } from "./tablero";
 
 const ICONOS: TipoIconoCifra[] = ["saldo", "deuda", "cuotas", "salida"];
+const AREAS = ["saldo", "deuda", "fijos"] as const;
+/** Líneas del desglose que se ven sin abrirlo: las de mayor monto. */
+export const LINEAS_VISIBLES = 3;
 
-/** Resumen móvil de dos por dos; las cuatro cifras conservan los valores calculados por el motor. */
+/** Detalle de la tercera tarjeta (gastos fijos): qué significa y de qué se compone. */
+export type DetalleCifra = { nota: string; lineas: [string, string][] };
+
+function Lineas({ lineas, visibles }: { lineas: [string, string][]; visibles: number }) {
+  if (lineas.length === 0) return null;
+  return (
+    <ul className="cifra-lineas">
+      {lineas.slice(0, visibles).map(([descripcion, monto], i) => (
+        <li key={`${descripcion}-${i}`}>
+          <span title={descripcion}>{descripcion}</span>
+          <span className="tabular-nums">{unido(monto)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function TarjetaEstado({ estado, alAccion }: { estado: EstadoSaldo; alAccion?: () => void }) {
+  const lineas = estado.lineas ?? [];
+  const resto = lineas.length - 2;
+  return (
+    <div className="cifra-tarjeta cifra-estado" data-area="estado" data-tono={estado.tono} data-testid={estado.testId}>
+      <dt className="cifra-etiqueta">
+        <span className="cifra-icono" data-simple aria-hidden="true">
+          <Icono nombre={estado.tono === "verde" ? "check" : "campana"} />
+        </span>
+        <span>{estado.etiqueta}</span>
+      </dt>
+      <dd className="cifra-dato">
+        <span className="cifra-valor tabular-nums">{unido(estado.valor)}</span>
+        <p className="cifra-nota">{estado.nota}</p>
+        <Lineas lineas={lineas} visibles={2} />
+        {resto > 0 && <p className="cifra-mas">y {resto} {resto === 1 ? "pago más" : "pagos más"}</p>}
+        {estado.extra && <p className="cifra-extra">{estado.extra}</p>}
+        {estado.accion && alAccion && (
+          <div className="cifra-pie cifra-pie-fondo">
+            <button type="button" className="cifra-gestionar" onClick={alAccion}>
+              {estado.accion} <span aria-hidden="true">›</span>
+            </button>
+          </div>
+        )}
+      </dd>
+    </div>
+  );
+}
+
+/**
+ * Resumen de Inicio: cuatro tarjetas con la misma estructura (ícono y etiqueta, cifra, qué significa, desglose).
+ * Dos por dos en el celular y la tableta; una fila de cuatro desde el escritorio. Toda cifra viene del motor.
+ */
 export function ResumenCifras({
   cifras,
-  deficit,
-  nota,
   cuentas,
   alGestionar,
   tarjetas,
   alGestionarTarjetas,
   proximoVencimiento,
-  alerta,
-  ambar = false,
+  detalle,
+  estado,
+  alAccionEstado,
 }: {
   cifras: [string, string][];
-  deficit: boolean;
-  nota?: string;
   cuentas?: Cuenta[];
   alGestionar?: () => void;
   tarjetas?: Cuenta[];
   alGestionarTarjetas?: () => void;
   proximoVencimiento?: string;
-  alerta?: ReactNode;
-  /** Tarjeta de estado en ámbar (sin déficit a 30 días, pero el mes cierra en negativo). */
-  ambar?: boolean;
+  detalle?: DetalleCifra;
+  estado?: EstadoSaldo;
+  alAccionEstado?: () => void;
 }) {
+  const [verTodo, setVerTodo] = useState(false);
+  const idDesglose = useId();
   const [abierto, setAbierto] = useState(false);
   const [seleccion, setSeleccion] = useState<string | null>(null);
   const idSelector = useId();
@@ -48,16 +100,15 @@ export function ResumenCifras({
   const cerrarTarjetas = useCallback(() => setTarjetasAbiertas(false), []);
   return (
     <section aria-label="Cifras del mes">
-      <dl className="cifras-mes" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+      <dl className="cifras-mes">
         {cifras.map(([etiqueta, valor], i) => (
           <div
             key={etiqueta}
             className="cifra-tarjeta"
-            style={i === 2 ? { gridColumn: 2, gridRow: 2, width: "100%", justifySelf: "stretch" } : undefined}
+            data-area={AREAS[i]}
             data-cifra
-            data-cuota={i === 2 ? "true" : undefined}
             data-cuentas-abiertas={(i === 0 && abierto) || (i === 1 && tarjetasAbiertas) ? "true" : undefined}
-            data-tono={i === 3 ? (deficit ? "ambar" : "verde") : i === 1 ? "violeta" : "azul"}
+            data-tono={i === 1 ? "violeta" : "azul"}
           >
             <dt className="cifra-etiqueta">
               {i === 0 && cuentas !== undefined ? (
@@ -96,7 +147,21 @@ export function ResumenCifras({
                   {alGestionar && <button type="button" className="cifra-gestionar" aria-label="Administrar cuentas" onClick={() => { setAbierto(false); alGestionar(); }}>Administrar ↗</button>}
                 </div>
               )}
-              {i === 3 && nota && <p className="cifra-nota">{nota}</p>}
+              {i === 2 && detalle && (
+                <>
+                  <p className="cifra-nota">{detalle.nota}</p>
+                  <div id={idDesglose}>
+                    <Lineas lineas={detalle.lineas} visibles={verTodo ? detalle.lineas.length : LINEAS_VISIBLES} />
+                  </div>
+                  {detalle.lineas.length > LINEAS_VISIBLES && (
+                    <div className="cifra-pie cifra-pie-fondo">
+                      <button type="button" className="cifra-gestionar" aria-expanded={verTodo} aria-controls={idDesglose} onClick={() => setVerTodo(v => !v)}>
+                        {verTodo ? "Ver menos" : `Ver los ${detalle.lineas.length}`}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
               {i === 1 && tarjetas !== undefined && (
                 <div className="cifra-pie">
                   {tarjetas.length > 1 ? <p className="cifra-cuenta" title={deuda.nombre} aria-live="polite">{deuda.nombre}</p> : <span className="min-w-0 flex-1" />}
@@ -120,7 +185,7 @@ export function ResumenCifras({
             </dd>
           </div>
         ))}
-        {alerta && <div style={{ gridColumn: 1, gridRow: 2, minWidth: 0, padding: 10, border: `1px solid ${deficit ? "#f4dfe2" : ambar ? "#f0dca8" : "#ccebd8"}`, borderRadius: 17, background: deficit ? "#fceff0" : ambar ? "#fff6e0" : "#edf8f1" }}><dt className="sr-only">Estado del saldo</dt><dd style={{ display: "flex", flexDirection: "column", height: "100%" }}>{alerta}</dd></div>}
+        {estado && <TarjetaEstado estado={estado} alAccion={alAccionEstado} />}
       </dl>
     </section>
   );

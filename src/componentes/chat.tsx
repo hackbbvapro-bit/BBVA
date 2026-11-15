@@ -528,7 +528,7 @@ export function Chat({
                 />
                 {externo ? "IA y voz activas" : "Sin IA: nada sale de este equipo"}
               </span>
-              <span className="hidden sm:inline">Copiloto de tu plata · caso de simulación</span>
+              <span className="hidden sm:inline">Finance Pro · caso de simulación</span>
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
