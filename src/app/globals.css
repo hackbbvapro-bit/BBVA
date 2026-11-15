@@ -50,8 +50,12 @@ html {
   }
 }
 
+/* Hueco para el fondo de pantalla: cuando llegue la imagen, se guarda en public/ (p. ej. fondo.webp)
+   y se cambia «none» por url("/fondo.webp"). Mientras tanto, el color de siempre. */
+:root { --fondo-app: none; }
+
 body {
-  background: var(--color-papel);
+  background: var(--fondo-app) center / cover no-repeat fixed, var(--color-papel);
   font-feature-settings: "cv11", "ss01";
   color: var(--color-tinta);
   font-family: var(--font-sans);
