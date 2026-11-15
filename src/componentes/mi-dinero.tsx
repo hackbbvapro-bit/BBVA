@@ -1,11 +1,13 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { formatoSoles, type Analisis, type Categoria } from "@/motor";
-import { Cifras, Encabezado, tarjeta, unido } from "@/componentes/ui";
+import { Cifras, Encabezado, tarjeta } from "@/componentes/ui";
+import { BalanceDelMes, DetalleMes } from "@/componentes/detalle-mes";
 import { ListaEditable, useEnvio, type Fila } from "@/componentes/lista-editable";
 import { Acciones, Seleccion, Texto } from "@/componentes/formularios";
 import { useDatos } from "@/componentes/datos";
 import { resumenDelMes } from "@/ruta/ruta";
+import { detalleDelMes } from "@/ruta/mes";
 import { nuevoId } from "@/datos/repositorio";
 import { leerDia, leerSoles, solesParaEditar } from "@/datos/formulario";
 import type { Cuenta, Fijo, Sentido } from "@/datos/tipos";
@@ -37,7 +39,7 @@ function FormularioCuenta({ id, cerrar }: { id: string | null; cerrar: (guardado
   return (
     <form onSubmit={enviar} noValidate aria-label={inicial ? `Editar ${inicial.nombre}` : "Agregar una cuenta"}>
       <div className="grid gap-4 md:grid-cols-2">
-        <Texto etiqueta="Nombre de la cuenta" valor={nombre} cambiar={setNombre} enfocar marcador="Cuenta sueldo" />
+        <Texto etiqueta="Dónde está (banco, billetera, efectivo)" valor={nombre} cambiar={setNombre} enfocar marcador="Cuenta de ahorros" />
         <Texto etiqueta="Saldo de hoy (S/)" valor={saldo} cambiar={setSaldo} modo="decimal" marcador="461.40" />
       </div>
       <Acciones
@@ -116,19 +118,28 @@ const filaFijo = (f: Fijo): Fila => ({
   monto: formatoSoles(f.monto),
 });
 
-/** Lo que tienes y lo que entra y sale fijo cada mes, con altas, cambios y bajas. Todo recalcula Inicio al instante. */
+const sinParentesis = (nombre: string) => nombre.replace(/\s*\(.*\)\s*/g, "").trim();
+
+/**
+ * Tu dinero, sin cajas negras: dónde está hoy, de dónde viene lo que entra y a dónde va cada sol que sale.
+ * Los totales son los mismos de Inicio y Mi ruta; abajo se editan lo fijo y las cuentas, y todo recalcula al instante.
+ */
 export function MiDinero({ analisis }: { analisis: Analisis }) {
   const { datos, perfil } = useDatos();
   const [aviso, setAviso] = useState("");
   const variable = analisis.ingresoVariable;
   const mes = resumenDelMes(perfil, analisis);
+  const detalle = detalleDelMes(perfil, analisis);
   const n = datos.cuentas.length;
+  const total = perfil.saldoActual;
+  const fuente = [...detalle.entra.fijos, ...detalle.entra.variables][0];
+  const lugares = datos.cuentas.map(c => sinParentesis(c.nombre)).join(", ");
 
   return (
     <>
       <Encabezado
         titulo="Mi dinero"
-        bajada="Lo que tienes hoy y lo que entra y sale fijo cada mes. Cada cambio recalcula tu proyección al instante."
+        bajada="Dónde está tu dinero hoy, de dónde viene lo que te entra y a dónde se va cada sol. Cada cambio recalcula tu proyección al instante."
       />
       <div className="mb-6">
         <Cifras
@@ -137,44 +148,61 @@ export function MiDinero({ analisis }: { analisis: Analisis }) {
             {
               icono: "dinero",
               etiqueta: "Dinero hoy",
-              valor: formatoSoles(perfil.saldoActual),
-              nota: n === 0 ? "Agrega una cuenta" : n === 1 ? "Al cierre del día" : `Sumando tus ${n} cuentas`,
+              valor: formatoSoles(total),
+              nota: n === 0 ? "Agrega dónde tienes tu dinero" : n === 1 ? `En ${lugares}` : `En ${n} lugares: ${lugares}`,
             },
-            { icono: "tendencia", etiqueta: "Te entra al mes", valor: formatoSoles(mes.entra), tono: "verde", nota: mes.notaEntra },
+            {
+              icono: "tendencia", etiqueta: "Te entra al mes", valor: formatoSoles(mes.entra), tono: "verde",
+              nota: fuente ? `${fuente.nombre}${detalle.entra.variables.length > 0 && detalle.entra.fijos.length === 0 ? " (varía cada semana)" : ""}` : mes.notaEntra,
+            },
             { icono: "calendario", etiqueta: "Te sale al mes", valor: formatoSoles(mes.sale), tono: "ambar", nota: mes.notaSale },
+            {
+              icono: "rumbo",
+              etiqueta: detalle.libre < 0 ? "Te falta al mes" : "Te queda al mes",
+              valor: formatoSoles(Math.abs(detalle.libre)),
+              tono: detalle.libre < 0 ? "coral" : "verde",
+              nota: `Después de pagar ${formatoSoles(detalle.cuotas.total)} de cuotas de deudas`,
+            },
           ]}
         />
       </div>
-      <section className={`${tarjeta} aparecer mb-6`}>
-        <ListaEditable
-          titulo="Tus cuentas"
-          items={datos.cuentas.map(c => ({ id: c.id, principal: c.nombre, monto: formatoSoles(c.saldo) }))}
-          vacio="Agrega una cuenta con su saldo de hoy para que el copiloto pueda calcular."
-          textoAgregar="Agregar una cuenta"
-          prefijo="cuenta"
-          formulario={(id, cerrar) => <FormularioCuenta id={id} cerrar={cerrar} />}
-          avisar={setAviso}
-        />
-      </section>
-      <div className="grid items-start gap-6 lg:grid-cols-2">
+
+      <div className="mb-6 grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-6">
+        <BalanceDelMes detalle={detalle} />
+        <section className={`${tarjeta} aparecer`} aria-label="Dónde está tu dinero hoy">
+          <ListaEditable
+            titulo="Dónde está tu dinero hoy"
+            items={datos.cuentas.map(c => ({
+              id: c.id,
+              principal: c.nombre,
+              secundario: total > 0 ? `${Math.round((c.saldo / total) * 100)} % de tu dinero` : undefined,
+              monto: formatoSoles(c.saldo),
+            }))}
+            vacio="Agrega dónde tienes tu dinero (banco, billetera digital, efectivo) para que el copiloto pueda calcular."
+            textoAgregar="Agregar un lugar"
+            prefijo="cuenta"
+            formulario={(id, cerrar) => <FormularioCuenta id={id} cerrar={cerrar} />}
+            avisar={setAviso}
+          />
+        </section>
+      </div>
+
+      <h2 className="aparecer mb-3 text-lg font-semibold text-noche md:text-xl">Tu mes, línea por línea</h2>
+      <div className="mb-8">
+        <DetalleMes detalle={detalle} semanaTipica={variable.semanalTipico} semanaPrudente={variable.semanalPrudente} />
+      </div>
+
+      <h2 className="aparecer mb-1 text-lg font-semibold text-noche md:text-xl">Edita lo que se repite cada mes</h2>
+      <p className="mb-3 text-sm text-gris">Lo variable (día a día y cobros que cambian) lo calcula el copiloto con tus movimientos; aquí van solo los montos fijos.</p>
+      <div className="grid items-start gap-4 lg:grid-cols-2 lg:gap-6">
         <section className={`${tarjeta} aparecer`}>
           <ListaEditable
-            titulo="Lo que te entra"
+            titulo="Ingresos fijos"
             items={datos.ingresosFijos.map(filaFijo)}
             vacio={
               variable.semanasObservadas > 0
-                ? "Aún no tienes ingresos fijos. Agrégalos si cobras el mismo monto el mismo día cada mes."
+                ? "No tienes ingresos fijos: todo lo que te entra varía. Agrega aquí un sueldo o pago que llegue igual cada mes."
                 : "Aún no hay ingresos fijos."
-            }
-            nota={
-              variable.semanasObservadas > 0 && (
-                <>
-                  Además, tus ingresos varían: en una semana normal te entran{" "}
-                  <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(variable.semanalTipico))}</span>; para no llevarte
-                  sorpresas, el copiloto cuenta con{" "}
-                  <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(variable.semanalPrudente))}</span>.
-                </>
-              )
             }
             textoAgregar="Agregar un ingreso fijo"
             prefijo="ingreso"
@@ -184,7 +212,7 @@ export function MiDinero({ analisis }: { analisis: Analisis }) {
         </section>
         <section className={`${tarjeta} aparecer`}>
           <ListaEditable
-            titulo="Lo que te sale fijo"
+            titulo="Gastos fijos"
             items={datos.gastosFijos.map(filaFijo)}
             vacio="Aún no hay gastos fijos."
             textoAgregar="Agregar un gasto fijo"
@@ -194,10 +222,6 @@ export function MiDinero({ analisis }: { analisis: Analisis }) {
           />
         </section>
       </div>
-      <p className="mt-6 px-1 text-sm leading-relaxed text-gris">
-        Las cifras de arriba son tu mes completo: lo fijo de estas listas más lo variable que estima el motor, sin contar
-        tus pagos de deudas. Son las mismas que usa Mi ruta. Lo que cambies aquí actualiza Inicio, Deudas y los avisos al instante.
-      </p>
       <p role="status" className="sr-only">
         {aviso}
       </p>

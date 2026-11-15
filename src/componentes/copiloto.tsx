@@ -8,6 +8,7 @@ import { borrarSituacion, guardarSituacion, leerSituacion } from "@/cliente/situ
 import { avanceDe, hechosDe, saludoDeRuta, trazarRuta, type IdPaso } from "@/ruta/ruta";
 import { guardarAvances, leerAvances } from "@/cliente/memoria";
 import { MiRuta } from "@/componentes/tu-ruta";
+import { planDelMes } from "@/ruta/presupuesto";
 import { Hoy, type IrDesdeInicio } from "@/componentes/hoy";
 import { Deudas, type AbrirDeudas, type PestanaDeudas } from "@/componentes/deudas";
 import { MiDinero } from "@/componentes/mi-dinero";
@@ -210,6 +211,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
   // Pasos de la ruta que la persona marcó como hechos: se guardan en este equipo, por caso.
   const [avances, setAvances] = useState<IdPaso[]>(() => leerAvances(perfil.id));
   const avance = useMemo(() => avanceDe(ruta, avances), [ruta, avances]);
+  const plan = useMemo(() => planDelMes(perfil, analisis, ruta), [perfil, analisis, ruta]);
   const saludo = saludoDeRuta(perfil.nombre, ruta, !demo, avance);
   function marcar(id: IdPaso, hecho: boolean) {
     setAvances(antes => {
@@ -425,7 +427,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             pasos={pasos}
           />
         )}
-        {pestana === "ruta" && <MiRuta ruta={ruta} avance={avance} alMarcar={marcar} alConversar={() => navegar("asistente")} />}
+        {pestana === "ruta" && <MiRuta ruta={ruta} avance={avance} alMarcar={marcar} alConversar={() => navegar("asistente")} plan={plan} />}
         {pestana === "dinero" && <MiDinero analisis={analisis} />}
         {pestana === "deudas" && (
           <Deudas

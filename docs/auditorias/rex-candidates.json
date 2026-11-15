@@ -1,0 +1,451 @@
+{
+ "auditor": "REX",
+ "fecha": "2026-11-14",
+ "objetivo": "copiloto-anticipador (workspace atlas/missions/copiloto-pro, HEAD 02a1fca = equipo/main 2c91bef sin diferencias de árbol)",
+ "produccion": "https://copiloto-anticipador-hack.vercel.app",
+ "nota": "Sin severidad. Veredictos propuestos por el cazador; pendientes de verificación independiente (rex-verificador).",
+ "candidates": [
+  {
+   "id": "C-001",
+   "title": "Rutas de IA usables por cualquier script con cookie inventada: abuso de costo y agotamiento del tope global",
+   "attack_class": "business-logic / resource-exhaustion (OWASP LLM10)",
+   "boundary": "internet anónimo -> cuota pagada de Anthropic y disponibilidad del asistente para todos",
+   "trace": [
+    {
+     "kind": "entrypoint",
+     "file": "src/app/api/agente/route.ts",
+     "line": 59,
+     "scope": "POST /api/agente",
+     "description": "solo comprueba Origin==Host (cabeceras que pone el cliente) y cookie"
+    },
+    {
+     "kind": "control",
+     "file": "src/servidor/sesion.ts",
+     "line": 24,
+     "scope": "valorValido",
+     "description": "acepta cualquier valor que cumpla /^[a-f0-9]{64}$/ (línea 9): sesión forjable"
+    },
+    {
+     "kind": "control",
+     "file": "src/servidor/limite.ts",
+     "line": 21,
+     "scope": "crearLimite",
+     "description": "Map en memoria por instancia; 20/min por IP y 300/h global (route.ts:14,16)"
+    },
+    {
+     "kind": "sink",
+     "file": "src/app/api/agente/route.ts",
+     "line": 78,
+     "scope": "topeGlobal.permite",
+     "description": "se gasta ANTES de saber si habrá IA; el camino de registro (conversar.ts:138) no llama a la IA pero consume cupo"
+    },
+    {
+     "kind": "sink",
+     "file": "src/agente/cerebro.ts",
+     "line": 54,
+     "scope": "elegirCerebro",
+     "description": "el texto del atacante elige el modelo profundo (regex línea 26) con 6000 tokens x 6 vueltas (conversar.ts:47,98)"
+    }
+   ],
+   "claim": "MEDIDO: curl con Origin=host y cookie 'c'x64 obtuvo HTTP 200 del agente en producción. Una sola IP agota 300/h en 15 min sin coste para el atacante; luego todos reciben 429 y el cliente cae al motor sin IA. O bien fuerza 300 respuestas/h/instancia con el modelo más caro.",
+   "proposed_verdict": "confirmed"
+  },
+  {
+   "id": "C-002",
+   "title": "Techo real de gasto desconocido: topes por instancia y límites de gasto de proveedores no verificables desde el código",
+   "attack_class": "resource-exhaustion",
+   "boundary": "internet anónimo -> factura de Anthropic/Fish",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/servidor/limite.ts",
+     "line": 3,
+     "scope": "comentario",
+     "description": "'en el hosting cada instancia del servidor lleva su propia cuenta'"
+    },
+    {
+     "kind": "control",
+     "file": "src/app/api/transcribir/route.ts",
+     "line": 16,
+     "scope": "topeGlobal",
+     "description": "300/h por instancia; voz 400/h (voz/route.ts:14)"
+    }
+   ],
+   "claim": "El gasto máximo por hora = tope x número de instancias simultáneas en Vercel, salvo que exista un tope de gasto en las consolas de Anthropic y Fish. Hecho que falta: límites de gasto configurados y nº de instancias.",
+   "proposed_verdict": "needs_validation"
+  },
+  {
+   "id": "C-003",
+   "title": "/api/voz convierte cualquier texto (800 car.) a audio con la voz configurada del equipo",
+   "attack_class": "feature-abuse",
+   "boundary": "internet anónimo -> cuota Fish Audio y voz del producto",
+   "trace": [
+    {
+     "kind": "entrypoint",
+     "file": "src/app/api/voz/route.ts",
+     "line": 15,
+     "scope": "Peticion",
+     "description": "z.string().max(800): texto libre, no tiene que venir del agente"
+    },
+    {
+     "kind": "sink",
+     "file": "src/app/api/voz/route.ts",
+     "line": 30,
+     "scope": "fetch FISH_TTS",
+     "description": "reference_id = FISH_VOICE_ID del servidor (línea 33)"
+    }
+   ],
+   "claim": "Mismo bypass de sesión/origen que C-001 (sesion.ts:24, http.ts:45). Permite usar el servicio como TTS gratuito y generar audios con la voz del copiloto diciendo cualquier cosa. CONFIRMADO-POR-CÓDIGO (no se probó en prod para no gastar cuota).",
+   "proposed_verdict": "confirmed"
+  },
+  {
+   "id": "C-004",
+   "title": "La regla 'la IA no inventa cifras' solo está en el prompt: el texto del modelo llega a pantalla sin comprobar sus números",
+   "attack_class": "ai-output-integrity (OWASP LLM09/LLM05)",
+   "boundary": "salida del modelo -> cifras mostradas a la persona",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/agente/prompt.ts",
+     "line": 39,
+     "scope": "promptSistema",
+     "description": "'Tú no calculas' es instrucción, no control"
+    },
+    {
+     "kind": "sink",
+     "file": "src/agente/conversar.ts",
+     "line": 123,
+     "scope": "conIA",
+     "description": "texto del modelo se emite tal cual (línea 125) sin cotejar cifras con las salidas de herramientas"
+    },
+    {
+     "kind": "sink",
+     "file": "src/app/api/agente/route.ts",
+     "line": 84,
+     "scope": "Response",
+     "description": "se transmite al navegador"
+    }
+   ],
+   "claim": "No existe validador de cifras en src/agente, src/cliente ni la ruta (grep sin resultados). Una alucinación o un usuario que pida 'dime que me sobran 5000' puede mostrar un monto que no calculó el motor. Impacto: integridad/reputación ante el jurado; sin cruce de usuarios.",
+   "proposed_verdict": "confirmed"
+  },
+  {
+   "id": "C-005",
+   "title": "Correos personales del equipo en los metadatos de commits del repo público",
+   "attack_class": "data-exposure",
+   "boundary": "datos personales del equipo -> internet",
+   "trace": [
+    {
+     "kind": "entrypoint",
+     "file": "git:equipo/main",
+     "line": 0,
+     "scope": "git log --format=%ae",
+     "description": "30 commits con correo personal hotmail y 1 gmail en main pública (p.ej. 2c91bef, f2d83ec, d40ef11)"
+    }
+   ],
+   "claim": "Contradice la regla 1 del proyecto (cero datos personales, ni del dueño). Cualquiera lo lee con git log. Impacto bajo (spam/phishing dirigido).",
+   "proposed_verdict": "confirmed"
+  },
+  {
+   "id": "C-006",
+   "title": "'Salir' no borra la conversación (localStorage) ni el caso (IndexedDB) del navegador",
+   "attack_class": "data-lifecycle",
+   "boundary": "persona A -> persona B en el mismo navegador (equipo compartido del jurado)",
+   "trace": [
+    {
+     "kind": "entrypoint",
+     "file": "src/componentes/menu-usuario.tsx",
+     "line": 126,
+     "scope": "form /api/salir",
+     "description": "cierra sesión"
+    },
+    {
+     "kind": "sink",
+     "file": "src/app/api/salir/route.ts",
+     "line": 9,
+     "scope": "POST",
+     "description": "solo borra la cookie; historial en memoria.ts:59 (hasta 400 mensajes) y PGlite idb://copiloto (datos/abrir.ts:33) quedan"
+    }
+   ],
+   "claim": "Quien use el mismo navegador después ve lo que escribió el anterior. Requiere acceso físico; datos deberían ser sintéticos.",
+   "proposed_verdict": "confirmed"
+  },
+  {
+   "id": "C-007",
+   "title": "Sin Content-Security-Policy en las páginas HTML",
+   "attack_class": "client-side hardening",
+   "boundary": "script inyectado -> datos del navegador",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "next.config.ts",
+     "line": 3,
+     "scope": "cabecerasGlobales",
+     "description": "sin CSP; solo sw.js tiene CSP (línea 13)"
+    }
+   ],
+   "claim": "MEDIDO: respuesta de / sin CSP. No hay sumidero XSS (sin dangerouslySetInnerHTML/innerHTML en src; React escapa). Capa ausente con capa A presente -> hardening.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-008",
+   "title": "Saltar la pantalla /ingresar con cookie inventada",
+   "attack_class": "access-control",
+   "boundary": "anónimo -> páginas de la app",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/proxy.ts",
+     "line": 12,
+     "scope": "proxy",
+     "description": "haySesion solo valida formato"
+    },
+    {
+     "kind": "control",
+     "file": "src/servidor/sesion.ts",
+     "line": 2,
+     "scope": "comentario",
+     "description": "'puerta de prototipo, no autenticación real'"
+    }
+   ],
+   "claim": "MEDIDO GET / con cookie 'a'x64 = 200. Pero /api/ingresar entrega una cookie a cualquiera y no hay datos en servidor: no hay recurso protegido. La consecuencia real está en C-001.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-009",
+   "title": "CSRF: comprobación de origen basada en Host/X-Forwarded-Host",
+   "attack_class": "web-protocol",
+   "boundary": "web ajena -> acciones con la cookie de la víctima",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/servidor/http.ts",
+     "line": 45,
+     "scope": "mismoOrigen",
+     "description": "Origin vs Host; sin Origin exige Sec-Fetch-Site same-origin"
+    }
+   ],
+   "claim": "MEDIDO: Origin ajeno=403, sin Origin=403. Un navegador no puede falsificar Origin ni Host; además SameSite=Lax. No hay CSRF; solo no frena scripts (cubierto en C-001).",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-010",
+   "title": "/api/avisos sin sesión: spam de notificaciones o SSRF",
+   "attack_class": "ssrf / feature-abuse",
+   "boundary": "anónimo -> celulares de terceros / red interna",
+   "trace": [
+    {
+     "kind": "entrypoint",
+     "file": "src/app/api/avisos/route.ts",
+     "line": 27,
+     "scope": "POST",
+     "description": "sin haySesion"
+    },
+    {
+     "kind": "control",
+     "file": "src/servidor/push.ts",
+     "line": 8,
+     "scope": "esServicioDePush",
+     "description": "lista blanca https de servicios push, sin puerto ni credenciales"
+    },
+    {
+     "kind": "control",
+     "file": "src/app/api/avisos/route.ts",
+     "line": 40,
+     "scope": "sendNotification",
+     "description": "texto lo arma el servidor desde PERFILES sintéticos"
+    }
+   ],
+   "claim": "Para notificar a un tercero hace falta su suscripción (endpoint+claves privadas del navegador). Sin SSRF por lista blanca. Solo hardening (añadir sesión por coherencia).",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-011",
+   "title": "Inyección de prompt directa/indirecta (perfil, cobros, mensajes)",
+   "attack_class": "prompt-injection (LLM01)",
+   "boundary": "texto del usuario -> herramientas/secretos/otros usuarios",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/agente/prompt.ts",
+     "line": 9,
+     "scope": "comoDato",
+     "description": "nombre/descripcion saneados y marcados como dato (línea 31)"
+    },
+    {
+     "kind": "control",
+     "file": "src/agente/herramientas.ts",
+     "line": 78,
+     "scope": "crearHerramientas",
+     "description": "herramientas puras sobre datos de la propia petición; 'anotar' solo vuelve al mismo navegador"
+    }
+   ],
+   "claim": "El inyector es la misma persona; no hay secretos en el prompt, ni herramientas con red/ficheros, ni datos de otros usuarios. Auto-impacto. Efecto visible (cifras) cubierto en C-004; uso como LLM gratis cubierto en C-001.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-012",
+   "title": "XSS por salida del modelo o por historial en localStorage",
+   "attack_class": "xss",
+   "boundary": "texto del modelo/almacenamiento -> DOM",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/cliente/memoria.ts",
+     "line": 36,
+     "scope": "leerHistorial",
+     "description": "valida forma y tipo"
+    },
+    {
+     "kind": "control",
+     "file": "src/componentes/chat.tsx",
+     "line": 483,
+     "scope": "href",
+     "description": "único href es una constante"
+    }
+   ],
+   "claim": "grep: 0 dangerouslySetInnerHTML/innerHTML/eval en src; React renderiza texto. Sin sumidero.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-013",
+   "title": "Inyección SQL en PGlite por interpolación de tabla",
+   "attack_class": "injection",
+   "boundary": "entrada -> SQL local",
+   "trace": [
+    {
+     "kind": "sink",
+     "file": "src/datos/pglite.ts",
+     "line": 121,
+     "scope": "borrar",
+     "description": "DELETE FROM ${tabla} con tabla de constantes (líneas 11,132-138); id parametrizado"
+    }
+   ],
+   "claim": "Nombre de tabla constante del código; además la BD está en el navegador del propio usuario.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-014",
+   "title": "minimatch ReDoS (GHSA-g3hv-75wg-m249) vía typescript-eslint",
+   "attack_class": "supply-chain",
+   "boundary": "dependencia -> producción",
+   "trace": [
+    {
+     "kind": "entrypoint",
+     "file": "package.json",
+     "line": 30,
+     "scope": "devDependencies",
+     "description": "eslint-config-next / typescript-eslint"
+    }
+   ],
+   "claim": "MEDIDO: npm audit 7 moderadas solo dev; npm audit --omit=dev = 0. No llega a producción.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-015",
+   "title": "Secretos en el historial git del repo público",
+   "attack_class": "secrets",
+   "boundary": "repo público -> claves de IA/voz/push",
+   "trace": [
+    {
+     "kind": "control",
+     "file": ".gitignore",
+     "line": 1,
+     "scope": ".env/.env.*",
+     "description": "ignorados salvo .env.example (vacío)"
+    }
+   ],
+   "claim": "MEDIDO: git log --all -p en 80 commits (ramas equipo/* y origin/*) sin patrones sk-ant, sk-, AKIA, ghp_, claves privadas ni asignaciones con valor; único .env versionado: .env.example vacío. Bundles de producción sin claves.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-016",
+   "title": "Subida de documento: tipo/tamaño/contenido y costo de PDFs largos",
+   "attack_class": "file-upload / resource-exhaustion",
+   "boundary": "archivo del usuario -> Anthropic",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/documentos/validar.ts",
+     "line": 43,
+     "scope": "validarArchivo",
+     "description": "lista blanca de 4 MIME, firma mágica, 3 MB"
+    },
+    {
+     "kind": "control",
+     "file": "src/app/api/documento/route.ts",
+     "line": 54,
+     "scope": "lecturaDocumentos",
+     "description": "apagada por defecto"
+    },
+    {
+     "kind": "control",
+     "file": "src/documentos/extraer.ts",
+     "line": 62,
+     "scope": "interpretarRespuesta",
+     "description": "salida validada con Zod"
+    }
+   ],
+   "claim": "MEDIDO: prod responde 403 lectura_apagada y /api/estado documentos=false. Bien defendida; si se enciende, un PDF de 3 MB con muchas páginas cuesta muchos tokens y 'inventado' es solo una declaración.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-017",
+   "title": "Ley 29733: falta aviso de privacidad formal (responsable, finalidad, transferencia internacional a EE. UU., derechos ARCO)",
+   "attack_class": "compliance",
+   "boundary": "voz/texto de la persona -> Anthropic, Fish Audio, dictado del navegador",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/componentes/como-funciona.tsx",
+     "line": 67,
+     "scope": "Tu privacidad",
+     "description": "aviso informal; no nombra responsable ni canal ARCO"
+    },
+    {
+     "kind": "control",
+     "file": "src/componentes/chat.tsx",
+     "line": 363,
+     "scope": "Privacidad y datos",
+     "description": "nombra Anthropic, Fish Audio y dictado del navegador"
+    }
+   ],
+   "claim": "Hecho que falta: si un prototipo con datos sintéticos pero voz real (la voz es dato personal) entra en el ámbito de la ley. Interpretación jurídica -> omega.",
+   "proposed_verdict": "needs_validation"
+  },
+  {
+   "id": "C-018",
+   "title": "La exigencia de consentimiento del servidor se salta enviando consentimiento:true o otro perfil.id",
+   "attack_class": "business-logic",
+   "boundary": "cliente -> compuerta de privacidad",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "src/app/api/agente/route.ts",
+     "line": 66,
+     "scope": "consentimiento",
+     "description": "solo para perfil.id===ID_PROPIO; ambos campos los manda el cliente"
+    }
+   ],
+   "claim": "Es una declaración de la misma persona sobre sus propios datos; la compuerta real está en el navegador (cliente/salidas.ts). Mismo principal: sin cruce de frontera.",
+   "proposed_verdict": "rejected"
+  },
+  {
+   "id": "C-019",
+   "title": "Repo público sin protección de rama main, sin Dependabot ni escaneo de secretos verificados",
+   "attack_class": "supply-chain / release",
+   "boundary": "colaborador o PR -> main desplegada",
+   "trace": [
+    {
+     "kind": "control",
+     "file": "github:hackbbvapro-bit/BBVA",
+     "line": 0,
+     "scope": "API",
+     "description": "Dependabot alerts: 'disabled for this repository' (MEDIDO); branch protection 404 y secret-scanning 404 (sin permiso o sin configurar)"
+    }
+   ],
+   "claim": "Hecho que falta: ajustes reales del repo (requiere admin). Sin carpeta .github: no hay CI ni dependabot.yml.",
+   "proposed_verdict": "needs_validation"
+  }
+ ]
+}
