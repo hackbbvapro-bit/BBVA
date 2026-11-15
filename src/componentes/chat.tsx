@@ -41,6 +41,11 @@ const preguntas = [
   "¿Qué deuda pago primero?",
   "¿Qué pasa si pago solo el mínimo?",
 ];
+const PREGUNTAS_DE_DEUDAS = new Set(["¿Qué deuda pago primero?", "¿Qué pasa si pago solo el mínimo?"]);
+/** Lista de respaldo (sin ruta): sin deudas no se sugiere nada sobre deudas. */
+export function preguntasDeRespaldo(conDeudas: boolean): string[] {
+  return conDeudas ? preguntas : preguntas.filter(p => !PREGUNTAS_DE_DEUDAS.has(p));
+}
 /** PDF inventado para probar la lectura de documentos (ninguna persona ni entidad es real). */
 export const RUTA_PDF_EJEMPLO = "/ejemplos/situacion-financiera-ejemplo.pdf";
 const cuantos = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
@@ -73,8 +78,12 @@ const AYUDA: readonly { icono: "hoy" | "deudas" | "dinero" | "manos"; texto: str
   { icono: "dinero", texto: "Si te alcanza para un gasto antes de hacerlo" },
   { icono: "manos", texto: "Qué tipo de producto te conviene y qué preguntar en BBVA" },
 ];
+/** «Te ayudo con»: sin deudas no se ofrece ayuda con deudas. */
+export function ayudaVisible(conDeudas: boolean) {
+  return conDeudas ? AYUDA : AYUDA.filter(a => a.icono !== "deudas");
+}
 /** Panel lateral (pantallas grandes): el caso en una mirada, en qué ayuda y cómo responde. Cifras del motor. */
-function PanelLateral({ ruta, avance }: { ruta?: Ruta; avance?: Avance }) {
+function PanelLateral({ ruta, avance, conDeudas }: { ruta?: Ruta; avance?: Avance; conDeudas: boolean }) {
   const f = ruta?.flujo;
   return (
     <aside aria-label="Tu caso en una mirada" className="hidden xl:block">
@@ -113,7 +122,7 @@ function PanelLateral({ ruta, avance }: { ruta?: Ruta; avance?: Avance }) {
         <div className="rounded-2xl bg-white p-5 ring-1 ring-linea">
           <p className="text-xs font-semibold uppercase tracking-wide text-gris">Te ayudo con</p>
           <ul className="mt-3 space-y-3">
-            {AYUDA.map(a => (
+            {ayudaVisible(conDeudas).map(a => (
               <li key={a.texto} className="flex items-start gap-3 text-sm leading-snug text-noche">
                 <span
                   aria-hidden="true"
@@ -130,7 +139,7 @@ function PanelLateral({ ruta, avance }: { ruta?: Ruta; avance?: Avance }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-gris">Cómo respondo</p>
           <ul className="mt-3 space-y-2 text-[13px] leading-snug text-tinta">
             {[
-              "Cada monto y cada fecha los calcula el motor del copiloto.",
+              "Cada monto y cada fecha los calcula el código del copiloto.",
               "Te oriento con productos BBVA, sin tasas inventadas.",
               "La decisión de aprobar un producto es siempre de BBVA.",
             ].map(t => (
@@ -437,13 +446,16 @@ export function Chat({
     setPorExplicar(preguntaTrasGuardar(guardado));
   }
   const sugerencias = [
-    ...(ruta ? preguntasSugeridas(ruta) : preguntas).map((p, i) => ({
+    ...(ruta ? preguntasSugeridas(ruta) : preguntasDeRespaldo(perfil.deudas.length > 0)).map((p, i) => ({
       p,
       icono: ICONOS_SUGERENCIA[i % 4],
       tema: "Tu plata",
     })),
     ...preguntasDeProducto.map(p => ({ p, icono: "manos" as const, tema: "Productos" })),
   ];
+  // Tras cada respuesta: 2-3 preguntas de seguimiento (las mismas sugerencias, sin repetir las que ya hizo).
+  const yaPreguntadas = new Set(mensajes.filter(m => m.rol === "usuario").map(m => m.texto));
+  const seguimiento = sugerencias.map(x => x.p).filter(p => !yaPreguntadas.has(p)).slice(0, 3);
   return (
     <section
       aria-labelledby="titulo-asistente"
@@ -489,7 +501,7 @@ export function Chat({
           <div className="flex shrink-0 items-center gap-1.5">
             {!demo && alCambiarExterno && !externo && (
               <button
-                className="inline-flex min-h-10 items-center rounded-full bg-electrico px-4 text-[13px] font-semibold text-white transition-transform duration-150 active:scale-[.97]"
+                className="inline-flex min-h-11 items-center rounded-full bg-electrico px-4 text-[13px] font-semibold text-white transition-transform duration-150 active:scale-[.97]"
                 aria-expanded={pidiendo}
                 onClick={() => setPidiendo(true)}
               >
@@ -502,7 +514,7 @@ export function Chat({
                 aria-checked={voz}
                 aria-label="Respuestas en voz alta"
                 title={voz ? "Respuestas en voz alta: activadas" : "Respuestas en voz alta: apagadas"}
-                className={`relative flex size-10 items-center justify-center rounded-full ring-1 transition-colors duration-150 [&_svg]:size-[18px] ${voz ? "bg-agua-suave text-electrico ring-electrico/20" : "text-gris ring-linea hover:bg-niebla"}`}
+                className={`relative flex size-11 items-center justify-center rounded-full ring-1 transition-colors duration-150 [&_svg]:size-[18px] ${voz ? "bg-agua-suave text-electrico ring-electrico/20" : "text-gris ring-linea hover:bg-niebla"}`}
                 onClick={() => {
                   vozRef.current = !voz;
                   setVoz(!voz);
@@ -519,14 +531,17 @@ export function Chat({
               </button>
             )}
           </div>
-          <div role="group" aria-label="Estilo de respuesta" className="flex w-full gap-1 rounded-full bg-niebla p-1 sm:w-auto">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+          <span className="shrink-0 text-xs font-semibold text-gris">Respuestas:</span>
+          <div role="group" aria-label="Estilo de respuesta" className="flex flex-1 gap-1 rounded-full bg-niebla p-1 sm:flex-none">
             {(["directo", "explicado"] as const).map(valor => (
               <button key={valor} type="button" aria-pressed={estilo === valor}
                 onClick={() => cambiarEstilo(valor)}
-                className={`min-h-9 flex-1 rounded-full px-3 text-sm font-semibold ${estilo === valor ? "bg-white text-electrico shadow-sm" : "text-gris"}`}>
+                className={`min-h-11 flex-1 whitespace-nowrap rounded-full px-4 text-sm font-semibold ${estilo === valor ? "bg-electrico text-white shadow-sm" : "text-gris"}`}>
                 {valor === "directo" ? "Directo" : "Explicado"}
               </button>
             ))}
+          </div>
           </div>
         </header>
         {pidiendo && !externo && alCambiarExterno && (
@@ -696,18 +711,31 @@ export function Chat({
                     {m.texto || <span className="text-gris">Pensando…</span>}
                   </p>
                   {m.texto && i === mensajes.length - 1 && i > 0 && <button type="button" disabled={ocupado}
-                    className="mt-1 min-h-9 px-1 text-xs font-semibold text-electrico disabled:opacity-40"
+                    className="mt-1 inline-flex min-h-11 items-center px-2 text-xs font-semibold text-electrico disabled:opacity-40"
                     onClick={() => void enviar("Explícame más sobre eso", false, "explicado")}>
                     Explícame más
                   </button>}
+                  {m.texto && i === mensajes.length - 1 && !ocupado && seguimiento.length > 0 && (
+                    <div role="group" aria-label="Preguntas para seguir" className="mt-2 flex flex-wrap gap-2">
+                      {seguimiento.map(p => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => void enviar(p)}
+                          className="min-h-11 rounded-full bg-white px-3.5 py-2 text-left text-[13px] font-medium leading-snug text-electrico ring-1 ring-linea transition-[transform,box-shadow] duration-150 hover:ring-electrico/50 active:scale-[.98]"
+                        >
+                          {unido(p)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {m.notas?.map(
                     id =>
                       notas[id] && (
                         <TarjetaAnotado key={id} nota={notas[id]} alDeshacer={() => void deshacerNota(id)} />
                       ),
                   )}
-                  {m.respaldo && <p className="mt-1.5 px-1 text-xs text-gris">Respuesta del motor, sin IA</p>}
-                  {m.cerebro && <p className="mt-1.5 px-1 text-xs text-gris">Respondió {m.cerebro}</p>}
+                  {(m.respaldo || m.cerebro) && <p className="mt-1.5 px-1 text-xs text-gris">Calculado con tus datos</p>}
                 </div>
               </div>
             ),
@@ -885,11 +913,11 @@ export function Chat({
             </button>
           </form>
           <p className="mt-2 hidden text-center text-[11px] text-gris md:block">
-            Caso de simulación · las cifras salen del motor del copiloto, no de la IA
+            Caso de simulación · las cifras las calcula el copiloto con tus datos, no la IA
           </p>
         </div>
       </div>
-      <PanelLateral ruta={ruta} avance={avance} />
+      <PanelLateral ruta={ruta} avance={avance} conDeudas={perfil.deudas.length > 0} />
     </section>
   );
 }
