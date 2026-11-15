@@ -56,11 +56,10 @@ export function Icono({ nombre }: { nombre: keyof typeof trazos }) {
 export function Marca() {
   return (
     <span className="flex items-center gap-2.5">
-      <span className="flex size-9 items-center justify-center rounded-xl bg-electrico text-white">
-        <Icono nombre="rumbo" />
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/marca/finance-pro-icono.webp" alt="" width={28} height={28} className="size-7 shrink-0 object-contain" />
       <span className="leading-tight">
-        <span className="block text-[17px] font-semibold tracking-[-0.015em] text-noche">Copiloto</span>
+        <span className="block text-[17px] font-semibold tracking-[-0.015em] text-noche">Finance Pro</span>
         <span className="block text-xs text-gris">prototipo · datos sintéticos</span>
       </span>
     </span>
