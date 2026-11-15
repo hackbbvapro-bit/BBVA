@@ -130,12 +130,11 @@ function Cta({ acciones, valor, variante, className = "" }: {
 export function MarcaPortada() {
   return (
     <span className="flex min-w-0 items-center gap-3">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#123eda,#051b82)] text-white shadow-[0_8px_22px_rgb(6_44_175/0.22)] [&_svg]:size-5">
-        <Icono nombre="rumbo" />
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/marca/finance-pro-icono.webp" alt="" width={40} height={40} className="size-10 shrink-0 object-contain" />
       <span className="min-w-0 leading-tight">
-        <span className="block text-[19px] font-bold tracking-[-0.02em] text-noche">Copiloto</span>
-        <span className="block truncate text-xs font-medium text-gris">Tu guía financiera con IA</span>
+        <span className="block text-[19px] font-bold tracking-[-0.02em] text-noche">Finance Pro</span>
+        <span className="block truncate text-xs font-medium text-gris">Tu copiloto financiero con IA</span>
       </span>
     </span>
   );
@@ -169,7 +168,7 @@ function Cabecera({ acciones }: { acciones: AccionesPortada }) {
   return (
     <header className="relative z-30 border-b border-white/60 bg-white/70 backdrop-blur-md lg:border-transparent lg:bg-white/40">
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 pt-[env(safe-area-inset-top)] md:h-20 md:px-8 xl:px-14">
-        <a href="#inicio" aria-label="Copiloto, ir al inicio" className="rounded-xl">
+        <a href="#inicio" aria-label="Finance Pro, ir al inicio" className="rounded-xl">
           <MarcaPortada />
         </a>
         <nav aria-label="Secciones" className="hidden items-center gap-8 text-sm font-semibold text-noche lg:flex">
@@ -226,7 +225,7 @@ function TarjetaProducto() {
       className="aparecer-heroe scroll-mt-24 overflow-hidden rounded-[28px] border border-white/80 bg-white/95 shadow-[0_2px_4px_rgb(7_33_70/0.04),0_28px_60px_-24px_rgb(20_46_107/0.35)] [animation-delay:120ms]"
     >
       <div className="flex items-center justify-between gap-3 px-5 pt-5 md:px-7 md:pt-6">
-        <h2 id="como-funciona-titulo" className="text-xl font-bold tracking-[-0.03em] text-noche md:text-[22px]">Así te ayuda Copiloto</h2>
+        <h2 id="como-funciona-titulo" className="text-xl font-bold tracking-[-0.03em] text-noche md:text-[22px]">Así te ayuda Finance Pro</h2>
         <span className="shrink-0 rounded-full bg-agua-suave px-2.5 py-1 text-[11px] font-semibold text-electrico">Ejemplo ilustrativo</span>
       </div>
       <MiniProyeccion />

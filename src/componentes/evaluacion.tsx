@@ -10,7 +10,7 @@ type Horizonte = "d7" | "d14" | "d30";
 
 /** El copiloto primero; después las alternativas simples contra las que se compara. */
 const METODOS: [Metodo, string, string][] = [
-  ["motor", "Copiloto", "Detecta los pagos fijos, los pone en su fecha y suma un estimado prudente del día a día"],
+  ["motor", "Finance Pro", "Detecta los pagos fijos, los pone en su fecha y suma un estimado prudente del día a día"],
   ["repetir_30", "Repetir el último mes", "Supone que los próximos 30 días serán iguales a los últimos 30"],
   ["promedio_90", "Promedio de 90 días", "Reparte por igual, día a día, lo que entró y salió en 90 días"],
   ["saldo_plano", "Saldo sin cambios", "Supone que el saldo se queda como está"],
