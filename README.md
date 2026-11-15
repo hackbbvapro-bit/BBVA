@@ -83,8 +83,12 @@ motor y la voz es la del propio celular. Con `ANTHROPIC_API_KEY` conversa el age
 - [x] Motor de proyección + tests
 - [x] Interfaz para celular, chat con respaldo sin IA y avisos dentro de la app
 - [x] Cifras del pitch revisadas contra su fuente (`investigacion/10-verificacion-de-cifras.md`)
-- [x] Pull request 1 fusionado a `main` y app publicada en `https://copiloto-anticipador-hack.vercel.app` desde el repositorio del equipo `hackbbvapro-bit/BBVA` (chat con el motor, sin IA todavía)
-- [ ] Poner tope de gasto en Anthropic y Fish Audio, cargar sus claves en Vercel y hacer Redeploy
-- [ ] Probar el agente con clave real de Anthropic y la voz con clave real de Fish Audio
+- [x] App publicada en `https://copiloto-anticipador-hack.vercel.app` desde el repositorio del equipo `hackbbvapro-bit/BBVA`; Vercel despliega `main` automáticamente
+- [x] Claves de Anthropic, Fish Audio y avisos cargadas en Vercel (`/api/estado` responde `ia`, `voz` y `push` en `true` [MEDIDO 15-nov])
+- [x] Agente con IA real: 0 de 36 respuestas con cifras ajenas al motor y 12 de 12 preguntas tramposas bien resueltas (`docs/EVALUACION.md` §14)
+- [x] Voz de Fish Audio en producción (`docs/GUIA-FINAL.md`). La transcripción con Fish no se probó
+- [x] Evaluación del motor con 1 000 clientes sintéticos (`docs/EVALUACION.md`) y CI en cada pull request
+- [x] Entregables ordenados en `entregables/`
+- [ ] Confirmar el tope de gasto en Anthropic y Fish Audio [SIN VERIFICAR]
 - [ ] Probar micrófono y notificaciones en un celular real (en iPhone, con la app instalada)
-- [ ] Demo y pitch (guion en `docs/GUIA-FINAL.md`)
+- [ ] Pitch (guion de la demo en `docs/GUIA-FINAL.md`)
