@@ -1,4 +1,3 @@
-import { diaSemana } from './fechas';
 import type { Horizonte } from './horizonte';
 import type { Centimos, FechaISO } from './tipos';
 
@@ -7,42 +6,64 @@ interface Dia { fecha: FechaISO; saldo: Centimos }
 /** Hasta 1 mes se ve cada día; desde 2 meses, un punto por semana para que el gráfico respire. */
 const SEMANAL: Record<Horizonte, boolean> = { semana: false, mes: false, '2m': true, '3m': true, '6m': true };
 
+export const esSemanal = (h: Horizonte): boolean => SEMANAL[h];
+
+/** Una semana del gráfico: el saldo acumulado con que cierra y lo más bajo que tocó por dentro. */
+export interface SemanaGrafico {
+  /** Índice del último día de la semana dentro de la serie (donde se dibuja el punto). */
+  indice: number;
+  desde: FechaISO;
+  hasta: FechaISO;
+  /** Saldo acumulado al cierre de la semana. */
+  saldo: Centimos;
+  saldoMinimo: Centimos;
+  fechaMinimo: FechaISO;
+  diasEnRojo: number;
+  /** La semana tiene el primer día de una caída a rojo (puede haber varias en la proyección). */
+  alerta: boolean;
+}
+
 /**
- * Qué días del gráfico llevan punto (índices en orden y sin repetir).
- * Semanal: hoy, cada domingo (cierre de semana) y el último día. Además, siempre el día más bajo y el primer
- * día en rojo: muestrear por semanas nunca puede esconder la caída que motiva el aviso.
+ * Primer día de cada caída a rojo: cada vez que el saldo pasa de cero o más a negativo. Si se recupera y vuelve
+ * a caer, es otra alerta. Si la serie arranca en rojo, el día 0 ya es una.
+ */
+export function episodiosEnRojo(dias: readonly Dia[]): number[] {
+  return dias.flatMap((d, i) => (d.saldo < 0 && (i === 0 || dias[i - 1].saldo >= 0) ? [i] : []));
+}
+
+/**
+ * Agrupa la serie en semanas de 7 días contadas desde hoy, con los mismos cortes que la tabla por semanas
+ * (`tramos(…, 'semana')`): días 0-6, 7-13, … y la última semana se cierra en el último día aunque sea más corta.
+ */
+export function semanasDelGrafico(dias: readonly Dia[]): SemanaGrafico[] {
+  const inicios = new Set(episodiosEnRojo(dias));
+  const semanas: SemanaGrafico[] = [];
+  for (let desde = 0; desde < dias.length; desde += 7) {
+    const hasta = Math.min(desde + 6, dias.length - 1);
+    const tramo = dias.slice(desde, hasta + 1);
+    const minimo = tramo.reduce((a, b) => (a.saldo <= b.saldo ? a : b));
+    let alerta = false;
+    for (let i = desde; i <= hasta; i++) if (inicios.has(i)) alerta = true;
+    semanas.push({
+      indice: hasta,
+      desde: dias[desde].fecha,
+      hasta: dias[hasta].fecha,
+      saldo: dias[hasta].saldo,
+      saldoMinimo: minimo.saldo,
+      fechaMinimo: minimo.fecha,
+      diasEnRojo: tramo.filter(d => d.saldo < 0).length,
+      alerta,
+    });
+  }
+  return semanas;
+}
+
+/**
+ * Qué días del gráfico llevan punto (índices en orden y sin repetir). Diario: todos. Semanal: hoy y el cierre
+ * de cada semana; la caída de mitad de semana no se esconde: la marca la alerta de esa semana y su mínimo.
  */
 export function puntosDelGrafico(dias: readonly Dia[], h: Horizonte): number[] {
   if (!dias.length) return [];
   if (!SEMANAL[h]) return dias.map((_, i) => i);
-  const elegidos = new Set<number>([0, dias.length - 1]);
-  dias.forEach((d, i) => { if (diaSemana(d.fecha) === 0) elegidos.add(i); });
-  let minimo = 0;
-  dias.forEach((d, i) => { if (d.saldo < dias[minimo].saldo) minimo = i; });
-  elegidos.add(minimo);
-  const rojo = dias.findIndex(d => d.saldo < 0);
-  if (rojo >= 0) elegidos.add(rojo);
-  return [...elegidos].sort((a, b) => a - b);
-}
-
-/**
- * Qué puntos llevan fecha bajo el eje: hoy y luego pasos iguales (en días o en semanas), como mucho `maximo`.
- * Las marcas caen siempre sobre un punto visible, para que cada fecha tenga su punto encima.
- */
-export function marcasDelEje(dias: readonly Dia[], puntos: readonly number[], maximo: number): number[] {
-  if (puntos.length < 2 || maximo < 2) return puntos.slice(0, 1);
-  const semanal = puntos.length < dias.length;
-  if (!semanal) {
-    // Paso hacia abajo para que las fechas lleguen hasta el final del eje (y luego se recorta al máximo).
-    const paso = Math.max(1, Math.floor((dias.length - 1) / (maximo - 1)));
-    const marcas: number[] = [];
-    for (let i = 0; i < dias.length && marcas.length < maximo; i += paso) marcas.push(i);
-    return marcas;
-  }
-  const domingos = puntos.filter(i => i > 0 && diaSemana(dias[i].fecha) === 0);
-  // Paso hacia abajo: las fechas se reparten hasta el final del eje (lo que sobra lo recorta el máximo).
-  const cada = Math.max(1, Math.floor(domingos.length / (maximo - 1)));
-  // Se empieza en el domingo `cada`-ésimo para dejar aire entre «hoy» y la primera fecha.
-  const elegidos = domingos.filter((_, j) => (j + 1) % cada === 0 && (cada > 1 || domingos[j] >= 3));
-  return [0, ...elegidos.slice(0, maximo - 1)];
+  return [...new Set([0, ...semanasDelGrafico(dias).map(s => s.indice)])];
 }
