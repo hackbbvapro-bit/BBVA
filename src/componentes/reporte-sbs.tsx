@@ -2,6 +2,7 @@
 import { formatoSoles, type Analisis } from "@/motor";
 import { calificacionPorAtraso, ETIQUETA_CALIFICACION, type Calificacion } from "@/motor/sbs";
 import { prioridadDePagos } from "@/datos/paraPrioridad";
+import { mejorJugada } from "@/explica/explica";
 import { Extraccion } from "@/documentos/esquema";
 import { OrdenDePago } from "@/componentes/orden-pago";
 import { Recomendaciones } from "@/componentes/recomendaciones";
@@ -53,7 +54,7 @@ export function ReporteSbs({ analisis }: { analisis: Analisis }) {
           ))}
         </ul>
       )}
-      <OrdenDePago r={prioridadDePagos(datos, analisis)} />
+      <OrdenDePago r={prioridadDePagos(datos, analisis)} jugada={mejorJugada(analisis)?.titulo} />
       <Recomendaciones datos={datos} analisis={analisis} />
       <p className="text-sm leading-relaxed text-gris">
         Lo que ves aquí es una simulación educativa, no un reporte oficial ni tu calificación real. El reporte oficial de deudas se pide gratis en la{" "}
