@@ -15,7 +15,7 @@ import { avisos, mejorJugada, proximosPagos, resumenHablado } from "@/explica/ex
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Cifras, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
-import { cifras, pulso, type DestinoCifra } from "@/componentes/tablero";
+import { alertaPrincipal, cifras, type DestinoCifra } from "@/componentes/tablero";
 
 /** A dónde puede mandar el Inicio (lo resuelve el armazón). */
 export type IrDesdeInicio = "agregar-deuda" | "ruta" | "dinero" | "deudas" | "asistente";
@@ -67,6 +67,7 @@ export function Hoy({
     return () => desplazar(grafico.current, "start");
   };
   const d = analisis.proyeccion.deficit;
+  const alerta = alertaPrincipal(analisis);
 
   return (
     <div className="space-y-3 md:space-y-6">
@@ -121,12 +122,10 @@ export function Hoy({
             {d ? (
               <>
                 <p className="text-[15px] font-semibold leading-snug text-noche md:text-base">
-                  El {formatoLargo(d.fecha)} te faltarán{" "}
-                  <span className="whitespace-nowrap text-coral-fuerte tabular-nums">{unido(formatoSoles(d.faltante))}</span>
+                  El {alerta?.fecha} te faltarán{" "}
+                  <span className="whitespace-nowrap text-coral-fuerte tabular-nums">{unido(alerta?.monto ?? "")}</span>
                 </p>
-                <p className="mt-0.5 text-[13px] leading-snug text-tinta/80 md:text-sm">
-                  Se juntan {pulso(analisis)?.causa}. Quedan {d.diasRestantes} días: estás a tiempo.
-                </p>
+                <p className="mt-0.5 text-[13px] leading-snug text-tinta/80 md:text-sm">{unido(alerta?.detalle ?? "")}</p>
               </>
             ) : (
               <>

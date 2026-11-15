@@ -1,5 +1,6 @@
 "use client";
-import { formatoSoles, formatoCorto } from "@/motor";
+import { formatoSoles, formatoCorto, formatoLargo } from "@/motor";
+import { REGLA_DEUDAS_EN_ROJO } from "@/ruta/ruta";
 import { ETIQUETA_CALIFICACION } from "@/motor/sbs";
 import type { DecisionPago, GrupoPago, ResultadoPrioridad } from "@/motor/prioridad";
 import { tarjeta, unido } from "@/componentes/ui";
@@ -35,8 +36,12 @@ function Decision({ d, n }: { d: DecisionPago; n: number }) {
   );
 }
 
-/** Qué pagar y en qué orden, tal como lo decide el motor; la IA no interviene. */
-export function OrdenDePago({ r }: { r: ResultadoPrioridad }) {
+/**
+ * Qué pagar y en qué orden, tal como lo decide el motor; la IA no interviene.
+ * Si la proyección tiene un día en rojo, no reparte extra y repite la misma regla que Mi ruta y el asistente,
+ * nombrando la jugada que Inicio muestra como «Salida más barata».
+ */
+export function OrdenDePago({ r, jugada }: { r: ResultadoPrioridad; jugada?: string }) {
   if (r.decisiones.length === 0) return null;
   return (
     <section className={`${tarjeta} aparecer`} aria-labelledby="orden-pago">
@@ -44,7 +49,14 @@ export function OrdenDePago({ r }: { r: ResultadoPrioridad }) {
         Qué pagar primero
       </h2>
       <p className="mt-1 text-sm leading-relaxed text-gris md:text-base">
-        {r.alcanzaParaTodo ? (
+        {r.alcanzaParaTodo && r.rojoEl ? (
+          <>
+            Con <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> disponibles cubres todos los mínimos
+            {r.sobrante > 0 && <> y te quedan <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.sobrante))}</span> de margen</>}. Ojo: si pagas lo de
+            siempre, tu saldo queda en rojo el {formatoLargo(r.rojoEl)}. {REGLA_DEUDAS_EN_ROJO(formatoLargo(r.rojoEl))}
+            {jugada && <> Tapa el hueco con «{jugada}», la salida más barata que ves en Inicio.</>}
+          </>
+        ) : r.alcanzaParaTodo ? (
           <>
             Con <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> disponibles este mes cubres todos los mínimos
             {r.sobrante > 0 ? <> y aún te sobran <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.sobrante))}</span></> : " y el resto va a la deuda más cara"}.
