@@ -1,10 +1,11 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { formatoSoles, sumar, type Analisis, type Categoria } from "@/motor";
+import { formatoSoles, type Analisis, type Categoria } from "@/motor";
 import { Cifras, Encabezado, tarjeta, unido } from "@/componentes/ui";
 import { ListaEditable, useEnvio, type Fila } from "@/componentes/lista-editable";
 import { Acciones, Seleccion, Texto } from "@/componentes/formularios";
 import { useDatos } from "@/componentes/datos";
+import { resumenDelMes } from "@/ruta/ruta";
 import { nuevoId } from "@/datos/repositorio";
 import { leerDia, leerSoles, solesParaEditar } from "@/datos/formulario";
 import type { Cuenta, Fijo, Sentido } from "@/datos/tipos";
@@ -120,8 +121,7 @@ export function MiDinero({ analisis }: { analisis: Analisis }) {
   const { datos, perfil } = useDatos();
   const [aviso, setAviso] = useState("");
   const variable = analisis.ingresoVariable;
-  const entran = sumar(datos.ingresosFijos.map(f => f.monto));
-  const salen = sumar(datos.gastosFijos.map(f => f.monto));
+  const mes = resumenDelMes(perfil, analisis);
   const n = datos.cuentas.length;
 
   return (
@@ -140,8 +140,8 @@ export function MiDinero({ analisis }: { analisis: Analisis }) {
               valor: formatoSoles(perfil.saldoActual),
               nota: n === 0 ? "Agrega una cuenta" : n === 1 ? "Al cierre del día" : `Sumando tus ${n} cuentas`,
             },
-            { icono: "tendencia", etiqueta: "Te entra al mes", valor: formatoSoles(entran), tono: "verde", nota: `${datos.ingresosFijos.length} ${datos.ingresosFijos.length === 1 ? "ingreso" : "ingresos"}` },
-            { icono: "calendario", etiqueta: "Te sale al mes", valor: formatoSoles(salen), tono: "ambar", nota: `${datos.gastosFijos.length} ${datos.gastosFijos.length === 1 ? "gasto" : "gastos"}` },
+            { icono: "tendencia", etiqueta: "Te entra al mes", valor: formatoSoles(mes.entra), tono: "verde", nota: mes.notaEntra },
+            { icono: "calendario", etiqueta: "Te sale al mes", valor: formatoSoles(mes.sale), tono: "ambar", nota: mes.notaSale },
           ]}
         />
       </div>
@@ -195,9 +195,8 @@ export function MiDinero({ analisis }: { analisis: Analisis }) {
         </section>
       </div>
       <p className="mt-6 px-1 text-sm leading-relaxed text-gris">
-        {entran > 0 && <>Cada mes entran {unido(formatoSoles(entran))} fijos y salen </>}
-        {entran === 0 && <>Cada mes salen </>}
-        {unido(formatoSoles(salen))} fijos, sin contar tus pagos de deudas. Lo que cambies aquí actualiza Inicio, Deudas y los avisos al instante.
+        Las cifras de arriba son tu mes completo: lo fijo de estas listas más lo variable que estima el motor, sin contar
+        tus pagos de deudas. Son las mismas que usa Mi ruta. Lo que cambies aquí actualiza Inicio, Deudas y los avisos al instante.
       </p>
       <p role="status" className="sr-only">
         {aviso}

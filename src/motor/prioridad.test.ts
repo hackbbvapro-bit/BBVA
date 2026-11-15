@@ -298,6 +298,7 @@ describe("priorizarPagos: casos borde", () => {
       sobrante: soles(500),
       faltante: 0,
       alcanzaParaTodo: true,
+      rojoEl: null,
     });
   });
 

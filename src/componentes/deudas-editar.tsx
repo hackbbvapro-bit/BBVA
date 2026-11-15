@@ -185,7 +185,7 @@ export function ListaDebo({ primeraId, avisar, abrirNuevo }: { primeraId: string
         : d.diasAtraso > 0
           ? { texto: `Atraso de ${d.diasAtraso} ${d.diasAtraso === 1 ? "día" : "días"}`, tono: d.diasAtraso > 8 ? "urgente" : "atencion" }
           : d.id === primeraId
-            ? { texto: "Paga esta primero", tono: "azul" }
+            ? { texto: "La más cara", tono: "azul" }
             : undefined,
     };
   };

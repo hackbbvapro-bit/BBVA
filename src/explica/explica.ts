@@ -9,6 +9,8 @@ import {
 import type { Analisis, EventoProyectado, FechaISO, Jugada, Perfil } from "../motor";
 import { buscarMonto } from "../motor/numeros";
 import { CAMBIAR_FECHA_DE_PAGO } from "./educacion";
+import { crecimientoDelHueco } from "./hueco";
+export { crecimientoDelHueco } from "./hueco";
 import { fraseAvance, fraseLibre, rutaExplicada, type Avance, type Ruta } from "../ruta/ruta";
 
 export type NivelAviso = "urgente" | "atencion" | "bien";
@@ -60,10 +62,7 @@ function avisoDeficit(analisis: Analisis): Aviso | undefined {
   const salida = jugada
     ? ` La salida más barata: ${minusculaInicial(jugada.titulo)}; ${jugada.costo > 0 ? `cuesta ${formatoSoles(jugada.costo)}` : "no cuesta dinero"}.`
     : analisis.jugadas.length > 0 ? " Ninguna jugada alcanza sola: hay que combinar dos." : "";
-  // El título dice el primer día en rojo; si después el hueco crece, se avisa hasta dónde llega.
-  const fondo = deficit.faltanteMaximo > deficit.faltante
-    ? ` Si no haces nada, el hueco crece hasta ${formatoSoles(deficit.faltanteMaximo)} el ${formatoLargo(deficit.fechaFaltanteMaximo)}.`
-    : "";
+  const fondo = crecimientoDelHueco(deficit) ? ` ${crecimientoDelHueco(deficit)}` : "";
   return {
     id: "deficit", nivel: "urgente", fecha: deficit.fecha,
     titulo: `${enDias(deficit.diasRestantes)} te faltarán ${formatoSoles(deficit.faltante)}`,
