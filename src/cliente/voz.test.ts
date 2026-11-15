@@ -205,6 +205,19 @@ it("callar cancela también una petición pendiente y no deja arrancar su audio"
   expect(fin).not.toHaveBeenCalled();
 });
 
+it("si otra voz corta una sesión en vivo, avisa por alCortar y no por alTerminar", async () => {
+  const { hablarEnVivo, callar } = await cargar();
+  vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+  const fin = vi.fn();
+  const cortada = vi.fn();
+  const sesion = hablarEnVivo(fin, cortada);
+  sesion.agregar("Hoy te alcanza. ");
+  callar();
+  callar();
+  expect(cortada).toHaveBeenCalledTimes(1);
+  expect(fin).not.toHaveBeenCalled();
+});
+
 it("el navegador lee todo un texto de más de 800 caracteres", async () => {
   const { hablar } = await cargar();
   servidor = () => false;

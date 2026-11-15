@@ -5,7 +5,7 @@ const PASOS: readonly (readonly [string, string])[] = [
   ["El reporte ya viene leído", "En este prototipo la lectura del reporte de ejemplo está precargada: no es una IA leyendo en vivo. En este paso nada se calcula ni se decide."],
   ["Tú confirmas", "Ves cada registro en una tarjeta, lo corriges si hace falta y marcas lo que sí quieres guardar."],
   ["Se guarda en tu equipo", "Lo confirmado queda en una base de datos dentro de este navegador. El archivo no se guarda."],
-  ["El código calcula y avisa", "El motor recalcula tu saldo, tu faltante y el orden de pago, y de ahí salen los avisos y lo que te explica el copiloto."],
+  ["El código calcula y avisa", "Recalcula tu saldo, tu faltante y el orden de pago; de ahí salen los avisos y lo que te explica el copiloto."],
 ];
 
 const GLOSARIO: readonly (readonly [string, string])[] = [
