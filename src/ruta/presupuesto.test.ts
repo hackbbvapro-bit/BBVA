@@ -32,7 +32,7 @@ describe("planDelMes: Andrea (le falta plata cada mes)", () => {
     expect(plan.libre).toBe(ruta.flujo.libre);
     expect(plan.libre).toBe(-56470);
     expect(plan.alcanza).toBe(false);
-    expect(plan.titulo).toBe("Cada mes te faltan S/ 564.70");
+    expect(plan.titulo).toBe("Cada mes gastas S/ 564.70 más de lo que te entra");
   });
 
   it("propone palancas calculadas con sus datos: suscripciones y pagar solo el mínimo de las tarjetas", () => {
@@ -132,5 +132,16 @@ describe("productosDeLaRuta", () => {
         expect(q).not.toMatch(/\d|%|S\/|BBVA|Interbank|BCP|Scotiabank/i);
       }
     }
+  });
+});
+
+describe("planDelMes: sin deudas no se habla de reprogramar una deuda", () => {
+  it("con gastos mayores que ingresos y sin deudas, «lo que aún faltaría» no menciona deudas", () => {
+    const { perfil, plan } = caso(con({ ingresoMensual: soles(1000), fijosMensual: soles(900), diaADiaMensual: soles(600) }));
+    expect(perfil.deudas).toHaveLength(0);
+    expect(plan.alcanza).toBe(false);
+    const aunFalta = plan.partidas.find(p => p.id === "aun-falta");
+    expect(aunFalta).toBeDefined();
+    expect(aunFalta!.detalle).not.toMatch(/deuda|reprogramar/i);
   });
 });
