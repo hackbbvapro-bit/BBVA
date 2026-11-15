@@ -110,12 +110,24 @@ ya no aparecen).
 | Momento | Qué haces | Qué se ve |
 |---|---|---|
 | 1. Problema (20 s) | Hablas, sin tocar | Las frases de «Cifras para el pitch» |
-| 2. Entrar (10 s) | `/ingresar` → «Ingresar con mi cuenta demo» | Andrea, fisioterapeuta independiente: cobra por sesión, ingresos que cambian cada semana, tres deudas. Hoy tiene **S/ 1,168.73** |
-| 3. El aviso (35 s) | Lees el titular en Inicio y tocas la primera jugada | «El lunes 23 de noviembre te faltarán **S/ 119.07**»: se juntan el alquiler (S/ 850.00) y el pago de la Tarjeta Azul (S/ 600.00). La salida más barata cuesta **S/ 0**: pausar streaming, gimnasio y música en línea libera **S/ 161.80**. Las otras: recortar salidas a comer y delivery (S/ 145.60, sin tocar la comida básica) y pagar solo el mínimo de la Tarjeta Azul (cuesta S/ 26.16 de intereses). El gráfico dibuja el «después» |
-| 4. Tus datos (30 s) | Mi dinero → agregas un gasto fijo (por ejemplo S/ 150.50) | Inicio recalcula al instante: el faltante sube a **S/ 350.50** [MEDIDO con `verificar-mi-dinero.mjs`]. Recarga la página: sigue ahí (vive en tu navegador) |
-| 5. Reporte SBS (40 s) | Hablar → «Usar reporte SBS de ejemplo» → «Esto encontré» → revisas y «Guardar lo marcado»; luego Deudas → Reporte SBS | La IA solo lee lo escrito y **tú confirmas**. Salen las 5 deudas del ejemplo, la calificación de cada una y «Qué pagar primero» con los grupos Pagar ya / Este mes / Negociar. Si hay clave, prueba antes con una foto tuya |
-| 6. Hablar (30 s) | Pestaña Hablar, micrófono: «¿Qué deuda pago primero?» | Contesta con voz; la respuesta repite cifras del motor |
-| 7. Cierre (15 s) | Cierras | «Ningún número lo inventa la IA: los calcula un motor con más de 300 pruebas automáticas (343). La IA solo explica y extrae lo que dice un documento, y tú confirmas» |
+| 2. Entrar (10 s) | «Entrar al prototipo» → «Ver el caso de Andrea» | Andrea, fisioterapeuta independiente: cobra por sesión, ingresos que cambian cada semana, tres deudas. Hoy tiene **S/ 1,168.73** |
+| 3. El aviso (25 s) | Lees el aviso de Inicio, sin tocar | «El lunes 23 de noviembre te faltarían **S/ 119.07**». Debajo, la causa con montos: «Ese día se juntan alquiler (S/ 850.00) y pago tarjeta azul (S/ 600.00). Quedan 10 días para evitarlo.» y «La salida más barata: pausa tus suscripciones este mes.» Un solo botón: «Ver qué cambia» |
+| 4. Elegir (10 s) | Tocas «Ver qué cambia» | La app simula la salida más barata y baja sola hasta el gráfico y el antes/después |
+| 5. Antes y después (35 s) | Lees la tarjeta | «Evitas el día en rojo» · Antes: te faltan **S/ 119.07** · Después: te quedan **S/ 42.73** · Cambio: **+S/ 161.80** · «No genera intereses, pero revisa si cobran algún cargo.» Debajo del gráfico: «Proyección referencial basada en los movimientos registrados…». Si hay tiempo, en «Opciones calculadas» toca «Paga solo el mínimo este mes»: después S/ 320.93, cambio +S/ 440.00, pero «Cuesta unos S/ 26.16 (estimado)» y la tarjeta sale en ámbar. Cierra con «Reiniciar comparación» |
+| 6. Preguntar (40 s) | Asistente → «¿Qué pasa si solo pago el mínimo?» (escrita o por voz) | Responde con cifras del motor y vuelve a nombrar el lunes 23 de noviembre con -S/ 119.07 por el alquiler y la Tarjeta Azul. Si falla la voz, toca la pregunta sugerida |
+| 7. Cierre (20 s) | Cierras | «Ningún número lo inventa la IA: los calcula un motor con 760 pruebas automáticas. La IA solo explica; el motor calcula» |
+
+Antes y después verificados el 14-nov en `fase2-ux-demo` (servidor local, 375 y 390 px) **[MEDIDO]**:
+
+| Opción | Antes | Después | Cambio | Conclusión |
+|---|---|---|---|---|
+| Pausa tus suscripciones este mes | te faltan S/ 119.07 | te quedan S/ 42.73 | +S/ 161.80 | Evitas el día en rojo (sin intereses) |
+| Recorta salidas a comer y delivery de comida | te faltan S/ 119.07 | te quedan S/ 26.53 | +S/ 145.60 | Evitas el día en rojo |
+| Paga solo el mínimo este mes | te faltan S/ 119.07 | te quedan S/ 320.93 | +S/ 440.00 | Evitas el día en rojo, cuesta unos S/ 26.16 (estimado) |
+
+Si sobra tiempo o preguntan por los datos propios (cifras del ensayo del 14-nov, no repetidas en esta fase):
+Mi dinero → agregar un gasto fijo de S/ 150.50 sube el faltante a **S/ 350.50** [MEDIDO con
+`verificar-mi-dinero.mjs`]; el reporte SBS de ejemplo carga 5 deudas que **tú confirmas** antes de guardar.
 
 Sin tocar nada más, solo con la cuenta demo (sin documento): Deudas muestra que con lo que ya paga
 Andrea termina sus tres deudas en **9 meses** y ahorra **S/ 2,433.17** en intereses frente a pagar solo el mínimo

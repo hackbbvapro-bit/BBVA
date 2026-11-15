@@ -14,7 +14,7 @@ describe("avisos", () => {
   it("con déficit: el primero es urgente y dice cuándo, cuánto, por qué y la salida", () => {
     const [primero] = avisos(andrea, a.andrea);
     expect(primero).toMatchObject({ id: "deficit", nivel: "urgente", fecha: "2026-11-23",
-      titulo: "En 10 días te faltarán S/ 119.07" });
+      titulo: "En 10 días te faltarían S/ 119.07" });
     expect(primero.cuerpo).toContain("lunes 23 de noviembre");
     expect(primero.cuerpo).toContain("Alquiler y Pago Tarjeta Azul");
     expect(primero.cuerpo).toContain("La salida más barata");
@@ -106,7 +106,7 @@ describe("resumen hablado y respuestas sin IA", () => {
   it("el resumen nombra a la persona, su saldo y el aviso principal", () => {
     const texto = resumenHablado(andrea, a.andrea);
     expect(texto).toContain(`Andrea, hoy tienes ${formatoSoles(andrea.saldoActual)}`);
-    expect(texto).toContain("En 10 días te faltarán S/ 119.07");
+    expect(texto).toContain("En 10 días te faltarían S/ 119.07");
     expect(texto).toContain("paga primero Tarjeta Azul");
   });
 
@@ -130,7 +130,7 @@ describe("resumen hablado y respuestas sin IA", () => {
   it("con un faltante proyectado, el consejo de deudas pide cubrirlo antes de pagar de más", () => {
     const deficit = a.andrea.proyeccion.deficit!;
     const texto = responderSinIA("¿Le adelanto plata a la tarjeta?", andrea, a.andrea);
-    expect(texto).toContain(`Ojo: el ${formatoLargo(deficit.fecha)} te faltarán S/ 119.07`);
+    expect(texto).toContain(`Ojo: el ${formatoLargo(deficit.fecha)} te faltarían S/ 119.07`);
     expect(texto).toContain("paga solo los mínimos y no adelantes pagos");
     for (const p of [carlos, lucia]) {
       const an = p === carlos ? a.carlos : a.lucia;

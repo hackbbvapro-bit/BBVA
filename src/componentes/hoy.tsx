@@ -12,6 +12,7 @@ import {
   type CobroPendiente,
 } from "@/motor";
 import { avisos, costoCorto, mejorJugada, proximosPagos, resumenHablado } from "@/explica/explica";
+import { compararEscenario } from "@/explica/comparar";
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Cifras, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
@@ -122,10 +123,15 @@ export function Hoy({
             {d ? (
               <>
                 <p className="text-[15px] font-semibold leading-snug text-noche md:text-base">
-                  El {alerta?.fecha} te faltarán{" "}
+                  El {alerta?.fecha} te faltarían{" "}
                   <span className="whitespace-nowrap text-coral-fuerte tabular-nums">{unido(alerta?.monto ?? "")}</span>
                 </p>
                 <p className="mt-0.5 text-[13px] leading-snug text-tinta/80 md:text-sm">{unido(alerta?.detalle ?? "")}</p>
+                {barata && (
+                  <p className="mt-1 text-[13px] font-semibold leading-snug text-noche md:text-sm">
+                    La salida más barata: {barata.titulo.charAt(0).toLowerCase() + barata.titulo.slice(1)}.
+                  </p>
+                )}
               </>
             ) : (
               <>
@@ -138,9 +144,14 @@ export function Hoy({
         {d && analisis.jugadas.length > 0 && (
           <button
             className="ml-12 inline-flex min-h-9 items-center gap-1.5 self-start rounded-lg bg-white px-3 text-sm font-semibold text-electrico ring-1 ring-linea transition-colors duration-150 hover:bg-agua-suave md:ml-0 md:min-h-10 md:shrink-0 md:self-center md:px-4 [&_svg]:size-4"
-            onClick={() => desplazar(document.getElementById("como-evitarlo"), "start")}
+            onClick={() => {
+              // Con una salida que resuelve sola, un clic la simula y muestra el antes y el después.
+              // La comparación se lleva a la vista sola al aparecer.
+              if (barata) seleccionar(barata);
+              else desplazar(document.getElementById("como-evitarlo"), "start");
+            }}
           >
-            Ver cómo evitarlo
+            {barata ? "Ver qué cambia" : "Ver cómo evitarlo"}
             <span aria-hidden="true" className="-rotate-90">
               <Icono nombre="abajo" />
             </span>
@@ -190,7 +201,12 @@ export function Hoy({
           <div className="hidden lg:block">
             <GraficoSiTePagan base={analisis.proyeccion} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} ancho={640} fondo="white" />
           </div>
-          {jugada && despues && <Resultado key={jugada.id} jugada={jugada} despues={despues} />}
+          <p className="mt-2 text-[11px] leading-snug text-gris md:text-xs">
+            Proyección referencial basada en los movimientos registrados. Tus ingresos y gastos pueden variar.
+          </p>
+          {jugada && despues && (
+            <Comparacion key={jugada.id} jugada={jugada} antes={analisis.proyeccion} despues={despues} reiniciar={() => seleccionar(undefined)} />
+          )}
         </section>
         <Pagos analisis={analisis} />
       </div>
@@ -268,22 +284,47 @@ function Empezar({ ir, hechos }: { ir?: (a: IrDesdeInicio) => void; hechos: { de
   );
 }
 
-/* ---------- Resultado de la jugada (todo sale del motor) ---------- */
-function Resultado({ jugada, despues }: { jugada: Jugada; despues: Proyeccion }) {
-  const deficit = despues.deficit;
-  const sinRojo = deficit === null;
+/* ---------- Antes y después de la opción simulada (todo sale del motor) ---------- */
+function Comparacion({ jugada, antes, despues, reiniciar }: { jugada: Jugada; antes: Proyeccion; despues: Proyeccion; reiniciar: () => void }) {
+  const c = compararEscenario(antes, despues, jugada);
+  const caja = useRef<HTMLElement>(null);
+  // Al simular, el antes y el después quedan a la vista (con el final del gráfico encima), también en móvil.
+  useEffect(() => desplazar(caja.current), []);
+  // Verde solo si evita el rojo sin costo; si cuesta, ámbar como su insignia.
+  const bien = c.conclusion === "evitado" && jugada.costo === 0;
+  const celdas = [
+    // El día más bajo puede caer en fechas distintas antes y después: cada lado dice la suya.
+    ["Antes", c.antes.etiqueta, c.antes.monto, c.antes.saldo < 0 ? "text-coral-fuerte" : "text-noche", `el ${formatoCorto(c.antes.fecha)}`],
+    ["Después", c.despues.etiqueta, c.despues.monto, c.despues.saldo < 0 ? "text-ambar-fuerte" : "text-verde-fuerte", `el ${formatoCorto(c.despues.fecha)}`],
+    ["Cambio", c.cambio > 0 ? "Mejora" : c.cambio < 0 ? "Empeora" : "Igual", c.cambioTexto, c.cambio < 0 ? "text-coral-fuerte" : "text-electrico", "en tu día más bajo"],
+  ] as const;
   return (
-    <div className={`aparecer mt-3 flex items-start gap-3 rounded-xl p-3 md:mt-4 md:p-4 ${sinRojo ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}>
-      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-white/70 text-sm font-bold" aria-hidden="true">
-        {sinRojo ? "✓" : "!"}
-      </span>
-      <div className="min-w-0">
-        <p className="font-semibold leading-snug">
-          {deficit === null ? "Con esta jugada no llegas a rojo" : unido(`Con esta jugada te faltarían ${formatoSoles(deficit.faltanteMaximo)}`)}
-        </p>
-        <p className="mt-0.5 text-sm text-tinta/80">{sinRojo ? unido(`Tu día más bajo: ${formatoSoles(despues.saldoMinimo)}`) : jugada.titulo}</p>
+    <section ref={caja} aria-label="Antes y después" aria-live="polite" className={`aparecer mt-3 scroll-mb-24 rounded-xl p-3 md:mt-4 md:p-4 ${bien ? "bg-verde-suave/70" : "bg-ambar-suave/70"}`}>
+      <div className="flex items-start gap-2.5">
+        <span className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-white/80 text-xs font-bold ${bien ? "text-verde-fuerte" : "text-ambar-fuerte"}`} aria-hidden="true">
+          {bien ? "✓" : "!"}
+        </span>
+        <div className="min-w-0">
+          <p className="font-semibold leading-snug text-noche">{c.titulo}</p>
+          <p className="text-xs text-gris md:text-[13px]">{jugada.titulo} · tu día más bajo del mes</p>
+        </div>
       </div>
-    </div>
+      <dl className="mt-2.5 grid grid-cols-3 divide-x divide-linea rounded-lg bg-white">
+        {celdas.map(([titulo, etiqueta, monto, tono, fecha]) => (
+          <div key={titulo} className="min-w-0 px-2 py-2 md:px-3">
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">{titulo}</dt>
+            <dd className="text-[11px] leading-tight text-gris md:text-xs">{etiqueta}</dd>
+            <dd className={`mt-0.5 text-[15px] font-semibold leading-tight tabular-nums md:text-base ${tono}`}>{unido(monto)}</dd>
+            <dd className="text-[11px] leading-tight text-gris md:text-xs">{fecha}</dd>
+          </div>
+        ))}
+      </dl>
+      {c.nota && <p className="mt-2 text-xs leading-snug text-tinta/80 md:text-[13px]">{unido(c.nota)}</p>}
+      <button onClick={reiniciar} className="mt-2.5 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-sm font-semibold text-electrico ring-1 ring-linea transition-colors duration-150 hover:bg-agua-suave [&_svg]:size-4">
+        <Icono nombre="cerrar" />
+        Reiniciar comparación
+      </button>
+    </section>
   );
 }
 
@@ -320,10 +361,10 @@ function TarjetaJugada({
           <div className="flex flex-wrap gap-1.5">
             {barata && <span className="rounded-full bg-agua-suave px-2 py-0.5 text-[11px] font-semibold text-electrico">La más barata</span>}
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${j.efecto === "elimina" ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${j.efecto === "elimina" && j.costo === 0 ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
             >
               <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-              {INSIGNIA_EFECTO[j.efecto]}
+              {j.efecto === "elimina" && j.costo > 0 ? "Evita el rojo, pero cuesta" : INSIGNIA_EFECTO[j.efecto]}
             </span>
           </div>
         </div>
