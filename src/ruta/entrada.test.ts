@@ -3,7 +3,7 @@ import { analizar, soles, sumar } from "../motor";
 import { aPerfil } from "../datos/aPerfil";
 import { crearRepositorioMemoria } from "../datos/repositorio";
 import { ID_PROPIO } from "../datos/semilla";
-import { armarCaso, DIAS_DE_ATRASO, repartir, tuvoCreditoSegun, type Respuestas } from "./entrada";
+import { armarCaso, DIAS_DE_ATRASO, historiaDiaria, repartir, semanalDe, SEMANAS_DE_HISTORIA, tuvoCreditoSegun, type Respuestas } from "./entrada";
 import { flujoMensual, hechosDe, trazarRuta } from "./ruta";
 
 const base: Respuestas = {
@@ -114,5 +114,45 @@ describe("de las respuestas a la ruta", () => {
     const ruta = rutaDe(con({ ingresoMensual: soles(1200), saldo: soles(100) }));
     expect(ruta.id).toBe("estar_en_verde");
     expect(ruta.flujo.libre).toBe(-soles(500));
+  });
+});
+
+describe("quien vende o cobra al día", () => {
+  const alDia = (flojo?: number) => con({ trabajo: "independiente", cobro: "diario", ingresoMensual: soles(2600), ...(flojo === undefined ? {} : { ingresoFlojo: flojo }) });
+
+  it("no crea un sueldo fijo: el ingreso va como 12 semanas de ventas diarias", () => {
+    const r = alDia(soles(1300));
+    const datos = armarCaso(r);
+    expect(datos.ingresosFijos).toEqual([]);
+    expect(datos.perfil.tipo).toBe("independiente");
+    expect(datos.movimientos).toEqual(historiaDiaria(r));
+    expect(datos.movimientos).toHaveLength(SEMANAS_DE_HISTORIA * 7);
+    expect(datos.movimientos.every(m => m.monto > 0 && Number.isInteger(m.monto) && m.categoria === "ingreso_variable" && m.fecha <= r.hoy)).toBe(true);
+    // 9 semanas normales y 3 flojas, sin perder un céntimo.
+    expect(sumar(datos.movimientos.map(m => m.monto))).toBe(9 * semanalDe(soles(2600)) + 3 * semanalDe(soles(1300)));
+  });
+
+  it("el motor proyecta con la semana floja y reconoce la normal como la típica, sin tomarlo por un pago fijo", () => {
+    const analisis = analizar(aPerfil(armarCaso(alDia(soles(1300)))));
+    expect(analisis.ingresoVariable.semanalPrudente).toBe(semanalDe(soles(1300)));
+    expect(analisis.ingresoVariable.semanalTipico).toBe(semanalDe(soles(2600)));
+    expect(analisis.ingresoVariable.semanasObservadas).toBe(SEMANAS_DE_HISTORIA);
+    expect(analisis.recurrentes.filter(x => x.monto > 0)).toEqual([]);
+  });
+
+  it("con peor mes flojo, el día más bajo de la proyección no mejora", () => {
+    const minimo = (flojo: number) => analizar(aPerfil(armarCaso(alDia(flojo)))).proyeccion.saldoMinimo;
+    expect(minimo(soles(600))).toBeLessThanOrEqual(minimo(soles(1300)));
+    expect(minimo(soles(1300))).toBeLessThanOrEqual(minimo(soles(2600)));
+  });
+
+  it("sin la cifra del mes flojo se toma igual al mes normal", () => {
+    expect(analizar(aPerfil(armarCaso(alDia()))).ingresoVariable.semanalPrudente).toBe(semanalDe(soles(2600)));
+  });
+
+  it("el caso se guarda sin errores", async () => {
+    const repo = crearRepositorioMemoria();
+    await repo.cargar(armarCaso(alDia(soles(1300))));
+    expect((await repo.leerTodo()).movimientos).toHaveLength(SEMANAS_DE_HISTORIA * 7);
   });
 });

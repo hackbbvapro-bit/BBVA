@@ -53,6 +53,9 @@ export function mejorJugada(analisis: Analisis): Jugada | undefined {
   return analisis.jugadas.find(j => j.resuelve);
 }
 
+/** Causa del déficit cuando no hay ningún pago fijo cerca: lo que sale en el día a día supera lo que entra. */
+export const CAUSA_DIA_A_DIA = "tus gastos del día a día superan lo que entra";
+
 function avisoDeficit(analisis: Analisis): Aviso | undefined {
   const deficit = analisis.proyeccion.deficit;
   if (!deficit) return undefined;
@@ -66,7 +69,10 @@ function avisoDeficit(analisis: Analisis): Aviso | undefined {
   return {
     id: "deficit", nivel: "urgente", fecha: deficit.fecha,
     titulo: `${enDias(deficit.diasRestantes)} te faltarán ${formatoSoles(deficit.faltante)}`,
-    cuerpo: `El ${formatoLargo(deficit.fecha)} ${verbo} ${causas} y la cuenta queda en rojo.${fondo}${salida}`,
+    // Sin un pago fijo cerca del día en rojo, la causa es el día a día: se dice así en vez de dejar un hueco.
+    cuerpo: causas
+      ? `El ${formatoLargo(deficit.fecha)} ${verbo} ${causas} y la cuenta queda en rojo.${fondo}${salida}`
+      : `El ${formatoLargo(deficit.fecha)} la cuenta queda en rojo: ${CAUSA_DIA_A_DIA}.${fondo}${salida}`,
   };
 }
 

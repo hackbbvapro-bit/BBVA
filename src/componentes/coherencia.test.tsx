@@ -115,6 +115,12 @@ describe("P0-2: el aviso no subestima el hueco", () => {
     expect(alerta.detalle).toMatch(/^Ese día se juntan .+ y .+\. Quedan \d+ días para evitarlo\.$/);
   });
 
+  it("si ningún pago fijo causa el día en rojo, la alerta dice que es el día a día (no deja un hueco)", () => {
+    const { analisis } = andrea();
+    const sinCausas = { ...analisis, proyeccion: { ...analisis.proyeccion, deficit: { ...analisis.proyeccion.deficit!, causas: [] } } };
+    expect(alertaPrincipal(sinCausas)!.detalle).toMatch(/^Para ese día tus gastos del día a día superan lo que entra\. Quedan \d+ días para evitarlo\.$/);
+  });
+
   it("sin déficit no hay alerta", () => {
     const perfil = { ...huecoQueCrece(), saldoActual: 1_000_000 };
     expect(alertaPrincipal(analizar(perfil))).toBeUndefined();

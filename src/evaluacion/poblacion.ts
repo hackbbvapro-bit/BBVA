@@ -122,10 +122,15 @@ const ATIPICOS: readonly (readonly [string, Categoria])[] = [
 type Borrador = Omit<MovimientoEtiquetado, 'id' | 'fecha'> & { dia: number };
 type Extra = Partial<Pick<MovimientoEtiquetado, 'comercio' | 'recurrente' | 'serie' | 'duplicado' | 'tipoDuplicado' | 'atipico'>>;
 
-export function generarCliente(semilla: number, indice: number): Cliente {
+/**
+ * `corteFijo` pone a todos el mismo «hoy» (los casos que se ven en la app). Sin él, cada cliente sortea su corte
+ * dentro de un año, como en la evaluación. El sorteo se hace igual en los dos casos para no mover el resto del azar.
+ */
+export function generarCliente(semilla: number, indice: number, corteFijo?: FechaISO): Cliente {
   const azar = crearAzar(mezclar(semilla, indice));
   const id = `cli-${String(indice + 1).padStart(4, '0')}`;
-  const corte = sumarDias(PRIMER_CORTE, azar.entero(0, 364));
+  const corteSorteado = sumarDias(PRIMER_CORTE, azar.entero(0, 364));
+  const corte = corteFijo ?? corteSorteado;
   const inicio = sumarDias(corte, -(DIAS_HISTORIA - 1));
   const fechas = rangoDias(inicio, DIAS);
   const semana = fechas.map(diaSemana);
@@ -360,8 +365,8 @@ export function generarCliente(semilla: number, indice: number): Cliente {
   });
   return { id, tipo, escenarios, corte, ingresoMensual, saldoApertura, saldoCorte, historia, ocultos, futuro, deudas };
 }
-export function generarPoblacion(semilla: number, cantidad: number): Cliente[] {
-  return Array.from({ length: cantidad }, (_, i) => generarCliente(semilla, i));
+export function generarPoblacion(semilla: number, cantidad: number, corteFijo?: FechaISO): Cliente[] {
+  return Array.from({ length: cantidad }, (_, i) => generarCliente(semilla, i, corteFijo));
 }
 
 /** Saldo real al cierre de cada uno de los 30 días siguientes al corte (posición 0 = corte + 1). */

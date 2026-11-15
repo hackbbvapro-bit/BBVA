@@ -12,6 +12,8 @@ export function MenuUsuario({
   alPerfil,
   alComoFunciona,
   alCambiarModo,
+  alDatos,
+  alEvaluacion,
   demo = true,
 }: {
   nombre: string;
@@ -20,6 +22,10 @@ export function MenuUsuario({
   alComoFunciona: () => void;
   /** Si llega, el menú ofrece pasar del caso de ejemplo a la situación propia (o volver al ejemplo). */
   alCambiarModo?: () => void;
+  /** Abre «Datos de prueba»: los clientes sintéticos con los que se evaluó al asistente. */
+  alDatos?: () => void;
+  /** Abre «Evaluación»: cómo se midió el copiloto y qué salió. */
+  alEvaluacion?: () => void;
   /** false cuando la persona usa sus propios datos. */
   demo?: boolean;
 }) {
@@ -123,6 +129,32 @@ export function MenuUsuario({
             <Icono nombre="rumbo" />
             Cómo funciona
           </button>
+          {alDatos && (
+            <button
+              role="menuitem"
+              className={ITEM}
+              onClick={() => {
+                setAbierto(false);
+                alDatos();
+              }}
+            >
+              <Icono nombre="tabla" />
+              Datos de prueba
+            </button>
+          )}
+          {alEvaluacion && (
+            <button
+              role="menuitem"
+              className={ITEM}
+              onClick={() => {
+                setAbierto(false);
+                alEvaluacion();
+              }}
+            >
+              <Icono nombre="tendencia" />
+              Evaluación
+            </button>
+          )}
           <form method="post" action="/api/salir">
             <button role="menuitem" type="submit" className={ITEM}>
               <Icono nombre="salir" />

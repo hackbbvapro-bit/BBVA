@@ -20,6 +20,7 @@ semilla fija: quien lo ejecute obtiene exactamente los mismos archivos.
 | `datos/sinteticos/transacciones-muestra.csv` | 15 267 | Todos los movimientos de los 30 primeros clientes |
 | `datos/sinteticos/transacciones-completo.csv` | 511 086 | Todos los movimientos de los 1 000 clientes. No está en el repositorio por su tamaño: se regenera (sección 6) |
 | `docs/evaluacion/resultados.json` | — | Las métricas calculadas sobre esta población |
+| `datos/sinteticos/agente/` | 6 clientes, 5 deudas, 3 087 movimientos | Seis clientes aparte (semilla `20261116`), mismo formato y todos con corte el 13-nov-2026 (historia del 16-ago al 13-nov-2026). Se usan para probar al asistente con IA (EVALUACION.md, sección 14) y se ven en la app, en «Datos de prueba» |
 
 El código vive en `src/evaluacion/`: `poblacion.ts` (generador), `exportar.ts` (CSV) y
 `corrida.evaluacion.ts` (la corrida oficial).
