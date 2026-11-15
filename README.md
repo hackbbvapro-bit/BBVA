@@ -65,6 +65,11 @@ npm run dev                  # abre http://localhost:3000
 Antes de dar algo por bueno: `npm run typecheck`, `npm run lint`, `npm test` y `npm run build`.
 El formato del código lo pone Prettier (`npx prettier --write <archivo>`).
 
+El caso se guarda en IndexedDB, el almacenamiento nativo del navegador. El inicio ya no descarga ni
+arranca PostgreSQL. Si el navegador tenía un caso en PGlite, se recupera una sola vez al abrir la
+nueva versión; la base anterior se conserva. Se mantiene la protección de una sola pestaña con
+escritura y el respaldo temporal en memoria si el navegador no permite guardar.
+
 Sin claves, la app funciona completa con datos de demostración: el chat responde con textos del
 motor y la voz es la del propio celular. Con `ANTHROPIC_API_KEY` conversa el agente de IA y con
 `FISH_API_KEY` + `FISH_VOICE_ID` habla con voz de Fish Audio. Detalle en `docs/INFRAESTRUCTURA.md`.

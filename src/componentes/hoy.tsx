@@ -21,23 +21,20 @@ import { avisos, costoCorto, mejorJugada, proximosPagos, resumenHablado } from "
 import { compararEscenario } from "@/explica/comparar";
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
-import { Cifras, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
-import { alertaPrincipal, cifras, type DestinoCifra } from "@/componentes/tablero";
+import { Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
+import { ResumenCifras } from "@/componentes/resumen-cifras";
+import type { Cuenta } from "@/datos/tipos";
+import { cifras } from "@/componentes/tablero";
+import { proximoVencimiento as calcularProximoVencimiento } from "@/motor/prioridad";
 
 /** A dónde puede mandar el Inicio (lo resuelve el armazón). */
 export type IrDesdeInicio = "agregar-deuda" | "ruta" | "dinero" | "deudas" | "asistente";
-
-const ICONOS_KPI: NombreIcono[] = ["dinero", "deudas", "calendario", "tendencia"];
-const TONO_ALERTA = {
-  urgente: "border-coral-fuerte/20 bg-coral-suave/70 [&>div>span:first-child]:text-coral-fuerte",
-  atencion: "border-ambar-fuerte/20 bg-ambar-suave/70 [&>div>span:first-child]:text-ambar-fuerte",
-  bien: "border-verde-fuerte/20 bg-verde-suave/70 [&>div>span:first-child]:text-verde-fuerte",
-};
 
 export function Hoy({
   perfil,
   analisis,
   cobros = [],
+  cuentas,
   sonando,
   leer,
   detener,
@@ -47,6 +44,7 @@ export function Hoy({
   pasos,
 }: {
   cobros?: CobroPendiente[];
+  cuentas?: Cuenta[];
   perfil: Perfil;
   analisis: Analisis;
   sonando: boolean;
@@ -76,14 +74,8 @@ export function Hoy({
   const alternarVoz = () => (sonando ? detener() : leer(resumenHablado(perfil, analisis)));
   const barata = mejorJugada(analisis);
   const kpis = cifras(perfil, analisis);
-  /** Cada indicador lleva a donde se puede actuar sobre él. Sin `ir` (pruebas), los de otras pestañas no son botones. */
-  const irA = (destino: DestinoCifra): (() => void) | undefined => {
-    if (destino === "dinero" || destino === "deudas") return ir ? () => ir(destino) : undefined;
-    if (destino === "como-evitarlo") return () => desplazar(document.getElementById("como-evitarlo") ?? grafico.current, "start");
-    return () => desplazar(grafico.current, "start");
-  };
   const d = analisis.proyeccion.deficit;
-  const alerta = alertaPrincipal(analisis);
+  const proximoVencimiento = calcularProximoVencimiento(perfil.hoy, perfil.deudas.map(deuda => deuda.diaPago));
 
   return (
     <div className="space-y-3 md:space-y-6">
@@ -122,70 +114,25 @@ export function Hoy({
         )}
       </header>
 
-      {pasos && !(pasos.deudas && pasos.fijos) && <Empezar ir={ir} hechos={pasos} />}
-
-      {/* Alerta principal: una franja corta con el día, el monto y la causa. */}
-      <section
-        aria-label="Alerta principal"
-        className={`aparecer flex flex-col gap-2 rounded-2xl border px-3.5 py-3 md:flex-row md:items-center md:gap-5 md:px-5 md:py-4 ${TONO_ALERTA[principal.nivel === "urgente" ? "urgente" : principal.nivel === "bien" ? "bien" : "atencion"]}`}
-      >
-        <div className="flex min-w-0 flex-1 items-start gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white shadow-[0_1px_2px_rgb(0_0_0/0.06)] [&_svg]:size-[18px]" aria-hidden="true">
-            <Icono nombre={principal.nivel === "bien" ? "check" : "campana"} />
-          </span>
-          <div className="min-w-0">
-            <p className="sr-only">{principal.nivel === "urgente" ? "Anticípate" : principal.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}</p>
-            {d ? (
-              <>
-                <p className="text-[15px] font-semibold leading-snug text-noche md:text-base">
-                  El {alerta?.fecha} te faltarían{" "}
-                  <span className="whitespace-nowrap text-coral-fuerte tabular-nums">{unido(alerta?.monto ?? "")}</span>
-                </p>
-                <p className="mt-0.5 text-[13px] leading-snug text-tinta/80 md:text-sm">{unido(alerta?.detalle ?? "")}</p>
-                {barata && (
-                  <p className="mt-1 text-[13px] font-semibold leading-snug text-noche md:text-sm">
-                    La salida más barata: {barata.titulo.charAt(0).toLowerCase() + barata.titulo.slice(1)}.
-                  </p>
-                )}
-              </>
-            ) : (
-              <>
-                <p className="text-[15px] font-semibold leading-snug text-noche text-balance md:text-base">{unido(principal.titulo)}</p>
-                <p className="mt-0.5 text-[13px] leading-snug text-tinta/80 md:text-sm">{unido(principal.cuerpo)}</p>
-              </>
-            )}
+      <ResumenCifras cifras={kpis.slice(0, 3).map(k => [k.etiqueta, k.valor] as [string, string])} deficit={Boolean(d)} cuentas={cuentas} proximoVencimiento={proximoVencimiento} tarjetas={perfil.deudas.map(d => ({ id: d.id, nombre: d.nombre, saldo: d.saldo }))} alGestionar={ir ? () => ir("dinero") : undefined} alGestionarTarjetas={ir ? () => ir("deudas") : undefined}
+        alerta={d ? <>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, color: "#c21f2e", fontSize: 12, fontWeight: 600 }}>
+            <span aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 7, background: "white" }}><span style={{ display: "flex", transform: "scale(.7)" }}><Icono nombre="campana" /></span></span>
+            <span>Te faltarán {unido(formatoSoles(d.faltante))}</span>
           </div>
-        </div>
-        {d && analisis.jugadas.length > 0 && (
-          <button
-            className="ml-12 inline-flex min-h-9 items-center gap-1.5 self-start rounded-lg bg-white px-3 text-sm font-semibold text-electrico ring-1 ring-linea transition-colors duration-150 hover:bg-agua-suave md:ml-0 md:min-h-10 md:shrink-0 md:self-center md:px-4 [&_svg]:size-4"
-            onClick={() => {
-              // Con una salida que resuelve sola, un clic la simula y muestra el antes y el después.
-              // La comparación se lleva a la vista sola al aparecer.
-              if (barata) seleccionar(barata);
-              else desplazar(document.getElementById("como-evitarlo"), "start");
-            }}
-          >
-            {barata ? "Ver qué cambia" : "Ver qué puedo hacer"}
-            <span aria-hidden="true" className="-rotate-90">
-              <Icono nombre="abajo" />
-            </span>
-          </button>
-        )}
-      </section>
-
-      {/* Cifras de un vistazo: una franja compacta. */}
-      <Cifras
-        etiqueta="Cifras del mes"
-        items={kpis.map(({ etiqueta, valor, nota, destino, accion }, i) => ({
-          icono: ICONOS_KPI[i],
-          etiqueta,
-          valor,
-          nota,
-          accion,
-          tono: i === 3 ? (d ? "ambar" : "verde") : "azul",
-          ir: irA(destino),
-        }))}
+          <div style={{ marginTop: 5, fontSize: 10, lineHeight: 1.4, color: "#5b6670" }}>
+            {d.causas.map((c, i) => (
+              <p key={i} style={{ display: "flex", justifyContent: "space-between", gap: 5 }}>
+                <span>{c.descripcion.replace(/^pago\s+/i, "")}</span>
+                <span className="tabular-nums">{unido(formatoSoles(Math.abs(c.monto)))}</span>
+              </p>
+            ))}
+          </div>
+          {analisis.jugadas.length > 0 && <button type="button" style={{ marginTop: "auto", paddingTop: 5, alignSelf: "flex-end", color: "#001391", fontSize: 10, lineHeight: 1.3, fontWeight: 600, cursor: "pointer" }} onClick={() => desplazar(document.getElementById("como-evitarlo"))}>Ver qué cambia <span aria-hidden="true">›</span></button>}
+        </> : <>
+          <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#0b7a40" }}><span aria-hidden="true">✓</span> Todo está perfecto</p>
+          <p style={{ marginTop: 5, fontSize: 10, lineHeight: 1.3, color: "#5b6670" }}>Tu saldo cubriría los pagos previstos en los próximos 30 días.</p>
+        </>}
       />
 
       {/* Proyección (2/3) + lo que sale esta semana (1/3). */}
@@ -193,7 +140,15 @@ export function Hoy({
         <section ref={grafico} className="aparecer scroll-mt-24 rounded-2xl border border-linea bg-white p-4 md:p-6 lg:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-base font-semibold tracking-tight text-noche md:text-lg">{tituloH}</h2>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h2 className="text-base font-semibold tracking-tight text-noche md:text-lg">{tituloH}</h2>
+                {(despues ?? base).dias.some(dia => dia.saldo < 0) && (
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-coral-fuerte">
+                    <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-coral-fuerte text-[11px] text-white" aria-hidden="true">!</span>
+                    Cuidado, te faltará dinero
+                  </span>
+                )}
+              </div>
               <p className="mt-0.5 text-xs text-gris md:text-sm">{jugada ? "Así cambia con la opción que estás probando" : "Así se movería tu saldo"}</p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1.5 pt-1 text-xs font-semibold" aria-label="Leyenda">
@@ -239,6 +194,24 @@ export function Hoy({
         </section>
         <Pagos analisis={analisis} />
       </div>
+
+
+      {pasos && !(pasos.deudas && pasos.fijos) && <Empezar ir={ir} hechos={pasos} />}
+
+      {!d && <section
+        aria-label="Alerta principal"
+        className={`aparecer rounded-2xl border border-linea border-l-4 bg-white p-5 md:p-6 ${principal.nivel === "urgente" ? "border-l-coral-fuerte" : principal.nivel === "bien" ? "border-l-verde-fuerte" : "border-l-ambar-fuerte"}`}
+      >
+        <p
+          className={`flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.06em] ${principal.nivel === "urgente" ? "text-coral-fuerte" : principal.nivel === "bien" ? "text-verde-fuerte" : "text-ambar-fuerte"}`}
+        >
+          <span className="size-2 rounded-full bg-current" aria-hidden="true" />
+          {principal.nivel === "urgente" ? "Anticípate" : principal.nivel === "bien" ? "Vas por buen camino" : "Tenlo presente"}
+        </p>
+        <h2 className="mt-2 text-xl font-semibold leading-snug text-noche text-balance">{unido(principal.titulo)}</h2>
+        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-tinta">{unido(principal.cuerpo)}</p>
+      </section>}
+
 
       {analisis.jugadas.length > 0 && (
         <section id="como-evitarlo" aria-labelledby="titulo-evitar" className="scroll-mt-24 space-y-3 md:space-y-4">

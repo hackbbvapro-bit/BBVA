@@ -90,7 +90,7 @@ async function leer(db: Tx): Promise<Datos> {
       id: perfil.id, nombre: perfil.nombre, tipo: perfil.tipo, descripcion: perfil.descripcion,
       ingresoAprox: perfil.ingreso_aprox, diasCobro: JSON.parse(perfil.dias_cobro) as number[], hoy: perfil.hoy,
     },
-    cuentas: await q<Datos["cuentas"][number]>("SELECT id, nombre, saldo FROM cuentas ORDER BY nombre, id"),
+    cuentas: await q<Datos["cuentas"][number]>("SELECT id, nombre, saldo FROM cuentas ORDER BY (id = 'cuenta-principal') DESC, nombre, id"),
     ingresosFijos: fijos.filter(f => f.sentido === "ingreso").map(aFijo),
     gastosFijos: fijos.filter(f => f.sentido === "gasto").map(aFijo),
     movimientos: await q<Movimiento & { canal: Canal }>("SELECT id, fecha, monto, descripcion, categoria, canal FROM movimientos ORDER BY fecha, id"),
