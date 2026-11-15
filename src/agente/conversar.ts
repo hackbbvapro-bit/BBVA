@@ -1,3 +1,4 @@
+import type { Estilo } from "./estilo";
 /**
  * Conversación con el agente. Primero mira si la persona cuenta algo para anotar («me acaban de pagar
  * 1.000»): eso lo resuelve el código, sin IA. Si no, y hay clave de IA, el modelo explica usando las
@@ -32,6 +33,7 @@ export type EventoAgente =
   | { tipo: "fin"; origen: OrigenAgente; cerebro?: string };
 
 export interface EntradaAgente {
+  estilo?: Estilo;
   perfil: Perfil;
   analisis: Analisis;
   mensajes: readonly MensajeEntrada[];
@@ -79,7 +81,7 @@ async function* conIA(clave: string, entrada: EntradaAgente, cerebro: Cerebro): 
       system: [
         {
           type: "text",
-          text: promptSistema(entrada.perfil, entrada.analisis, entrada.ruta),
+          text: promptSistema(entrada.perfil, entrada.analisis, entrada.ruta, entrada.estilo),
           cache_control: { type: "ephemeral" },
         },
       ],

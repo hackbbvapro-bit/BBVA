@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { validarEstilo, type Estilo } from "@/agente/estilo";
 import { formatoSoles } from "@/motor";
 import type { Analisis, Perfil } from "@/motor";
 import type { CobroPendiente } from "@/motor/cobros";
@@ -7,7 +8,7 @@ import { describir, type Accion } from "@/agente/registro";
 import { ErrorDatos } from "@/datos/validar";
 import { TarjetaAnotado, type Nota } from "@/componentes/anotado";
 import { conversar, type MensajeChat } from "@/cliente/agente";
-import { desbloquearAudio } from "@/cliente/voz";
+import { hablarEnVivo, callar, desbloquearAudio, type VozEnVivo } from "@/cliente/voz";
 import { escuchar, puedeEscuchar, type Escucha, type ErrorEscucha } from "@/cliente/escucha";
 import { estaActiva, type Fase } from "@/cliente/conversacion";
 import { useManosLibres, type ResultadoEnvio } from "@/cliente/manos-libres";
@@ -63,14 +64,14 @@ const errores: Record<ErrorEscucha, string> = {
 /** Preguntas sobre productos: se responden con los tipos genéricos de la ruta y qué preguntar en el banco, sin marcas. */
 const preguntasDeProducto = [
   "¿Qué producto financiero me conviene?",
-  "¿Qué pregunto en mi banco antes de contratar un producto?",
+  "¿Qué pregunto en BBVA antes de contratar un producto?",
 ];
 const ICONOS_SUGERENCIA = ["rumbo", "deudas", "tendencia", "dinero"] as const;
 const AYUDA: readonly { icono: "hoy" | "deudas" | "dinero" | "manos"; texto: string }[] = [
   { icono: "hoy", texto: "Tu saldo día a día y si llegas a fin de mes" },
   { icono: "deudas", texto: "Qué deuda pagar primero y cuánto" },
   { icono: "dinero", texto: "Si te alcanza para un gasto antes de hacerlo" },
-  { icono: "manos", texto: "Qué tipo de producto te conviene y qué preguntar en tu banco" },
+  { icono: "manos", texto: "Qué tipo de producto te conviene y qué preguntar en BBVA" },
 ];
 /** Panel lateral (pantallas grandes): el caso en una mirada, en qué ayuda y cómo responde. Cifras del motor. */
 function PanelLateral({ ruta, avance }: { ruta?: Ruta; avance?: Avance }) {
@@ -130,8 +131,8 @@ function PanelLateral({ ruta, avance }: { ruta?: Ruta; avance?: Avance }) {
           <ul className="mt-3 space-y-2 text-[13px] leading-snug text-tinta">
             {[
               "Cada monto y cada fecha los calcula el motor del copiloto.",
-              "Hablo de tipos de producto, sin marcas ni tasas inventadas.",
-              "La decisión de aprobar un producto es siempre de tu banco.",
+              "Te oriento con productos BBVA, sin tasas inventadas.",
+              "La decisión de aprobar un producto es siempre de BBVA.",
             ].map(t => (
               <li key={t} className="flex items-start gap-2">
                 <span aria-hidden="true" className="mt-0.5 text-verde-fuerte [&_svg]:size-3.5">
@@ -155,9 +156,8 @@ export function Chat({
   hechos,
   apertura,
   alCambiarExterno,
-  leer,
-  detener,
-  sonando,
+  detener: detenerExterior,
+  sonando: sonandoExterior,
   cobros,
   alAnotar,
   avance,
@@ -188,6 +188,24 @@ export function Chat({
   /** false en una pestaña de solo mirar (otra pestaña tiene la base): muestra lo guardado pero no lo pisa. */
   guardar?: boolean;
 }) {
+  const [estilo, setEstilo] = useState<Estilo>("directo");
+  const [vozEnCurso, setVozEnCurso] = useState(false);
+  const sesionVoz = useRef<VozEnVivo | null>(null);
+  const silenciado = useRef(false);
+  const sonando = sonandoExterior || vozEnCurso;
+  function detener() {
+    silenciado.current = true;
+    callar(); sesionVoz.current = null; setVozEnCurso(false); detenerExterior();
+  }
+  useEffect(() => {
+    let preferido: Estilo = "directo";
+    try { preferido = validarEstilo(localStorage.getItem("bbva-estilo")); } catch { /* directo */ }
+    queueMicrotask(() => setEstilo(preferido));
+  }, []);
+  function cambiarEstilo(valor: Estilo) {
+    try { localStorage.setItem("bbva-estilo", valor); setEstilo(valor); }
+    catch { setEstilo("directo"); }
+  }
   // La conversación se guarda en este equipo (por caso) y se recupera al volver.
   const [mensajes, setMensajes] = useState<Burbuja[]>(() => leerHistorial(perfil.id)),
     [texto, setTexto] = useState("");
@@ -220,6 +238,7 @@ export function Chat({
       vivo.current = false;
       controlador.current?.abort();
       escucha.current?.detener();
+      callar();
     };
   }, [externo]);
   useEffect(() => {
@@ -238,28 +257,6 @@ export function Chat({
     // Al abrir el panel o cambiar de paso (elegir, leyendo, revisar) se lleva a la vista su inicio.
     if (subiendo) desplazar(panel.current, "start");
   }, [subiendo, paso]);
-  useEffect(() => {
-    // Tras guardar un documento, el asistente explica qué cambió. Espera a estar libre y usa el perfil ya actualizado.
-    if (!porExplicar || ocupado) return;
-    queueMicrotask(() => {
-      if (!vivo.current) return;
-      setPorExplicar(null);
-      void enviar(porExplicar);
-    });
-    // `enviar` se recrea en cada pintado; solo interesa reaccionar a la pregunta pendiente y a que quede libre.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [porExplicar, ocupado]);
-  const manos = useManosLibres({
-    enviar: t => enviar(t, true),
-    detener,
-    sonando,
-    hayVoz: () => vozRef.current,
-  });
-  const fase = manos.estado.fase;
-  useEffect(() => {
-    faseRef.current = fase;
-  }, [fase]);
-  const conversando = estaActiva(manos.estado);
   function fijarNota(id: string, nota: Nota) {
     if (vivo.current) setNotas(actual => ({ ...actual, [id]: nota }));
   }
@@ -286,11 +283,12 @@ export function Chat({
       setError("No pude deshacerlo. Inténtalo otra vez.");
     }
   }
-  async function enviar(pregunta: string, porVoz = false): Promise<ResultadoEnvio> {
+  async function enviar(pregunta: string, porVoz = false, estiloPeticion?: Estilo): Promise<ResultadoEnvio> {
     const limpio = pregunta.trim().slice(0, 300);
     if (!limpio || bloqueo.current || !vivo.current) return "omitido";
     desbloquearAudio();
     detener();
+    silenciado.current = false;
     bloqueo.current = true;
     setOcupado(true);
     setTexto("");
@@ -317,6 +315,7 @@ export function Chat({
       const respuesta = await conversar({
         perfil,
         analisis,
+        estilo: estiloPeticion ?? estilo,
         mensajes: conLoDeshecho(historial),
         hechos,
         ruta,
@@ -336,6 +335,15 @@ export function Chat({
         },
         alTexto: trozo => {
           if (!vivo.current || abortador.signal.aborted) return;
+          if (!silenciado.current && vozRef.current && (!porVoz || faseRef.current === "pensando")) {
+            if (!sesionVoz.current) {
+              setVozEnCurso(true);
+              sesionVoz.current = hablarEnVivo(() => {
+                if (vivo.current) setVozEnCurso(false);
+              });
+            }
+            sesionVoz.current.agregar(trozo);
+          }
           setMensajes(actual =>
             actual.map((m, i) => (i === actual.length - 1 ? { ...m, texto: m.texto + trozo } : m)),
           );
@@ -353,7 +361,7 @@ export function Chat({
         },
       ]);
       // Si la conversación se cerró mientras pensaba, la respuesta queda escrita pero no se lee.
-      if (vozRef.current && (!porVoz || faseRef.current === "pensando")) leer(respuesta.texto);
+      sesionVoz.current?.terminar();
       return "ok";
     } catch {
       // No deja la burbuja «Pensando…» colgada: se queda lo que alcanzó a llegar, o nada.
@@ -364,12 +372,35 @@ export function Chat({
       if (vivo.current && !abortador.signal.aborted) setError("No pude responder. Inténtalo otra vez.");
       return "error";
     } finally {
+      sesionVoz.current?.terminar();
       if (vivo.current) {
         bloqueo.current = false;
         setOcupado(false);
       }
     }
   }
+  useEffect(() => {
+    // Tras guardar un documento, el asistente explica qué cambió. Espera a estar libre y usa el perfil ya actualizado.
+    if (!porExplicar || ocupado) return;
+    queueMicrotask(() => {
+      if (!vivo.current) return;
+      setPorExplicar(null);
+      void enviar(porExplicar);
+    });
+    // `enviar` se recrea en cada pintado; solo interesa reaccionar a la pregunta pendiente y a que quede libre.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [porExplicar, ocupado]);
+  const manos = useManosLibres({
+    enviar: t => enviar(t, true),
+    detener,
+    sonando,
+    hayVoz: () => vozRef.current,
+  });
+  const fase = manos.estado.fase;
+  useEffect(() => {
+    faseRef.current = fase;
+  }, [fase]);
+  const conversando = estaActiva(manos.estado);
   function dictar() {
     desbloquearAudio();
     detener();
@@ -420,7 +451,7 @@ export function Chat({
     >
       <div className="xl:flex xl:min-h-[calc(100dvh-5rem)] xl:flex-col">
         {/* Cabecera: quién responde y cómo; la voz se apaga desde aquí. */}
-        <header className="aparecer flex items-center gap-3 border-b border-linea pb-4">
+        <header className="aparecer flex flex-wrap items-center gap-3 border-b border-linea pb-4">
           <span
             className="relative flex size-11 shrink-0 items-center justify-center rounded-2xl bg-electrico text-white shadow-[0_6px_16px_-8px_rgb(7_33_70/0.6)]"
             aria-hidden="true"
@@ -487,6 +518,15 @@ export function Chat({
                 )}
               </button>
             )}
+          </div>
+          <div role="group" aria-label="Estilo de respuesta" className="flex w-full gap-1 rounded-full bg-niebla p-1 sm:w-auto">
+            {(["directo", "explicado"] as const).map(valor => (
+              <button key={valor} type="button" aria-pressed={estilo === valor}
+                onClick={() => cambiarEstilo(valor)}
+                className={`min-h-9 flex-1 rounded-full px-3 text-sm font-semibold ${estilo === valor ? "bg-white text-electrico shadow-sm" : "text-gris"}`}>
+                {valor === "directo" ? "Directo" : "Explicado"}
+              </button>
+            ))}
           </div>
         </header>
         {pidiendo && !externo && alCambiarExterno && (
@@ -655,6 +695,11 @@ export function Chat({
                   <p className="aparecer whitespace-pre-wrap break-words rounded-2xl rounded-tl-md bg-white px-4 py-3 text-[15px] leading-relaxed text-tinta ring-1 ring-linea md:px-5 md:text-base">
                     {m.texto || <span className="text-gris">Pensando…</span>}
                   </p>
+                  {m.texto && i === mensajes.length - 1 && i > 0 && <button type="button" disabled={ocupado}
+                    className="mt-1 min-h-9 px-1 text-xs font-semibold text-electrico disabled:opacity-40"
+                    onClick={() => void enviar("Explícame más sobre eso", false, "explicado")}>
+                    Explícame más
+                  </button>}
                   {m.notas?.map(
                     id =>
                       notas[id] && (
