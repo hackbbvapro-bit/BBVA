@@ -11,5 +11,7 @@ export function preguntaSinIA(mensajes: readonly { rol: string; texto: string }[
   const suyas = mensajes.filter(m => m.rol === "usuario").map(m => m.texto.trim()).filter(t => t.length > 0);
   const pregunta = suyas.at(-1) ?? "";
   if (!PIDE_MAS.test(pregunta)) return { pregunta, estilo };
-  return { pregunta: suyas.at(-2) ?? pregunta, estilo: "explicado" };
+  // «Explícame más» dos veces seguidas amplía la última pregunta de verdad, no el «explícame más» anterior.
+  const base = suyas.slice(0, -1).reverse().find(t => !PIDE_MAS.test(t)) ?? pregunta;
+  return { pregunta: base, estilo: "explicado" };
 }
