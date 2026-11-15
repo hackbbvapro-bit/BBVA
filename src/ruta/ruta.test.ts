@@ -6,7 +6,7 @@ import { datosDeEjemplo } from "../datos/semilla";
 import type { Datos } from "../datos/tipos";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "./entrada";
 import {
-  AVISO_SIMULACION, avanceDe, colchon, contadorDeAvance, EsquemaAvances, EsquemaHechos, flujoMensual, fraseAvance, fraseLibre, hechosDe, IDS_PASO,
+  AVISO_SIMULACION, avanceDe, colchon, contadorDeAvance, EsquemaAvances, EsquemaHechos, flujoMensual, fraseAvance, fraseLibre, fraseRitmo, fraseLlegasPero, fechaConDia, hechosDe, IDS_PASO,
   opcionesDeRuta, recomendada, preguntasSugeridas, rutaExplicada, rutaHablada, saludoDeRuta, SIN_HECHOS, TITULOS, trazarRuta, type FlujoMensual, type Hechos, type IdPaso, type Ruta,
 } from "./ruta";
 
@@ -87,7 +87,7 @@ describe("fraseLibre", () => {
   it("dice cuánto queda, que no queda nada o cuánto falta", () => {
     expect(fraseLibre(flujo(2500, 1700, 250))).toBe(`Al mes te entran ${formatoSoles(soles(2500))} y salen ${formatoSoles(soles(1950))} (${formatoSoles(soles(250))} son cuotas de deuda): te quedan ${formatoSoles(soles(550))} libres.`);
     expect(fraseLibre(flujo(1000, 1000))).toMatch(/no te queda nada libre\.$/);
-    expect(fraseLibre(flujo(1000, 1300))).toMatch(new RegExp(`te faltan ${formatoSoles(soles(300)).replace(/[.$/]/g, "\\$&")} cada mes\\.$`));
+    expect(fraseLibre(flujo(1000, 1300))).toMatch(new RegExp(`cada mes gastas ${formatoSoles(soles(300)).replace(/[.$/]/g, "\\$&")} más de lo que te entra\\.$`));
     expect(fraseLibre(flujo(0, 0))).toMatch(/^Todavía no registras/);
   });
 });
@@ -415,5 +415,21 @@ describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
     expect(EsquemaAvances.safeParse([...IDS_PASO, IDS_PASO[0]]).success).toBe(false);
     expect(EsquemaAvances.safeParse("verde_tapar_hueco").success).toBe(false);
     expect(new Set(IDS_PASO).size).toBe(IDS_PASO.length);
+  });
+});
+
+describe("fraseRitmo y fraseLlegasPero (tarjeta de Inicio sin déficit)", () => {
+  it("con flujo mensual negativo dicen cuánto más se gasta cada mes, con la cifra del flujo", () => {
+    const f = flujo(1000, 1300);
+    expect(fraseRitmo(f)).toBe(`Cada mes gastas ${formatoSoles(soles(300))} más de lo que te entra`);
+    expect(fraseLlegasPero(f)).toBe(`Llegas a 30 días, pero cada mes gastas ${formatoSoles(soles(300))} más de lo que te entra`);
+  });
+  it("con flujo cero, positivo o sin registro no hay tarjeta ámbar", () => {
+    expect(fraseRitmo(flujo(1000, 1000))).toBeNull();
+    expect(fraseLlegasPero(flujo(2500, 1700))).toBeNull();
+    expect(fraseLlegasPero(flujo(0, 0))).toBeNull();
+  });
+  it("fechaConDia da día abreviado y fecha corta", () => {
+    expect(fechaConDia("2026-12-05")).toBe("sáb 5 dic");
   });
 });

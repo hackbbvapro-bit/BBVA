@@ -5,7 +5,8 @@
  * No calcula ni inventa ningún «score»: habla de señales que la persona puede ver en sus propios datos.
  */
 import { z } from "zod";
-import { formatoLargo, formatoSoles, redondear, semanalAMes, sumar } from "../motor";
+import { formatoCorto, formatoLargo, formatoSoles, redondear, semanalAMes, sumar } from "../motor";
+import { nombreDia } from "../motor/fechas";
 import type { Analisis, Centimos, Perfil, Recurrente } from "../motor";
 import { CATALOGO, type EntradaCatalogo } from "../recomendaciones/catalogo";
 import { crecimientoDelHueco } from "../explica/hueco";
@@ -223,7 +224,27 @@ export function fraseLibre(f: FlujoMensual): string {
   const base = `Al mes te entran ${formatoSoles(f.ingresos)} y salen ${formatoSoles(salen)}${cuotas}:`;
   if (f.libre > 0) return `${base} te quedan ${formatoSoles(f.libre)} libres.`;
   if (f.libre === 0) return `${base} no te queda nada libre.`;
-  return `${base} te faltan ${formatoSoles(-f.libre)} cada mes.`;
+  return `${base} cada mes gastas ${formatoSoles(-f.libre)} más de lo que te entra.`;
+}
+
+/**
+ * El flujo mensual negativo dicho como RITMO (no como otro faltante): «Cada mes gastas S/ X más de lo que te entra».
+ * `null` si el mes no cierra en negativo o si todavía no hay nada registrado. X sale de flujoMensual().libre.
+ */
+export function fraseRitmo(f: FlujoMensual): string | null {
+  if (f.libre >= 0 || sinRegistro(f)) return null;
+  return `Cada mes gastas ${formatoSoles(-f.libre)} más de lo que te entra`;
+}
+
+/** Tarjeta de Inicio cuando NO hay déficit a 30 días pero el mes cierra en negativo; `null` si no aplica. */
+export function fraseLlegasPero(f: FlujoMensual): string | null {
+  const r = fraseRitmo(f);
+  return r ? `Llegas a 30 días, pero c${r.slice(1)}` : null;
+}
+
+/** «sáb 5 dic»: día de la semana abreviado y fecha corta, ambos del motor de fechas. */
+export function fechaConDia(fecha: string): string {
+  return `${nombreDia(fecha).slice(0, 3)} ${formatoCorto(fecha)}`;
 }
 
 /** Opciones válidas. Con cinco candidatas se conserva la meta y la elección; se limita la lista a cuatro. */
