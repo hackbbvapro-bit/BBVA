@@ -74,10 +74,16 @@ export function pasosPrevistos(b: Borrador): Paso[] {
 export function proximoPaso(b: Borrador): Paso | null {
   return pasosPrevistos(b).find(p => b[p] === undefined) ?? null;
 }
+/**
+ * «Pregunta X de N». Mientras una respuesta que abre otra pregunta no llega (trabajo, cobro, deudas), se cuenta esa
+ * pregunta extra: así el total solo puede bajar, nunca subir de golpe a mitad del cuestionario.
+ */
 export function avance(b: Borrador): { actual: number; total: number } {
   const pasos = pasosPrevistos(b);
   const paso = proximoPaso(b);
-  return { actual: paso ? pasos.indexOf(paso) + 1 : pasos.length, total: pasos.length };
+  const porSaber = (b.trabajo === undefined || (b.trabajo === "dependiente" && b.cobro === undefined) ? 1 : 0)
+    + (b.deudas === undefined ? 1 : 0);
+  return { actual: paso ? pasos.indexOf(paso) + 1 : pasos.length, total: pasos.length + porSaber };
 }
 export function pregunta(paso: Paso, b: Borrador): Pregunta {
   switch (paso) {
@@ -86,7 +92,7 @@ export function pregunta(paso: Paso, b: Borrador): Pregunta {
     case "cobro": return { paso, clase: "opciones", texto: "¿Cada cuánto recibes dinero?", opciones: COBROS };
     case "diaPago": return { paso, clase: "dia", texto: "¿Qué día del mes te depositan?", ayuda: "Del 1 al 31; usa 31 para el último día del mes." };
     case "ingreso": return { paso, clase: "soles", texto: b.cobro === "semanal" || b.cobro === "diario" ? "¿Cuánto juntas en una semana normal?" : b.cobro === "quincena" ? "¿Cuánto recibes cada quincena?" : b.cobro === "variable" ? "En un mes normal, ¿cuánto te llega en total?" : "¿Cuánto recibes al mes?", ayuda: "Usa un monto o rango inventado.", opciones: RANGOS };
-    case "flojo": return { paso, clase: "soles", texto: "En un mes flojo, ¿cuánto recibes como mínimo?", opciones: RANGOS };
+    case "flojo": return { paso, clase: "soles", texto: "Y en un mes flojo, ¿cuánto te entra en todo el mes?", ayuda: b.cobro === "semanal" || b.cobro === "diario" ? "El total del mes, no de una semana." : undefined, opciones: RANGOS };
     case "saldo": return { paso, clase: "soles", texto: "¿Cuánto tienes hoy, entre tu cuenta y tu efectivo?", opciones: RANGOS };
     case "gastos": return { paso, clase: "soles", texto: "¿Cuánto gastas al mes en total? Alquiler, servicios, comida, pasajes… no tiene que ser exacto; lo detallas después en Mi dinero.", opciones: [...RANGOS, { valor: "despues", texto: "Lo detallo después" }] };
     case "deudas": return { paso, clase: "opciones", texto: "¿Tienes deudas?", opciones: DEUDAS };

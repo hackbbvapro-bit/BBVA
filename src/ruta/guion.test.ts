@@ -28,6 +28,28 @@ describe("cuestionario corto", () => {
     expect(recorrer({ ...comunes, cobro: "quincena" }).orden).toHaveLength(8);
     expect(recorrer({ ...comunes, trabajo: "independiente", cobro: "variable", flojo: "1500", deudas: "al_dia", cuotaDeuda: "250" }).orden).toEqual(["nombre", "trabajo", "cobro", "ingreso", "flojo", "saldo", "gastos", "deudas", "cuotaDeuda", "meta"]);
   });
+  it("el total de «Pregunta X de N» nunca sube a mitad del cuestionario y termina en el número real de preguntas", () => {
+    const casos: Partial<Record<Paso, string>>[] = [
+      comunes,
+      { ...comunes, cobro: "quincena" },
+      { ...comunes, trabajo: "independiente", cobro: "semanal", flojo: "1500", deudas: "al_dia", cuotaDeuda: "250" },
+      { ...comunes, trabajo: "independiente", cobro: "variable", flojo: "1500" },
+    ];
+    for (const respuestas of casos) {
+      let borrador: Borrador = {};
+      const totales: number[] = [];
+      for (let paso = proximoPaso(borrador); paso !== null; paso = proximoPaso(borrador)) {
+        totales.push(avance(borrador).total);
+        borrador = responder(borrador, paso, respuestas[paso]!).borrador;
+      }
+      totales.forEach((t, i) => { if (i > 0) expect(t).toBeLessThanOrEqual(totales[i - 1]); });
+      expect(totales.at(-1)).toBe(pasosPrevistos(borrador).length);
+    }
+  });
+  it("el mes flojo pide el total del mes y, si cobra por semana, lo aclara", () => {
+    expect(pregunta("flojo", { cobro: "semanal" })).toMatchObject({ texto: "Y en un mes flojo, ¿cuánto te entra en todo el mes?", ayuda: "El total del mes, no de una semana." });
+    expect(pregunta("flojo", { cobro: "variable" }).ayuda).toBeUndefined();
+  });
   it("ofrece las cinco frecuencias a ambos trabajos y adapta el ingreso", () => {
     for (const trabajo of ["dependiente", "independiente"] as const) {
       expect(pregunta("cobro", { trabajo }).opciones?.map(o => o.valor)).toEqual(["diario", "semanal", "quincena", "fin_de_mes", "variable"]);
@@ -84,7 +106,7 @@ describe("cuestionario corto", () => {
   });
   it("convierte la semana y la quincena con céntimos enteros", () => {
     const semanal = aRespuestas(recorrer({ ...comunes, cobro: "semanal", ingreso: "500.01" }).borrador, "2026-11-14");
-    expect(semanal.ingresoMensual).toBe(216671);
+    expect(semanal.ingresoMensual).toBe(216_700); // 500.01 × 52 / 12 ≈ 2,166.71: estimado al sol
     expect(semanal.ingresoSemanal).toBe(50001);
     const perfil = aPerfil(armarCaso(semanal));
     expect(analizar(perfil).recurrentes.filter(r => r.monto > 0)).toMatchObject([{ monto: 50001, frecuencia: "semanal" }]);

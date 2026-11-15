@@ -5,7 +5,7 @@
  * No calcula ni inventa ningún «score»: habla de señales que la persona puede ver en sus propios datos.
  */
 import { z } from "zod";
-import { formatoLargo, formatoSoles, redondear, sumar } from "../motor";
+import { formatoLargo, formatoSoles, redondear, semanalAMes, sumar } from "../motor";
 import type { Analisis, Centimos, Perfil, Recurrente } from "../motor";
 import { CATALOGO, type EntradaCatalogo } from "../recomendaciones/catalogo";
 import { crecimientoDelHueco } from "../explica/hueco";
@@ -51,12 +51,12 @@ export interface FlujoMensual {
   libre: Centimos;
 }
 
-export const alMes = (r: Recurrente): Centimos => (r.frecuencia === "mensual" ? r.monto : redondear((r.monto * 52) / 12));
+export const alMes = (r: Recurrente): Centimos => (r.frecuencia === "mensual" ? r.monto : semanalAMes(r.monto));
 
 /** De dónde sale cada lado del mes típico: lo fijo detectado y lo variable estimado. Todo en céntimos enteros, ≥ 0. */
 export interface DesgloseMensual {
   ingresosFijos: Centimos;
-  /** Ingreso variable prudente (semanal × 52 / 12). */
+  /** Ingreso variable prudente (semanal × 52 / 12, al sol). */
   ingresoVariable: Centimos;
   /** Gastos fijos, sin cuotas de deuda. */
   gastosFijos: Centimos;
@@ -69,7 +69,7 @@ export function desgloseMensual(analisis: Analisis): DesgloseMensual {
   const fijos = analisis.recurrentes.filter(r => r.categoria !== "deuda").map(alMes);
   return {
     ingresosFijos: sumar(fijos.filter(m => m > 0)),
-    ingresoVariable: Math.max(0, redondear((analisis.ingresoVariable.semanalPrudente * 52) / 12)),
+    ingresoVariable: Math.max(0, semanalAMes(analisis.ingresoVariable.semanalPrudente)),
     gastosFijos: -sumar(fijos.filter(m => m < 0)),
     gastoVariable: Math.max(0, redondear(-analisis.gastoVariable.diario * 30)),
   };
@@ -280,7 +280,7 @@ function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: 
 
 function rutaHistorial(flujo: FlujoMensual): Cuerpo {
   const { pasos, idsPasos, paso } = listaDePasos();
-  paso("grande_objetivo", "El banco mira tu historial antes de prestarte para una casa o un auto; sin historial te lo pueden negar o cobrar más caro. Define qué quieres comprar y cuándo antes de evaluar un crédito.");
+  paso("grande_objetivo", "Define qué quieres comprar, cuánto cuesta y para cuándo, antes de evaluar un crédito.");
   if (sinRegistro(flujo)) paso("historial_anotar", "Anota tus ingresos y tus gastos fijos en Mi dinero: con eso afino esta ruta.");
   else if (flujo.libre <= 0) paso("historial_liberar", "Antes de pedir un producto, haz que te sobre algo cada mes: revisa qué gasto puedes bajar.");
   paso("historial_producto_pequeno", "Empieza con un producto de crédito pequeño, uno cuyo pago completo puedas cubrir todos los meses.");
@@ -289,7 +289,7 @@ function rutaHistorial(flujo: FlujoMensual): Cuerpo {
   return {
     resumen: "Lo primero es que las entidades puedan ver que pagas a tiempo.",
     motivos: [
-      "Para una compra grande conviene preparar tu ahorro y revisar tu historial.",
+      "El banco mira tu historial antes de prestarte para una casa o un auto; sin historial te lo pueden negar o cobrar más caro.",
       fraseLibre(flujo),
     ],
     pasos,
@@ -405,10 +405,15 @@ export function fraseAvance(a: Avance): string {
 
 /** Versión corta para decir en voz alta o abrir la conversación. Con avance, retoma donde quedó la persona. */
 export function rutaHablada(ruta: Ruta, avance?: Avance): string {
-  const base = `Te sugiero ${minuscula(ruta.titulo)}, porque ${minuscula(ruta.motivos[0])}`;
-  if (avance && avance.total > 0 && !avance.siguiente) return `${base} Ya completaste todos sus pasos. Puedes elegir otra ruta en Mi ruta.`;
+  // La cifra va en su propia frase: «porque te faltan S/ 1,100» no explica por qué conviene, p. ej., comprar algo grande.
+  const cifra = ruta.motivos[0];
+  const completa = !!avance && avance.total > 0 && !avance.siguiente;
   const retoma = avance && avance.cumplidos > 0 && avance.siguiente;
   const paso = (retoma ? avance.siguiente : undefined) ?? ruta.pasos[0];
+  // Si el paso ya dice la cifra («hoy te faltan S/ 300 al mes; primero…»), no la repetimos antes.
+  const repite = !completa && !!paso && paso.toLowerCase().includes(cifra.replace(/\.$/, "").toLowerCase());
+  const base = `Te sugiero ${minuscula(ruta.titulo)}.${repite ? "" : ` ${cifra}`}`;
+  if (completa) return `${base} Ya completaste todos sus pasos. Puedes elegir otra ruta en Mi ruta.`;
   return `${base} ${retoma ? "Siguiente paso" : "Primer paso"}: ${minuscula(paso)} Puedes elegir otra ruta en Mi ruta.`;
 }
 

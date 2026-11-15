@@ -30,17 +30,17 @@ describe("planDelMes: Andrea (le falta plata cada mes)", () => {
 
   it("dice cuánto falta, con la misma cifra de su ruta", () => {
     expect(plan.libre).toBe(ruta.flujo.libre);
-    expect(plan.libre).toBe(-56450);
+    expect(plan.libre).toBe(-56470);
     expect(plan.alcanza).toBe(false);
-    expect(plan.titulo).toBe("Cada mes te faltan S/ 564.50");
+    expect(plan.titulo).toBe("Cada mes te faltan S/ 564.70");
   });
 
   it("propone palancas calculadas con sus datos: suscripciones y pagar solo el mínimo de las tarjetas", () => {
     expect(plan.partidas.map(p => [p.id, p.monto])).toEqual([["suscripciones", 16180], ["solo-minimos", 51000]]);
     expect(plan.partidas[0].detalle).toMatch(/Streaming/);
     expect(plan.partidas[1].detalle).toMatch(/más intereses/);
-    // 161.80 + 510.00 − 564.50 = 107.30
-    expect(plan.nota).toBe("Con estas palancas juntas cierras el hueco y te quedarían S/ 107.30 al mes.");
+    // 161.80 + 510.00 − 564.70 = 107.10
+    expect(plan.nota).toBe("Con estas palancas juntas cierras el hueco y te quedarían S/ 107.10 al mes.");
   });
 
   it("todos los montos son céntimos enteros y positivos", () => {
