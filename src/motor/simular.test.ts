@@ -6,7 +6,7 @@ function proyeccion(saldos: number[]): Proyeccion {
   const dias = saldos.map((saldo, i) => ({ fecha: `2026-11-${String(14 + i).padStart(2, "0")}`, saldo, eventos: [] }));
   const minimo = dias.reduce((a, b) => (a.saldo <= b.saldo ? a : b));
   return { perfilId: "p", desde: dias[0].fecha, hasta: dias[dias.length - 1].fecha, saldoInicial: 50000, dias,
-    saldoMinimo: minimo.saldo, fechaSaldoMinimo: minimo.fecha, saldoFinal: dias[dias.length - 1].saldo, deficit: null };
+    saldoMinimo: minimo.saldo, fechaSaldoMinimo: minimo.fecha, saldoFinal: dias[dias.length - 1].saldo, deficit: null, fueraDeVentana: [] };
 }
 
 describe("simular un gasto único («¿me alcanza para…?»)", () => {

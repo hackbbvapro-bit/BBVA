@@ -116,6 +116,14 @@ describe("herramientas e instrucciones", () => {
     expect(texto).toContain("si_no_pagas_nada");
     expect(texto).toContain("para_salir");
   });
+
+  it("las instrucciones distinguen costo conocido, estimado y desconocido, y no venden atrasar un pago como gratis", () => {
+    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
+    expect(texto).toContain("certeza_del_costo");
+    expect(texto).toContain("efecto_sobre_el_deficit");
+    expect(texto).toContain("no es gratis ni seguro");
+    expect(texto).toContain("central de riesgos");
+  });
 });
 
 describe("herramientas e instrucciones cuando hay ruta", () => {

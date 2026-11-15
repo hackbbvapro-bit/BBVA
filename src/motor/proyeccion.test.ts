@@ -25,9 +25,12 @@ describe('proyección', () => {
   });
   it('mueve, quita fuera del periodo y cambia el monto sin mutar', () => {
     const f = perfil(), copia = structuredClone(f), id = detectarRecurrentes(f.movimientos, [])[0].id;
-    for (const hacia of ['2026-11-30', '2026-12-20']) {
-      expect(proyectar(f, { ajustes: [{ tipo: 'mover', recurrenteId: id, desde: '2026-11-23', hacia }] }).deficit).toBeNull();
-    }
+    const dentro = proyectar(f, { ajustes: [{ tipo: 'mover', recurrenteId: id, desde: '2026-11-23', hacia: '2026-11-30' }] });
+    expect([dentro.deficit, dentro.fueraDeVentana]).toEqual([null, []]);
+    // Fuera del periodo el rojo deja de verse, pero el alquiler se sigue debiendo (ver postergar.test.ts).
+    const fuera = proyectar(f, { ajustes: [{ tipo: 'mover', recurrenteId: id, desde: '2026-11-23', hacia: '2026-12-20' }] });
+    expect(fuera.deficit).toBeNull();
+    expect(fuera.fueraDeVentana.map(e => [e.fecha, e.monto])).toEqual([['2026-12-20', -1000]]);
     // 500 - 400 = 100 de mínimo.
     expect(proyectar(f, { ajustes: [{ tipo: 'cambiar_monto', recurrenteId: id, fecha: '2026-11-23', monto: -400 }] }).saldoMinimo).toBe(100);
     expect(f).toEqual(copia);

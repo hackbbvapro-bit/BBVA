@@ -44,7 +44,16 @@ describe("datos que ve el agente", () => {
     const jugadas = datosJugadas(analisis);
     expect(jugadas.hay_deficit).toBe(true);
     expect(jugadas.jugadas?.length).toBe(analisis.jugadas.length);
-    for (const j of jugadas.jugadas ?? []) expect(j.cuesta).toMatch(/^S\/ |^no cuesta dinero$/);
+    for (const j of jugadas.jugadas ?? []) {
+      expect(j.cuesta).toMatch(/^cuesta S\/ |^cuesta unos S\/ .+ \(estimado\)$|^no cuesta dinero$|^no genera intereses, pero revisa|^no sabemos cuánto cuesta/);
+      expect(["conocido", "estimado", "desconocido"]).toContain(j.certeza_del_costo);
+      expect(["elimina", "reduce", "posterga", "no_mejora"]).toContain(j.efecto_sobre_el_deficit);
+      // «No cuesta dinero» solo cuando el costo se conoce de verdad.
+      if (j.cuesta === "no cuesta dinero") expect(j.certeza_del_costo).toBe("conocido");
+    }
+    // Pausar suscripciones no genera intereses, pero no sabemos si alguna cobra por cancelar: no es «gratis».
+    const pausar = jugadas.jugadas!.find(j => j.titulo === "Pausa tus suscripciones este mes")!;
+    expect(pausar).toMatchObject({ certeza_del_costo: "estimado", cuesta: "no genera intereses, pero revisa si cobran algún cargo" });
   });
 
   it("las deudas van de mayor a menor TCEA y la primera es la que hay que atacar", () => {

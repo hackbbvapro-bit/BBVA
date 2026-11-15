@@ -19,7 +19,7 @@ describe("indicadores de Inicio", () => {
     // 160 + 80 + 270 soles de mínimos.
     expect(minimos).toMatchObject({ etiqueta: "Pagos mínimos del mes", valor: "S/ 510.00",
       nota: "Lo mínimo para no atrasarte en 3 deudas", destino: "deudas" });
-    expect(salida).toMatchObject({ etiqueta: "Salida más barata", valor: "S/ 0.00",
+    expect(salida).toMatchObject({ etiqueta: "Salida más barata", valor: "Sin intereses",
       nota: "Pausa tus suscripciones este mes · libera S/ 161.80", destino: "como-evitarlo" });
   });
 
