@@ -1,4 +1,5 @@
-import { crearRepositorioPGlite } from "./pglite";
+import { abrirBaseLocal, crearRepositorioIndexedDB } from "./indexeddb";
+import { recuperarDatosAnteriores } from "./anterior";
 import { crearRepositorioMemoria, type Repositorio } from "./repositorio";
 
 export interface Almacen {
@@ -11,7 +12,7 @@ export interface Almacen {
 
 const NOMBRE_BLOQUEO = "copiloto-datos";
 
-/** Solo una pestaña a la vez escribe en la base local; dos instancias de PGlite sobre el mismo almacén la corromperían. */
+/** Solo una pestaña a la vez modifica el caso local o migra la base anterior. */
 function tomarBloqueo(): Promise<boolean> {
   if (typeof navigator === "undefined" || !navigator.locks) return Promise.resolve(true);
   return new Promise(resolve => {
@@ -28,10 +29,12 @@ async function abrir(): Promise<Almacen> {
   if (!(await tomarBloqueo())) {
     return enMemoria("Tienes el copiloto abierto en otra pestaña. Aquí puedes mirar, pero lo que cambies no se guardará.");
   }
+  let db: IDBDatabase | undefined;
   try {
-    const { PGlite } = await import("@electric-sql/pglite");
-    return { repo: await crearRepositorioPGlite(new PGlite("idb://copiloto")), persistente: true };
+    db = await abrirBaseLocal();
+    return { repo: await crearRepositorioIndexedDB(db, recuperarDatosAnteriores), persistente: true };
   } catch {
+    db?.close();
     return enMemoria("Este navegador no nos deja guardar tus datos. Puedes usar el copiloto, pero lo que cambies se perderá al cerrar.");
   }
 }
