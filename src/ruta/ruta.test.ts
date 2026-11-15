@@ -251,6 +251,19 @@ describe("lo que se dice en cada ruta", () => {
       expect(preguntas[0]).toBe("¿Por dónde empiezo?");
     }
   });
+
+  it("sin cuotas de deuda no sugiere preguntas sobre deudas", () => {
+    for (const r of rutas) {
+      const sinDeudas = { ...r, id: "estar_en_verde" as const, flujo: { ...r.flujo, cuotas: 0 } };
+      const preguntas = preguntasSugeridas(sinDeudas);
+      expect(preguntas).not.toContain("¿Qué deuda pago primero?");
+      expect(preguntas).not.toContain("¿Qué pasa si solo pago el mínimo?");
+      expect(preguntas.length).toBeGreaterThanOrEqual(3);
+      expect(new Set(preguntas).size).toBe(preguntas.length);
+      const conDeudas = preguntasSugeridas({ ...sinDeudas, flujo: { ...r.flujo, cuotas: 25000 } });
+      expect(conDeudas).toContain("¿Qué deuda pago primero?");
+    }
+  });
 });
 
 describe("saludoDeRuta", () => {
