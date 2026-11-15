@@ -1,3 +1,5 @@
+import { limpiarCompetencia } from "../agente/competencia";
+import type { Estilo } from "../agente/estilo";
 /**
  * Conversación con el agente. Si la IA no responde (sin clave, sin red, error),
  * contesta el propio motor en el celular: la demo nunca se queda muda.
@@ -25,6 +27,7 @@ export interface RespuestaAgente {
 }
 
 interface Peticion {
+  estilo?: Estilo;
   perfil: Perfil;
   analisis: Analisis;
   /** Conversación completa; el último mensaje es la pregunta del usuario. */
@@ -109,11 +112,12 @@ function responderLocal(
   const registro = responderRegistro(mensajes, { perfil, cobros: cobros.filter(c => !c.cobrado) });
   if (registro) {
     if (registro.accion) alAccion?.(registro.accion);
+    registro.texto = limpiarCompetencia(registro.texto).texto;
     alTexto?.(registro.texto);
     return { texto: registro.texto, origen: "motor", acciones: registro.accion ? [registro.accion] : [] };
   }
   const pregunta = [...mensajes].reverse().find(m => m.rol === "usuario")?.texto ?? "";
-  const texto = responderSinIA(pregunta, perfil, analisis, ruta, avance);
+  const texto = limpiarCompetencia(responderSinIA(pregunta, perfil, analisis, ruta, avance)).texto;
   alTexto?.(texto);
   return { texto, origen: "respaldo", acciones: [] };
 }
@@ -130,6 +134,7 @@ export async function conversar(peticion: Peticion): Promise<RespuestaAgente> {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        estilo: peticion.estilo ?? "directo",
         perfil,
         mensajes: recientes,
         hechos,

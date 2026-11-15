@@ -32,7 +32,7 @@ function pintar(vista: ReactElement, datos = datosDeEjemplo()) {
   return renderToStaticMarkup(<DatosDePrueba datos={datos}>{vista}</DatosDePrueba>);
 }
 
-describe("la interfaz no usa la marca de ningún banco", () => {
+describe("la interfaz orienta con BBVA y no recomienda competidores", () => {
   for (const perfil of PERFILES) {
     it(`pantallas de ${perfil.nombre}, en caso de ejemplo y en caso propio`, () => {
       const analisis = analizar(perfil);
@@ -50,7 +50,14 @@ describe("la interfaz no usa la marca de ningún banco", () => {
         ]) {
           const html = pintar(vista);
           expect(html.length).toBeGreaterThan(0);
-          expect(html).not.toMatch(/BBVA/i);
+          if (vista.type === Chat) {
+            expect(html).toContain("productos BBVA");
+            expect(html).not.toMatch(/BCP|Interbank|Scotiabank|comparador/i);
+            expect(html).toContain('aria-label="Estilo de respuesta"');
+            expect(html).toContain('aria-pressed="true"');
+            expect(html).toContain("Directo");
+            expect(html).toContain("Explicado");
+          } else expect(html).not.toMatch(/BCP|Interbank|Scotiabank|comparador/i);
         }
       }
     });

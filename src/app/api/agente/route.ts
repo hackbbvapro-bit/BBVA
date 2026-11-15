@@ -1,3 +1,5 @@
+import { filtrarEventos } from "@/agente/filtrar-eventos";
+import { validarEstilo } from "@/agente/estilo";
 import { z } from "zod";
 import { responder, ultimaPregunta, type EventoAgente } from "@/agente/conversar";
 import { analizar } from "@/motor";
@@ -16,6 +18,7 @@ const limite = crearLimite(20, 60_000);
 const topeGlobal = crearLimite(300, 3_600_000);
 
 const Peticion = z.object({
+  estilo: z.unknown().optional().transform(validarEstilo),
   perfil: EsquemaPerfil,
   mensajes: z
     .array(z.object({ rol: z.enum(["usuario", "asistente"]), texto: z.string().min(1).max(1000) }))
@@ -81,7 +84,7 @@ export async function POST(req: Request): Promise<Response> {
   const senal = AbortSignal.any([req.signal, corte.signal]);
   const cobros = (datos.data.cobros ?? []).filter(c => !c.cobrado);
   const avance = avanceDe(ruta, datos.data.avances);
-  const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal, ruta, cobros, avance, hechos });
+  const eventos = filtrarEventos(responder({ estilo: datos.data.estilo, perfil, analisis, mensajes: datos.data.mensajes, senal, ruta, cobros, avance, hechos }));
   return new Response(comoFlujo(eventos, () => corte.abort()), {
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",

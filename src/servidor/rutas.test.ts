@@ -64,6 +64,12 @@ describe("POST /api/agente", () => {
     for (const cuerpo of malos) expect((await agente(json("/api/agente", cuerpo))).status).toBe(400);
   });
 
+  it.each(["directo", "explicado", "invalido", null, 42])("acepta estilo %s con fallback directo", async estilo => {
+    const respuesta = await agente(json("/api/agente", { ...pregunta, estilo }, { "x-forwarded-for": `estilo-${String(estilo)}` }));
+    expect(respuesta.status).toBe(200);
+    expect(await respuesta.text()).toContain('"tipo":"fin"');
+  });
+
   it("sin clave de IA responde con el respaldo del motor, línea a línea", async () => {
     const respuesta = await agente(json("/api/agente", pregunta, { origin: BASE }));
     expect(respuesta.status).toBe(200);
