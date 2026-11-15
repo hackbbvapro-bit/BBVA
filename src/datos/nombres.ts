@@ -22,3 +22,12 @@ export function hayGastoLlamadoComoPagoDe(datos: Datos, nombreDeuda: string): bo
   const clave = claveDeNombre(`Pago ${nombreDeuda}`);
   return clave !== "" && datos.gastosFijos.some(f => claveDeNombre(f.descripcion) === clave);
 }
+
+/**
+ * ¿Hay otra deuda activa con el mismo nombre? El motor reconoce cada pago de deuda por su nombre:
+ * dos «Tarjeta» se fundirían y sus cuotas se contarían como gasto del día a día.
+ */
+export function deudaRepetida(datos: Datos, nombre: string, idActual?: string): boolean {
+  const clave = claveDeNombre(nombre);
+  return clave !== "" && datos.deudas.some(d => d.id !== idActual && !d.pagada && d.saldo > 0 && claveDeNombre(d.nombre) === clave);
+}

@@ -21,7 +21,7 @@ const burbujaPersona = "aparecer ml-auto max-w-[85%] rounded-2xl rounded-tr-md b
 /**
  * Entrada conversada: una pregunta a la vez, con botones o un campo corto.
  * Solo pinta lo que decide el guion (ruta/guion.ts): el orden, los textos y la validación viven allí.
- * La última pregunta pide permiso expreso para usar IA y voz; nada sale del equipo antes de eso.
+ * Al responder la última pregunta entrega las respuestas; el permiso para usar IA y voz se pide aparte, después.
  */
 export function Entrada({
   alTerminar,
@@ -29,7 +29,7 @@ export function Entrada({
   guardando,
   error,
 }: {
-  alTerminar: (respuestas: Respuestas, externo: boolean) => void;
+  alTerminar: (respuestas: Respuestas) => void;
   volver: () => void;
   guardando: boolean;
   error?: string;
@@ -40,7 +40,8 @@ export function Entrada({
   const [fallo, setFallo] = useState<string>();
   const fin = useRef<HTMLDivElement>(null);
 
-  const paso = proximoPaso(actual);
+  // Al completar la última respuesta no se avanza el borrador: si la persona vuelve a revisar, ve la última pregunta.
+  const paso = proximoPaso(actual) ?? "meta";
   const p = pregunta(paso, actual);
   const { actual: numero, total } = avance(actual);
 
@@ -53,8 +54,8 @@ export function Entrada({
     try {
       const r = responder(actual, paso, valor);
       setFallo(undefined);
-      if (paso === "permiso") {
-        alTerminar(aRespuestas(actual, hoyEnLima()), valor === "si");
+      if (proximoPaso(r.borrador) === null) {
+        alTerminar(aRespuestas(r.borrador, hoyEnLima()));
         return;
       }
       setTurnos(t => [...t, { antes: actual, pregunta: p.texto, dicho: r.dicho }]);

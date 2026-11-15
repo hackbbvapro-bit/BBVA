@@ -5,27 +5,22 @@ import { avisosDelCentro, pendientesSinLeer, type Destino } from "@/avisos/centr
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
 import { fijarSalidas } from "@/cliente/salidas";
 import { borrarSituacion, guardarSituacion, leerSituacion } from "@/cliente/situacion";
-import { avanceDe, hechosDe, saludoDeRuta, trazarRuta, type IdPaso } from "@/ruta/ruta";
+import { avanceDe, hechosDe, opcionesDeRuta, recomendada, saludoDeRuta, trazarRuta, type IdPaso, type IdRuta } from "@/ruta/ruta";
 import { guardarAvances, leerAvances } from "@/cliente/memoria";
-import { MiRuta } from "@/componentes/tu-ruta";
 import { planDelMes } from "@/ruta/presupuesto";
 import { Hoy, type IrDesdeInicio } from "@/componentes/hoy";
-import { Deudas, type AbrirDeudas, type PestanaDeudas } from "@/componentes/deudas";
-import { MiDinero } from "@/componentes/mi-dinero";
-import { Chat } from "@/componentes/chat";
+import type { AbrirDeudas, PestanaDeudas } from "@/componentes/deudas";
 import { HojaAvisos } from "@/componentes/avisos";
 import { Icono, Marca, type NombreIcono } from "@/componentes/ui";
 import { ProveedorDatos, useDatos } from "@/componentes/datos";
 import { MenuUsuario } from "@/componentes/menu-usuario";
-import { Perfil as VistaPerfil } from "@/componentes/perfil";
-import { ComoFunciona } from "@/componentes/como-funciona";
-import { Dataset } from "@/componentes/dataset";
-import { Evaluacion } from "@/componentes/evaluacion";
 import { Bienvenida, guardarModo, leerModo, type Modo } from "@/componentes/bienvenida";
 import { ID_PROPIO } from "@/datos/semilla";
 import type { Datos } from "@/datos/tipos";
 import { anotarEnRepo, type Deshacer } from "@/datos/anotar";
 import type { Accion } from "@/agente/registro";
+
+import { Chat, ComoFunciona, Dataset, Deudas, Evaluacion, MiDinero, MiRuta, VistaPerfil, precargarPantallas } from "@/componentes/pantallas";
 
 type Pestana = "hoy" | "ruta" | "dinero" | "deudas" | "asistente" | "perfil" | "como" | "datos" | "evaluacion";
 type Enlace = [Pestana, string, NombreIcono];
@@ -206,8 +201,18 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
   // o en un caso propio si la persona lo aceptó (un archivo exige además declarar que es inventado).
   // Avisos remotos: solo en el ejemplo.
   fijarSalidas(externo, demo);
-  const hechos = useMemo(() => hechosDe(datos, situacion.tuvoCredito), [datos, situacion.tuvoCredito]);
+  const hechos = useMemo(
+    () => ({
+      ...hechosDe(datos, situacion.tuvoCredito),
+      ...(situacion.meta && { meta: situacion.meta }),
+      ...(situacion.rutaElegida && { rutaElegida: situacion.rutaElegida }),
+    }),
+    [datos, situacion.tuvoCredito, situacion.meta, situacion.rutaElegida],
+  );
   const ruta = useMemo(() => trazarRuta(perfil, analisis, hechos), [perfil, analisis, hechos]);
+  // Las 3-4 rutas que puede elegir y la que le recomienda el código según su saldo.
+  const opcionesRuta = useMemo(() => opcionesDeRuta(perfil, analisis, hechos), [perfil, analisis, hechos]);
+  const rutaRecomendada = useMemo(() => recomendada(perfil, analisis, hechos), [perfil, analisis, hechos]);
   // Pasos de la ruta que la persona marcó como hechos: se guardan en este equipo, por caso.
   const [avances, setAvances] = useState<IdPaso[]>(() => leerAvances(perfil.id));
   const avance = useMemo(() => avanceDe(ruta, avances), [ruta, avances]);
@@ -230,6 +235,11 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
     const hecho = deshacer;
     if (!hecho) throw new Error("sin_deshacer");
     return () => cambiar(hecho);
+  }
+  function elegirRuta(id: IdRuta) {
+    const nueva = { ...situacion, rutaElegida: id };
+    if (persistente) guardarSituacion(nueva);
+    setSituacion(nueva);
   }
   function cambiarExterno(activo: boolean) {
     const nueva = { ...situacion, externo: activo };
@@ -266,6 +276,12 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
     if (saludoInicial.current) leer(saludoInicial.current);
     // Solo al montar: `leer` cambia en cada render y no debe repetir el saludo.
   }, []);
+  // Inicio ya se ve: el resto de pantallas se baja en segundo plano para que cambiar de pestaña sea instantáneo.
+  useEffect(() => precargarPantallas(), []);
+  // Al cambiar de pestaña principal o de caso (entrar al ejemplo), la página arranca arriba del todo.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pestana, demo]);
   /** Carga un cliente de «Datos de prueba» como caso de ejemplo y vuelve a Inicio. */
   async function probarCliente(nuevos: Datos) {
     if (!demo && !window.confirm("Se va a reemplazar el caso que armaste, guardado en este equipo, por este cliente de prueba. ¿Continuar?")) return;
@@ -413,6 +429,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             {aviso}
           </p>
         )}
+        <div key={pestana} className="cambio-pestana">
         {pestana === "hoy" && (
           <Hoy
             perfil={perfil}
@@ -428,7 +445,8 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             pasos={pasos}
           />
         )}
-        {pestana === "ruta" && <MiRuta ruta={ruta} avance={avance} alMarcar={marcar} alConversar={() => navegar("asistente")} plan={plan} />}
+        {pestana === "ruta" && <MiRuta ruta={ruta} avance={avance} alMarcar={marcar} alConversar={() => navegar("asistente")} plan={plan}
+          opciones={opcionesRuta} recomendada={rutaRecomendada} alElegir={elegirRuta} />}
         {pestana === "dinero" && <MiDinero analisis={analisis} />}
         {pestana === "deudas" && (
           <Deudas
@@ -454,6 +472,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
         {pestana === "asistente" && (
           <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} avance={avance} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} cobros={datos.cobros} alAnotar={anotar} guardar={persistente} />
         )}
+        </div>
       </main>
       <nav
         aria-label="Navegación inferior"

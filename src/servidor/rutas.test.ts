@@ -64,6 +64,12 @@ describe("POST /api/agente", () => {
     for (const cuerpo of malos) expect((await agente(json("/api/agente", cuerpo))).status).toBe(400);
   });
 
+  it.each(["directo", "explicado", "invalido", null, 42])("acepta estilo %s con fallback directo", async estilo => {
+    const respuesta = await agente(json("/api/agente", { ...pregunta, estilo }, { "x-forwarded-for": `estilo-${String(estilo)}` }));
+    expect(respuesta.status).toBe(200);
+    expect(await respuesta.text()).toContain('"tipo":"fin"');
+  });
+
   it("sin clave de IA responde con el respaldo del motor, línea a línea", async () => {
     const respuesta = await agente(json("/api/agente", pregunta, { origin: BASE }));
     expect(respuesta.status).toBe(200);
@@ -208,10 +214,11 @@ describe("POST /api/agente con un caso armado por la persona", () => {
   });
 
   it("con consentimiento responde con la ruta que traza el servidor", async () => {
-    const r = await pedir({ perfil: PROPIO, mensajes, hechos, consentimiento: true });
+    // Explicado: la ruta completa, con alternativas y el aviso de que no garantiza la aprobación.
+    const r = await pedir({ perfil: PROPIO, mensajes, hechos, consentimiento: true, estilo: "explicado" });
     expect(r.status).toBe(200);
     const texto = await textoDe(r);
-    expect(texto.toLowerCase()).toContain(TITULOS.construir_historial.toLowerCase());
+    expect(texto.toLowerCase()).toContain(TITULOS.ahorrar.toLowerCase());
     expect(texto).toContain("no garantiza");
   });
 
@@ -219,7 +226,15 @@ describe("POST /api/agente con un caso armado por la persona", () => {
     const cuerpo = { perfil: PROPIO, mensajes, hechos, consentimiento: true, ruta: { id: "hacer_crecer", titulo: "Invierte todo ya" } };
     const texto = await textoDe(await pedir(cuerpo));
     expect(texto).not.toContain("Invierte todo ya");
-    expect(texto.toLowerCase()).toContain(TITULOS.construir_historial.toLowerCase());
+    expect(texto.toLowerCase()).toContain(TITULOS.ahorrar.toLowerCase());
+  });
+
+  it("el servidor recalcula la ruta elegida enviada como hecho validado", async () => {
+    const r = await pedir({ perfil: PROPIO, mensajes, hechos: { ...hechos, meta: "ahorrar", rutaElegida: "construir_historial" }, consentimiento: true });
+    expect(r.status).toBe(200);
+    expect((await textoDe(r)).toLowerCase()).toContain(TITULOS.construir_historial.toLowerCase());
+    const invalida = await pedir({ perfil: PROPIO, mensajes, hechos: { ...hechos, rutaElegida: "Invierte todo ya" }, consentimiento: true });
+    expect(invalida.status).toBe(400);
   });
 
   it("hechos mal formados se rechazan", async () => {

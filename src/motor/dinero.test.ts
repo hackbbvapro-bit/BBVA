@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aCentimos, exigirCentimos, formatoSoles, formatoTasa, interes, interesMensual,
-  mediana, percentil, porcentaje, redondear, soles, sumar,
+  mediana, percentil, porcentaje, redondear, semanalAMes, soles, sumar,
 } from "./dinero";
 
 describe("céntimos enteros", () => {
@@ -111,5 +111,21 @@ describe("estadística prudente", () => {
     expect(percentil(semanas, 100)).toBe(50000);
     expect(percentil([70000], 25)).toBe(70000);
     expect(percentil([], 25)).toBe(0);
+  });
+});
+
+describe("semanalAMes: de semana a mes típico, al sol", () => {
+  it("415.38 por semana son S/ 1,800 al mes, sin céntimos fantasma", () => {
+    expect(semanalAMes(41_538)).toBe(180_000);
+  });
+  it("700 por semana son S/ 3,033 (52/12 = 4.33 semanas)", () => {
+    expect(semanalAMes(70_000)).toBe(303_300);
+  });
+  it("los negativos (gastos) se redondean igual en valor absoluto y el cero no es -0", () => {
+    expect(semanalAMes(-41_538)).toBe(-180_000);
+    expect(Object.is(semanalAMes(0), 0)).toBe(true);
+  });
+  it("rechaza montos que no son céntimos enteros", () => {
+    expect(() => semanalAMes(1.5)).toThrow();
   });
 });

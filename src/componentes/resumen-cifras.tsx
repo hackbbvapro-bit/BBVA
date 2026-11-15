@@ -22,6 +22,7 @@ export function ResumenCifras({
   alGestionarTarjetas,
   proximoVencimiento,
   alerta,
+  ambar = false,
 }: {
   cifras: [string, string][];
   deficit: boolean;
@@ -32,6 +33,8 @@ export function ResumenCifras({
   alGestionarTarjetas?: () => void;
   proximoVencimiento?: string;
   alerta?: ReactNode;
+  /** Tarjeta de estado en ámbar (sin déficit a 30 días, pero el mes cierra en negativo). */
+  ambar?: boolean;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [seleccion, setSeleccion] = useState<string | null>(null);
@@ -89,14 +92,14 @@ export function ResumenCifras({
               </span>
               {i === 0 && cuentas !== undefined && (
                 <div className="cifra-pie">
-                  <p className="cifra-cuenta" title={saldo.nombre} aria-live="polite">{saldo.nombre}</p>
+                  {cuentas.length > 1 ? <p className="cifra-cuenta" title={saldo.nombre} aria-live="polite">{saldo.nombre}</p> : <span className="min-w-0 flex-1" />}
                   {alGestionar && <button type="button" className="cifra-gestionar" aria-label="Administrar cuentas" onClick={() => { setAbierto(false); alGestionar(); }}>Administrar ↗</button>}
                 </div>
               )}
               {i === 3 && nota && <p className="cifra-nota">{nota}</p>}
               {i === 1 && tarjetas !== undefined && (
                 <div className="cifra-pie">
-                  <p className="cifra-cuenta" title={deuda.nombre} aria-live="polite">{deuda.nombre}</p>
+                  {tarjetas.length > 1 ? <p className="cifra-cuenta" title={deuda.nombre} aria-live="polite">{deuda.nombre}</p> : <span className="min-w-0 flex-1" />}
                   {alGestionarTarjetas && <button type="button" className="cifra-gestionar" aria-label="Administrar deudas" onClick={() => { setTarjetasAbiertas(false); alGestionarTarjetas(); }}>Administrar ↗</button>}
                 </div>
               )}
@@ -117,7 +120,7 @@ export function ResumenCifras({
             </dd>
           </div>
         ))}
-        {alerta && <div style={{ gridColumn: 1, gridRow: 2, minWidth: 0, padding: 10, border: `1px solid ${deficit ? "#f4dfe2" : "#ccebd8"}`, borderRadius: 17, background: deficit ? "#fceff0" : "#edf8f1" }}><dt className="sr-only">Estado del saldo</dt><dd style={{ display: "flex", flexDirection: "column", height: "100%" }}>{alerta}</dd></div>}
+        {alerta && <div style={{ gridColumn: 1, gridRow: 2, minWidth: 0, padding: 10, border: `1px solid ${deficit ? "#f4dfe2" : ambar ? "#f0dca8" : "#ccebd8"}`, borderRadius: 17, background: deficit ? "#fceff0" : ambar ? "#fff6e0" : "#edf8f1" }}><dt className="sr-only">Estado del saldo</dt><dd style={{ display: "flex", flexDirection: "column", height: "100%" }}>{alerta}</dd></div>}
       </dl>
     </section>
   );

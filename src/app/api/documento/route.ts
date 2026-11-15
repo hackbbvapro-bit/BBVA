@@ -2,7 +2,7 @@ import { z } from "zod";
 import { extraerDocumento } from "@/documentos/extraer";
 import { MAXIMO_CUERPO_BYTES, validarArchivo } from "@/documentos/validar";
 import { claveAnthropic, lecturaDocumentos } from "@/servidor/entorno";
-import { errorJson, mismoOrigen, visitante } from "@/servidor/http";
+import { errorJson, leerTextoAcotado, mismoOrigen, visitante } from "@/servidor/http";
 import { crearLimite } from "@/servidor/limite";
 import { registrarFallo } from "@/servidor/registro";
 import { haySesion, sinSesion } from "@/servidor/sesion";
@@ -31,11 +31,9 @@ type Cuerpo = { ok: true; datos: unknown } | { ok: false; respuesta: Response };
 
 async function leerCuerpo(req: Request): Promise<Cuerpo> {
   const demasiado = fallo("archivo_muy_grande", "El archivo es demasiado grande. Sube uno de menos de 3 MB.", 413);
-  const declarado = Number(req.headers.get("content-length") ?? "0");
-  if (Number.isFinite(declarado) && declarado > MAXIMO_CUERPO_BYTES) return { ok: false, respuesta: demasiado };
   try {
-    const texto = await req.text();
-    if (texto.length > MAXIMO_CUERPO_BYTES) return { ok: false, respuesta: demasiado };
+    const texto = await leerTextoAcotado(req, MAXIMO_CUERPO_BYTES);
+    if (texto === undefined) return { ok: false, respuesta: demasiado };
     return { ok: true, datos: JSON.parse(texto) as unknown };
   } catch {
     return { ok: false, respuesta: fallo("peticion_invalida", "No pude leer la petición.", 400) };

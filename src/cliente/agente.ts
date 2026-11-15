@@ -1,3 +1,5 @@
+import { limpiarCompetencia } from "../agente/competencia";
+import { preguntaSinIA, type Estilo } from "../agente/estilo";
 /**
  * Conversación con el agente. Si la IA no responde (sin clave, sin red, error),
  * contesta el propio motor en el celular: la demo nunca se queda muda.
@@ -25,6 +27,7 @@ export interface RespuestaAgente {
 }
 
 interface Peticion {
+  estilo?: Estilo;
   perfil: Perfil;
   analisis: Analisis;
   /** Conversación completa; el último mensaje es la pregunta del usuario. */
@@ -48,6 +51,10 @@ interface Peticion {
 
 const MAX_MENSAJES = 20;
 const MAX_CARACTERES = 1000;
+/** Si el servidor no manda nada en este tiempo, responde el motor del celular: la demo nunca se queda en «Pensando…». */
+export const ESPERA_PRIMERA_MS = 22_000;
+/** Una vez que empezó a responder, cuánto puede quedarse callado entre trozos antes de cortar y quedarse con lo recibido. */
+export const ESPERA_ENTRE_TROZOS_MS = 15_000;
 
 type Linea = { tipo: "texto"; texto: string } | { tipo: "accion"; accion: Accion } | { tipo: "fin"; origen: OrigenRespuesta; cerebro?: string };
 
@@ -75,6 +82,7 @@ async function leerFlujo(
   respuesta: Response,
   alTexto: (trozo: string) => void,
   alAccion: (accion: Accion) => void,
+  alLeer: () => void = () => {},
 ): Promise<Omit<RespuestaAgente, "acciones">> {
   const lector = respuesta.body?.getReader();
   if (!lector) throw new Error("sin_cuerpo");
@@ -92,6 +100,7 @@ async function leerFlujo(
   for (;;) {
     const { done, value } = await lector.read();
     if (done) break;
+    alLeer();
     pendiente += decodificador.decode(value, { stream: true });
     const lineas = pendiente.split("\n");
     pendiente = lineas.pop() ?? "";
@@ -104,16 +113,17 @@ async function leerFlujo(
 /** Sin IA: primero el registro («me acaban de pagar 1.000»), y si no es eso, la respuesta del motor. */
 function responderLocal(
   mensajes: readonly MensajeChat[],
-  { perfil, analisis, ruta, avance, cobros = [], alTexto, alAccion }: Peticion,
+  { perfil, analisis, ruta, avance, cobros = [], estilo: elegido, alTexto, alAccion }: Peticion,
 ): RespuestaAgente {
   const registro = responderRegistro(mensajes, { perfil, cobros: cobros.filter(c => !c.cobrado) });
   if (registro) {
     if (registro.accion) alAccion?.(registro.accion);
+    registro.texto = limpiarCompetencia(registro.texto).texto;
     alTexto?.(registro.texto);
     return { texto: registro.texto, origen: "motor", acciones: registro.accion ? [registro.accion] : [] };
   }
-  const pregunta = [...mensajes].reverse().find(m => m.rol === "usuario")?.texto ?? "";
-  const texto = responderSinIA(pregunta, perfil, analisis, ruta, avance);
+  const { pregunta, estilo } = preguntaSinIA(mensajes, elegido ?? "directo");
+  const texto = limpiarCompetencia(responderSinIA(pregunta, perfil, analisis, ruta, avance, estilo)).texto;
   alTexto?.(texto);
   return { texto, origen: "respaldo", acciones: [] };
 }
@@ -125,11 +135,19 @@ export async function conversar(peticion: Peticion): Promise<RespuestaAgente> {
   if (!salidasPermitidas()) return responderLocal(mensajes, peticion);
   let recibido = "";
   const acciones: Accion[] = [];
+  // Plazo propio: si vence, se corta la petición y responde lo recibido o el motor local (sin lanzar error).
+  const plazo = new AbortController();
+  const cortar = () => plazo.abort();
+  if (senal?.aborted) plazo.abort();
+  else senal?.addEventListener("abort", cortar, { once: true });
+  let reloj = setTimeout(cortar, ESPERA_PRIMERA_MS);
+  const vigilar = () => { clearTimeout(reloj); reloj = setTimeout(cortar, ESPERA_ENTRE_TROZOS_MS); };
   try {
     const respuesta = await fetch("/api/agente", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        estilo: peticion.estilo ?? "directo",
         perfil,
         mensajes: recientes,
         hechos,
@@ -137,13 +155,14 @@ export async function conversar(peticion: Peticion): Promise<RespuestaAgente> {
         consentimiento: consentimiento || undefined,
         cobros: cobros?.filter(c => !c.cobrado).slice(0, 50).map(({ id, quien, monto, fechaPrometida, cobrado }) => ({ id, quien, monto, fechaPrometida, cobrado })),
       }),
-      signal: senal,
+      signal: plazo.signal,
     });
     if (!respuesta.ok) throw new Error(`http_${respuesta.status}`);
     const resultado = await leerFlujo(
       respuesta,
       trozo => { recibido += trozo; alTexto?.(trozo); },
       accion => { acciones.push(accion); alAccion?.(accion); },
+      vigilar,
     );
     if (resultado.texto.trim()) return { ...resultado, acciones };
     throw new Error("respuesta_vacia");
@@ -157,5 +176,8 @@ export async function conversar(peticion: Peticion): Promise<RespuestaAgente> {
       return { texto, origen: "motor", acciones };
     }
     return responderLocal(mensajes, peticion);
+  } finally {
+    clearTimeout(reloj);
+    senal?.removeEventListener("abort", cortar);
   }
 }

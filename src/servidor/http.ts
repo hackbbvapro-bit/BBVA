@@ -53,14 +53,39 @@ export function mismoOrigen(req: Request): boolean {
   }
 }
 
-/** Lee un cuerpo JSON pequeño. Devuelve undefined si es demasiado grande o no es JSON. */
-export async function leerJson(req: Request, maximoBytes = 64_000): Promise<unknown> {
+/**
+ * Lee el cuerpo contando bytes según llegan y corta en cuanto pasa el tope: un cuerpo enorme sin
+ * `content-length` (o con uno falso) nunca se carga entero en memoria. undefined = demasiado grande.
+ * Si la conexión falla a medio leer, lanza el error.
+ */
+export async function leerTextoAcotado(req: Request, maximoBytes: number): Promise<string | undefined> {
   const declarado = Number(req.headers.get("content-length") ?? "0");
   if (Number.isFinite(declarado) && declarado > maximoBytes) return undefined;
+  if (!req.body) return "";
+  const lector = req.body.getReader();
+  const trozos: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await lector.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maximoBytes) {
+      await lector.cancel().catch(() => undefined);
+      return undefined;
+    }
+    trozos.push(value);
+  }
+  const unido = new Uint8Array(total);
+  let posicion = 0;
+  for (const trozo of trozos) { unido.set(trozo, posicion); posicion += trozo.byteLength; }
+  return new TextDecoder().decode(unido);
+}
+
+/** Lee un cuerpo JSON pequeño. Devuelve undefined si es demasiado grande o no es JSON. */
+export async function leerJson(req: Request, maximoBytes = 64_000): Promise<unknown> {
   try {
-    const texto = await req.text();
-    if (texto.length > maximoBytes) return undefined;
-    return JSON.parse(texto) as unknown;
+    const texto = await leerTextoAcotado(req, maximoBytes);
+    return texto === undefined ? undefined : (JSON.parse(texto) as unknown);
   } catch {
     return undefined;
   }

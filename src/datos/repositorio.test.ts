@@ -87,6 +87,16 @@ describe.each(fabricas)("repositorio %s (mismo contrato)", (_, crear) => {
     expect((await repo.leerTodo()).deudas.some(d => d.id === "d-1")).toBe(false);
   });
 
+  it("bloquea dos deudas activas con el mismo nombre (sus pagos se mezclarían)", async () => {
+    const repo = await crear();
+    await repo.guardarDeuda(deuda({ id: "t-1", nombre: "Tarjeta", pagoMinimo: 10000, pagoHabitual: 10000, diaPago: 25 }));
+    await expect(repo.guardarDeuda(deuda({ id: "t-2", nombre: "  TARJETA ", pagoMinimo: 10000, pagoHabitual: 10000, diaPago: 25 })))
+      .rejects.toBeInstanceOf(ErrorDatos);
+    await expect(repo.guardarDeuda(deuda({ id: "t-1", nombre: "Tarjeta", saldo: 90000 }))).resolves.toBeUndefined();
+    await expect(repo.guardarDeuda(deuda({ id: "t-3", nombre: "Tarjeta", pagada: true }))).resolves.toBeUndefined();
+    expect((await repo.leerTodo()).deudas.filter(d => d.id === "t-2")).toHaveLength(0);
+  });
+
   it("deudas: tcea desconocida, marcar pagada y borrar", async () => {
     const repo = await crear();
     await repo.guardarDeuda(deuda({ tceaBp: null }));

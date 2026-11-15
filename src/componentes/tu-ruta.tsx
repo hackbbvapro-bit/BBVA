@@ -1,8 +1,9 @@
 "use client";
 
+import { ClimaRuta } from "@/componentes/clima-ruta";
 import { Encabezado, Icono, botonPrincipal, tarjeta, unido } from "@/componentes/ui";
 import { formatoSoles } from "@/motor";
-import { contadorDeAvance, type Avance, type IdPaso, type Ruta } from "@/ruta/ruta";
+import { contadorDeAvance, opcionesVisibles, QUE_LOGRA, type Avance, type IdPaso, type IdRuta, type Ruta } from "@/ruta/ruta";
 import { productosDeLaRuta, type Partida, type PlanDelMes, type ProductoDeRuta } from "@/ruta/presupuesto";
 
 /**
@@ -54,7 +55,7 @@ export function SiguientePaso({
           </span>
         </p>
         <button
-          className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-electrico transition-colors duration-150 hover:bg-agua-suave [&_svg]:size-4"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-electrico transition-colors duration-150 hover:bg-agua-suave [&_svg]:size-4"
           onClick={alAbrir}
         >
           Ver mi ruta
@@ -99,7 +100,7 @@ function Dato({
     <div className="min-w-0 rounded-xl bg-niebla px-3 py-2.5 md:px-4 md:py-3">
       <p className="text-xs font-medium text-gris">{etiqueta}</p>
       <p className={`mt-0.5 text-lg font-semibold tabular-nums md:text-xl ${tono}`}>{unido(valor)}</p>
-      <p className="mt-0.5 text-[11px] leading-snug text-gris">{nota}</p>
+      <p className="mt-0.5 text-xs leading-snug text-gris">{nota}</p>
     </div>
   );
 }
@@ -123,17 +124,15 @@ function Presupuesto({ plan }: { plan: PlanDelMes }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-electrico">Tu presupuesto este mes</p>
       <h2
         id="presupuesto"
-        className={`mt-1 text-lg font-semibold tabular-nums leading-snug md:text-xl ${plan.alcanza ? "text-noche" : "text-coral-fuerte"}`}
+        className={`mt-1 text-lg font-semibold leading-snug [font-variant-numeric:tabular-nums] md:text-xl ${plan.alcanza ? "text-noche" : "text-coral-fuerte"}`}
       >
         {unido(plan.titulo)}
       </h2>
-      <p className="mt-1 text-sm leading-relaxed text-gris">
-        {plan.alcanza
-          ? "Así se reparte, según tu ruta:"
-          : plan.partidas.length > 0
-            ? "De dónde puedes sacar plata cada mes:"
-            : ""}
-      </p>
+      {(plan.alcanza || plan.partidas.length > 0) && (
+        <p className="mt-1 text-sm leading-relaxed text-gris">
+          {plan.alcanza ? "Así se reparte, según tu ruta:" : "De dónde puedes sacar plata cada mes:"}
+        </p>
+      )}
       {total > 0 && plan.partidas.length > 1 && (
         <div className="mt-3 flex h-2.5 w-full overflow-hidden rounded-full bg-niebla" aria-hidden="true">
           {plan.partidas.map(p => (
@@ -162,7 +161,7 @@ function Presupuesto({ plan }: { plan: PlanDelMes }) {
                     {unido(formatoSoles(p.monto))}
                   </p>
                 </div>
-                <p className="mt-0.5 text-[13px] leading-snug text-gris">{unido(p.detalle)}</p>
+                <p className="mt-0.5 text-sm leading-snug text-gris">{unido(p.detalle)}</p>
               </div>
             </li>
           ))}
@@ -199,7 +198,7 @@ function Producto({ p }: { p: ProductoDeRuta }) {
         <p className="text-xs font-semibold uppercase tracking-wide text-gris">Qué preguntar en tu banco</p>
         <ul className="mt-1.5 space-y-1">
           {p.preguntas.map(q => (
-            <li key={q} className="flex gap-2 text-[13px] leading-snug text-tinta">
+            <li key={q} className="flex gap-2 text-sm leading-snug text-tinta">
               <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-electrico" />
               <span>{q}</span>
             </li>
@@ -208,6 +207,15 @@ function Producto({ p }: { p: ProductoDeRuta }) {
       </div>
     </li>
   );
+}
+
+/** Al elegir una ruta, baja con suavidad hasta «Tu ruta»; con movimiento reducido salta sin animar. */
+function irATuRuta() {
+  if (typeof window === "undefined") return;
+  requestAnimationFrame(() => {
+    const reducido = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("seccion-tu-ruta")?.scrollIntoView({ behavior: reducido ? "auto" : "smooth", block: "start" });
+  });
 }
 
 /**
@@ -220,12 +228,18 @@ export function MiRuta({
   alMarcar,
   alConversar,
   plan,
+  opciones = [ruta],
+  recomendada,
+  alElegir,
 }: {
   ruta: Ruta;
   avance: Avance;
   alMarcar: (id: IdPaso, hecho: boolean) => void;
   alConversar?: () => void;
   plan?: PlanDelMes;
+  opciones?: Ruta[];
+  recomendada?: IdRuta;
+  alElegir?: (id: IdRuta) => void;
 }) {
   const siguiente = avance.pasos.findIndex(p => !p.hecho);
   const { flujo } = ruta;
@@ -237,8 +251,23 @@ export function MiRuta({
         bajada="Tu plan según tu presupuesto: qué hacer primero, con qué plata y qué productos te sirven."
       />
 
+      <section className={tarjeta} aria-labelledby="elige-ruta">
+        <h2 id="elige-ruta" className="text-lg font-semibold text-noche">Elige tu ruta</h2>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {opcionesVisibles(opciones, ruta.id).map(opcion => (
+            <button key={opcion.id} type="button" aria-pressed={ruta.id === opcion.id}
+              onClick={() => { alElegir?.(opcion.id); irATuRuta(); }}
+              className={`min-w-0 rounded-xl border-2 p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electrico ${ruta.id === opcion.id ? "border-electrico bg-agua-suave/60" : "border-linea bg-white hover:bg-niebla"}`}>
+              {recomendada === opcion.id && <span className="mb-2 block text-xs font-semibold text-electrico">{opcion.id === "estar_en_verde" ? "Recomendada por tu saldo" : "Recomendada"}</span>}
+              <span className="block font-semibold text-noche">{opcion.titulo}</span>
+              <span className="mt-1 block text-sm leading-relaxed text-gris">{QUE_LOGRA[opcion.id]}</span>
+            </button>
+          ))}
+        </div>
+      </section>
       <section
-        className={`${tarjeta} grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-8`}
+        id="seccion-tu-ruta"
+        className={`${tarjeta} grid scroll-mt-24 gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-8`}
         aria-labelledby="tu-ruta"
       >
         <div className="min-w-0">
@@ -280,12 +309,17 @@ export function MiRuta({
       <div className="grid gap-3 md:gap-5 lg:grid-cols-3">
         <div className="space-y-3 md:space-y-5 lg:col-span-2">
           <section className={tarjeta} aria-labelledby="tus-pasos">
-            <h2 id="tus-pasos" className="text-base font-semibold text-noche md:text-lg">
-              Tus pasos, en orden
-            </h2>
-            <p className="mt-0.5 text-sm text-gris">
-              Toca un paso cuando lo hayas hecho; el asistente sigue desde ahí.
-            </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 id="tus-pasos" className="text-base font-semibold text-noche md:text-lg">
+                  Tus pasos, en orden
+                </h2>
+                <p className="mt-0.5 text-sm text-gris">
+                  Toca un paso cuando lo hayas hecho; el asistente sigue desde ahí.
+                </p>
+              </div>
+              <ClimaRuta cumplidos={avance.cumplidos} total={avance.total} />
+            </div>
             <ol className="mt-3 space-y-1" aria-labelledby="tus-pasos">
               {avance.pasos.map((p, i) => {
                 const toca = i === siguiente;
@@ -303,23 +337,23 @@ export function MiRuta({
                       />
                       <span
                         aria-hidden="true"
-                        className={`mt-px flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors duration-150 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-electrico [&_svg]:size-4 ${p.hecho ? "border-electrico bg-electrico text-white" : toca ? "border-electrico bg-white text-electrico" : "border-linea bg-white text-gris"}`}
+                        className={`mt-px flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors duration-150 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-electrico [&_svg]:size-4 ${p.hecho ? "check-pop border-electrico bg-electrico text-white" : toca ? "border-electrico bg-white text-electrico" : "border-linea bg-white text-gris"}`}
                       >
                         {p.hecho ? <Icono nombre="check" /> : i + 1}
                       </span>
                       <span className="min-w-0 flex-1">
                         {toca && (
-                          <span className="mb-0.5 block text-[11px] font-semibold uppercase tracking-wide text-electrico">
+                          <span className="mb-0.5 block text-xs font-semibold uppercase tracking-wide text-electrico">
                             Siguiente
                           </span>
                         )}
                         <span
-                          className={`block text-sm leading-relaxed md:text-[15px] ${p.hecho ? "text-gris line-through" : "text-tinta"}`}
+                          className={`paso-texto block text-sm leading-relaxed md:text-[15px] ${p.hecho ? "text-gris line-through" : "text-tinta"}`}
                         >
                           {unido(p.texto)}
                         </span>
                         {p.hecho && (
-                          <span className="mt-0.5 block text-[11px] font-medium text-gris">
+                          <span className="mt-0.5 block text-xs font-medium text-gris">
                             Hecho · toca para desmarcar
                           </span>
                         )}
@@ -339,7 +373,7 @@ export function MiRuta({
           {ruta.motivos.length > 0 && (
             <section className={tarjeta} aria-labelledby="motivos">
               <h2 id="motivos" className="text-base font-semibold text-noche">
-                Por qué te toca esta ruta
+                Por qué te sirve esta ruta
               </h2>
               <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-tinta">
                 {ruta.motivos.map(m => (

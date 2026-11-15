@@ -1,7 +1,6 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import { formatoCorto, formatoSoles, formatoTasa, sumar } from "@/motor";
-import { unido } from "@/componentes/ui";
 import { Acciones, Fecha, Seleccion, Texto } from "@/componentes/formularios";
 import { ListaEditable, useEnvio, type Fila } from "@/componentes/lista-editable";
 import { useDatos } from "@/componentes/datos";
