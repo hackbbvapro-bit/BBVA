@@ -63,7 +63,7 @@ describe("armarCaso", () => {
       const perfil = aPerfil(armarCaso(r));
       const flujo = flujoMensual(perfil, analizar(perfil));
       expect(flujo.ingresos).toBe(r.ingresoMensual);
-      expect(flujo.gastos).toBe(r.fijosMensual + r.diaADiaMensual);
+      expect(flujo.gastos).toBe((r.fijosMensual ?? 0) + (r.diaADiaMensual ?? 0));
       expect(flujo.cuotas).toBe(0);
       expect(flujo.libre).toBe(soles(800));
     }
@@ -90,12 +90,12 @@ describe("armarCaso", () => {
 });
 
 describe("de las respuestas a la ruta", () => {
-  it("sin deudas y sin haber tenido crédito: construir historial", () => {
-    expect(rutaDe(base).id).toBe("construir_historial");
+  it("sin deudas y sin meta: ahorrar sin imponer crédito", () => {
+    expect(rutaDe(base).id).toBe("ahorrar");
   });
 
-  it("sin deudas, ya tuvo crédito y le sobra: hacer crecer", () => {
-    expect(rutaDe(con({ tuvoCredito: true })).id).toBe("hacer_crecer");
+  it("sin meta, haber tenido crédito no cambia la elección inicial", () => {
+    expect(rutaDe(con({ tuvoCredito: true })).id).toBe("ahorrar");
   });
 
   it("con una deuda: estar en verde, y la tarjeta cuenta como haber tenido crédito", () => {
@@ -107,7 +107,7 @@ describe("de las respuestas a la ruta", () => {
   it("una deuda con una persona no cuenta como historial de crédito", () => {
     const r = con({ deuda: { tipo: "personal", saldo: soles(500), cuota: soles(100), atraso: "al_dia" } });
     expect(tuvoCreditoSegun(r)).toBe(false);
-    expect(rutaDe(r).id).toBe("estar_en_verde");
+    expect(rutaDe(r).id).toBe("ahorrar");
   });
 
   it("gasta más de lo que gana: estar en verde aunque no deba nada", () => {
@@ -154,5 +154,35 @@ describe("quien vende o cobra al día", () => {
     const repo = crearRepositorioMemoria();
     await repo.cargar(armarCaso(alDia(soles(1300))));
     expect((await repo.leerTodo()).movimientos).toHaveLength(SEMANAS_DE_HISTORIA * 7);
+  });
+});
+
+
+describe("frecuencias del cuestionario sin deriva", () => {
+  it("dos quincenas exactas, incluido febrero bisiesto y fin de año", () => {
+    for (const hoy of ["2024-03-31", "2027-01-31"]) {
+      const perfil = aPerfil(armarCaso(con({ cobro: "quincena", ingresoMensual: 250002, hoy })));
+      const ingresos = perfil.movimientos.filter(m => m.monto > 0);
+      expect(ingresos.every(m => m.monto === 125001)).toBe(true);
+      if (hoy === "2024-03-31") expect(ingresos.map(m => m.fecha)).toEqual(expect.arrayContaining(["2024-01-31", "2024-02-15", "2024-02-29", "2024-03-31"]));
+      else expect(ingresos.map(m => m.fecha)).toEqual(expect.arrayContaining(["2026-12-15", "2026-12-31", "2027-01-31"]));
+    }
+  });
+  it("el motor detecta la semana al cruzar de año y proyecta cada siete días", () => {
+    const r = con({ cobro: "semanal", ingresoSemanal: 50001, ingresoMensual: 216671, hoy: "2027-01-03" });
+    const datos = armarCaso(r);
+    expect(datos.ingresosFijos).toEqual([]);
+    expect(datos.movimientos.map(m => m.fecha).sort().slice(-2)).toEqual(["2027-01-03", "2026-12-27"].reverse());
+  });
+  it("la semana floja usa céntimos enteros y no supera el normal", () => {
+    const datos = armarCaso(con({ trabajo: "independiente", cobro: "semanal", ingresoSemanal: 50001, ingresoMensual: 216671, ingresoFlojo: 150001 }));
+    expect(datos.movimientos.every(m => m.monto === 34615)).toBe(true);
+    expect(analizar(aPerfil(datos)).recurrentes.filter(r => r.monto > 0)).toMatchObject([{ monto: 34615, frecuencia: "semanal" }]);
+  });
+  it("armarCaso acepta solo las nuevas respuestas y no atribuye atraso", () => {
+    const datos = armarCaso({ nombre: "Lucho", cobro: "fin_de_mes", ingresoMensual: 250000, saldo: 60000, gastosMensual: 170000, deuda: { cuota: 25000 }, hoy: "2026-11-14" });
+    expect(hechosDe(datos).diasAtrasoMax).toBe(0);
+    const perfil = aPerfil(datos);
+    expect(flujoMensual(perfil, analizar(perfil))).toEqual({ ingresos: 250000, gastos: 170000, cuotas: 25000, libre: 55000 });
   });
 });

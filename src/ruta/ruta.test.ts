@@ -7,7 +7,7 @@ import type { Datos } from "../datos/tipos";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "./entrada";
 import {
   AVISO_SIMULACION, avanceDe, colchon, contadorDeAvance, EsquemaAvances, EsquemaHechos, flujoMensual, fraseAvance, fraseLibre, hechosDe, IDS_PASO,
-  preguntasSugeridas, rutaExplicada, rutaHablada, saludoDeRuta, SIN_HECHOS, TITULOS, trazarRuta, type FlujoMensual, type Hechos, type IdPaso, type Ruta,
+  opcionesDeRuta, recomendada, preguntasSugeridas, rutaExplicada, rutaHablada, saludoDeRuta, SIN_HECHOS, TITULOS, trazarRuta, type FlujoMensual, type Hechos, type IdPaso, type Ruta,
 } from "./ruta";
 
 const base: Respuestas = {
@@ -23,7 +23,7 @@ function caso(r: Respuestas): Caso {
   const datos = armarCaso(r);
   const perfil = aPerfil(datos);
   const analisis = analizar(perfil);
-  const hechos = hechosDe(datos, tuvoCreditoSegun(r));
+  const hechos = { ...hechosDe(datos, tuvoCreditoSegun(r)), ...(r.meta && { meta: r.meta }), ...(r.deuda && { tieneDeudas: true }) };
   return { datos, perfil, analisis, hechos, ruta: trazarRuta(perfil, analisis, hechos) };
 }
 const todoElTexto = (r: Ruta) => [r.titulo, r.resumen, ...r.motivos, ...r.pasos, ...r.alternativas.flatMap(a => [a.entrada.titulo, a.porQue]), r.aviso].join(" ");
@@ -113,128 +113,91 @@ describe("hechosDe", () => {
   });
 });
 
-describe("trazarRuta: a quién le toca cada ruta", () => {
-  it("Andrea, que tiene un día en negativo, va a estar en verde con el día y la jugada que lo resuelve", () => {
-    const datos = datosDeEjemplo();
-    const perfil = aPerfil(datos);
-    const analisis = analizar(perfil);
-    const deficit = analisis.proyeccion.deficit!;
-    const ruta = trazarRuta(perfil, analisis, hechosDe(datos));
-    expect(ruta.id).toBe("estar_en_verde");
-    expect(ruta.resumen).toBe(`Lo primero es que no te falte plata el ${formatoLargo(deficit.fecha)}.`);
-    expect(ruta.motivos[0]).toContain(formatoSoles(deficit.faltante));
-    expect(ruta.pasos[0]).toMatch(/^Tapa el hueco del /);
-    expect(ruta.pasos).toContain(`Hasta que pase el ${formatoLargo(deficit.fecha)}, no adelantes pagos ni sumes extra a ninguna deuda, y nunca pagues menos del mínimo.`);
-    expect(ruta.alternativas.map(a => a.entrada.id)).toEqual(["reprogramar"]);
-  });
-
-  it("un atraso manda a estar en verde aunque no haya ningún día en negativo", () => {
-    const { ruta, analisis } = caso(con({ saldo: soles(5000), deuda: tarjeta(1000, 100, "menos_de_un_mes") }));
-    expect(analisis.proyeccion.deficit).toBeNull();
-    expect(ruta.id).toBe("estar_en_verde");
-    expect(ruta.resumen).toBe("Lo primero es ponerte al día con lo atrasado.");
-    expect(ruta.motivos).toContain("Tienes una deuda con unos 20 días de atraso.");
-    expect(ruta.pasos[0]).toMatch(/^Ponte al día con la deuda atrasada/);
-    expect(ruta.alternativas.map(a => a.entrada.id)).toEqual(["reprogramar"]);
-  });
-
-  it("al día y con deuda: adelantar con lo que sobra, sin ofrecer ningún producto", () => {
-    const { ruta } = caso(con({ saldo: soles(1500), deuda: tarjeta(3000, 250) }));
-    expect(ruta.id).toBe("estar_en_verde");
-    expect(ruta.resumen).toMatch(/^Vas al día/);
-    expect(ruta.motivos).toContain(`Debes ${formatoSoles(soles(3000))} en una deuda.`);
-    expect(ruta.pasos[0]).toBe(`Pon lo que te sobra (${formatoSoles(soles(550))} al mes) en adelantar Mi tarjeta: cada sol que adelantas deja de generar intereses.`);
-    expect(ruta.pasos.at(-1)).toBe(`Cuando el mes cierre en positivo, empieza un colchón: un mes de tus gastos, contando las cuotas de tus deudas, son ${formatoSoles(soles(1950))}.`);
-    expect(ruta.alternativas).toEqual([]);
-  });
-
-  it("con deuda y sin nada libre: primero liberar plata, y nunca una deuda nueva para pagar la vieja", () => {
-    const { ruta, analisis } = caso(con({ saldo: soles(9000), ingresoMensual: soles(1950), deuda: tarjeta(20_000, 250) }));
-    expect(analisis.proyeccion.deficit).toBeNull();
-    expect(ruta.id).toBe("estar_en_verde");
-    expect(ruta.flujo.libre).toBe(0);
-    expect(ruta.resumen).toMatch(/primero hay que liberar algo cada mes/);
-    expect(ruta.pasos[0]).toMatch(/no tomes una deuda nueva para pagar la vieja/);
-  });
-
-  it("quien puede cancelar toda su deuda y conservar su colchón pasa a hacer crecer, cancelando primero", () => {
-    const { ruta } = caso(con({ saldo: soles(10_000), deuda: tarjeta(3000, 250) }));
-    expect(ruta.colchon.meta).toBe(soles(5850));
-    expect(ruta.id).toBe("hacer_crecer");
-    expect(ruta.pasos[0]).toBe(`Cancela primero tu deuda (${formatoSoles(soles(3000))}): con lo que tienes hoy te alcanza y te sigue quedando tu colchón.`);
-  });
-
-  it("si al cancelar la deuda se quedaría sin colchón, sigue en estar en verde (el límite exacto cuenta)", () => {
-    // meta = 5 850; deuda = 3 000 → hacen falta 8 850 de saldo.
-    expect(caso(con({ saldo: soles(8850), deuda: tarjeta(3000, 250) })).ruta.id).toBe("hacer_crecer");
-    expect(caso(con({ saldo: soles(8850) - 1, deuda: tarjeta(3000, 250) })).ruta.id).toBe("estar_en_verde");
-  });
-
-  it("sin deudas y sin haber tenido crédito: construir historial, con las dos tarjetas de entrada", () => {
+describe("rutas elegidas y recomendadas", () => {
+  it("sin deudas ni historial no impone crédito: empieza ahorrando", () => {
     const { ruta } = caso(base);
-    expect(ruta.id).toBe("construir_historial");
-    expect(ruta.alternativas.map(a => a.entrada.id)).toEqual(["tarjeta-con-garantia", "tarjeta-inicio"]);
-    expect(ruta.pasos).toHaveLength(3);
-    expect(ruta.motivos[1]).toBe(fraseLibre(ruta.flujo));
+    expect(ruta.id).toBe("ahorrar");
+    expect(todoElTexto(ruta)).not.toMatch(/primer crédito|producto de crédito|Salir de deudas/);
   });
-
-  it("sin historial pero sin nada libre al mes: antes de pedir un producto, que sobre algo", () => {
-    const { ruta, analisis } = caso(con({ saldo: soles(9000), ingresoMensual: soles(1700) }));
-    expect(analisis.proyeccion.deficit).toBeNull();
-    expect(ruta.id).toBe("construir_historial");
-    expect(ruta.pasos[0]).toMatch(/^Antes de pedir un producto, haz que te sobre algo cada mes/);
-  });
-
-  it("sin deudas y con crédito previo: hacer crecer, con el colchón calculado", () => {
-    const { ruta } = caso(con({ tuvoCredito: true }));
-    expect(ruta.id).toBe("hacer_crecer");
-    expect(ruta.resumen).toBe("Lo primero es completar tu colchón de emergencia.");
-    expect(ruta.motivos).toContain(`Tu saldo de hoy (${formatoSoles(soles(600))}) cubre unos 10 días de tus gastos.`);
-    // meta 5 100, tiene 600 → faltan 4 500; libre 800 → 6 meses.
-    expect(ruta.pasos[0]).toBe(`Completa tu colchón de tres meses de gastos (${formatoSoles(soles(5100))}): te faltan ${formatoSoles(soles(4500))} y, guardando lo que te sobra, llegarías en 6 meses.`);
-    expect(ruta.alternativas.map(a => a.entrada.id)).toEqual(["cuenta-de-ahorro", "deposito-a-plazo"]);
-  });
-
-  it("el fondo mutuo solo aparece cuando el colchón ya está completo", () => {
-    const { ruta } = caso(con({ tuvoCredito: true, saldo: soles(5100) }));
+  it("con el colchón ya completo no dice «faltan S/ 0.00»", () => {
+    const { ruta } = caso(con({ meta: "ahorrar", saldo: soles(60000) }));
+    expect(ruta.id).toBe("ahorrar");
     expect(ruta.colchon.falta).toBe(0);
-    expect(ruta.resumen).toMatch(/^Ya tienes tu colchón/);
-    expect(ruta.alternativas.map(a => a.entrada.id)).toEqual(["cuenta-de-ahorro", "deposito-a-plazo", "fondo-mutuo"]);
-    expect(caso(con({ tuvoCredito: true, saldo: soles(5100) - 1 })).ruta.alternativas).toHaveLength(2);
+    expect(todoElTexto(ruta)).not.toContain("S/ 0.00");
+    expect(ruta.motivos).toContain("Tu colchón de tres meses ya está completo.");
   });
-
-  it("quien no registró nada recibe la invitación a anotar, no cifras inventadas", () => {
-    const { ruta } = caso(con({ ingresoMensual: 0, fijosMensual: 0, diaADiaMensual: 0, saldo: 0 }));
-    expect(ruta.id).toBe("construir_historial");
-    expect(ruta.flujo).toEqual({ ingresos: 0, gastos: 0, cuotas: 0, libre: 0 });
-    expect(ruta.pasos[0]).toMatch(/^Anota tus ingresos y tus gastos fijos en Mi dinero/);
-    expect(todoElTexto(ruta)).not.toMatch(/S\/ ?0/);
+  it("la meta decide la ruta inicial aunque haya déficit; el saldo decide la recomendación", () => {
+    const { perfil, analisis, hechos, ruta } = caso(con({ meta: "hacer_crecer", ingresoMensual: soles(1200), saldo: soles(100) }));
+    expect(ruta.id).toBe("hacer_crecer");
+    expect(recomendada(perfil, analisis, hechos)).toBe("estar_en_verde");
+    expect(ruta.pasos[0]).toBe("Hoy te faltan S/ 500.00 al mes; primero cierra ese hueco antes de invertir.");
+    expect(trazarRuta(perfil, analisis, { ...hechos, rutaElegida: "ahorrar" }).id).toBe("ahorrar");
   });
-
-  it("gasta más de lo que gana sin deber nada: estar en verde y bajar un gasto", () => {
-    const { ruta, analisis } = caso(con({ ingresoMensual: soles(1200), saldo: soles(100) }));
-    expect(analisis.proyeccion.deficit).not.toBeNull();
+  it("ofrece entre tres y cuatro rutas, respeta elegibilidad y conserva la elegida", () => {
+    for (const deuda of [null, tarjeta(3000, 250)]) for (const ingresoMensual of [soles(1200), soles(2500)]) {
+      const { perfil, analisis, hechos } = caso(con({ deuda, ingresoMensual }));
+      for (const meta of ["ahorrar", "hacer_crecer", "construir_historial"] as const) {
+        const opciones = opcionesDeRuta(perfil, analisis, { ...hechos, meta });
+        expect(opciones.length).toBeGreaterThanOrEqual(3);
+        expect(opciones.length).toBeLessThanOrEqual(4);
+        expect(opciones.map(r => r.id)).toContain(meta);
+        expect(opciones.some(r => r.id === "salir_deudas")).toBe(Boolean(deuda));
+        expect(opciones.some(r => r.id === "estar_en_verde")).toBe(Boolean(analisis.proyeccion.deficit));
+        for (const r of opciones) expect(r.motivos[0]).toMatch(/S\//);
+      }
+    }
+  });
+  it("atraso recomienda evitar rojo, sin sustituir la meta", () => {
+    const { perfil, analisis, hechos, ruta } = caso(con({ saldo: soles(9000), meta: "salir_deudas", deuda: tarjeta(1000, 100, "menos_de_un_mes") }));
+    expect(analisis.proyeccion.deficit).toBeNull();
+    expect(ruta.id).toBe("salir_deudas");
+    expect(recomendada(perfil, analisis, hechos)).toBe("estar_en_verde");
+    expect(ruta.pasos[0]).toMatch(/^Ponte al día/);
+  });
+  it("salir de deudas conserva los cálculos y nunca se ofrece sin deudas", () => {
+    const { ruta } = caso(con({ meta: "salir_deudas", saldo: soles(1500), deuda: tarjeta(3000, 250) }));
+    expect(ruta.pasos[0]).toContain("S/ 550.00");
+    const { perfil, analisis } = caso(base);
+    expect(trazarRuta(perfil, analisis, { ...SIN_HECHOS, rutaElegida: "salir_deudas" }).id).toBe("ahorrar");
+  });
+  it("solo la ruta grande habla de crédito y primero explica el motivo", () => {
+    const { perfil, analisis } = caso(base);
+    const rutas = opcionesDeRuta(perfil, analisis);
+    const grande = rutas.find(r => r.id === "construir_historial")!;
+    expect(grande.pasos[0]).toContain("El banco mira tu historial antes de prestarte para una casa o un auto; sin historial te lo pueden negar o cobrar más caro");
+    for (const r of rutas.filter(r => r !== grande)) expect(todoElTexto(r)).not.toMatch(/historial|primer crédito|producto de crédito/);
+  });
+  it("solo aconseja cancelar toda la deuda si queda colchón tras hacerlo", () => {
+    expect(caso(con({ meta: "hacer_crecer", saldo: soles(8850), deuda: tarjeta(3000, 250) })).ruta.pasos[0]).toContain("Cancela primero");
+    expect(caso(con({ meta: "hacer_crecer", saldo: soles(8850) - 1, deuda: tarjeta(3000, 250) })).ruta.pasos.join(" ")).not.toContain("Cancela primero");
+  });
+  it("invertir conserva el cálculo del colchón y sus límites", () => {
+    const { ruta } = caso(con({ meta: "hacer_crecer" }));
+    expect(ruta.colchon).toMatchObject({ meta: 510000, falta: 450000, mesesParaCompletar: 6 });
+    expect(ruta.pasos[0]).toContain("6 meses");
+    expect(caso(con({ meta: "hacer_crecer", saldo: 510000 })).ruta.alternativas.some(a => a.entrada.id === "fondo-mutuo")).toBe(true);
+    expect(caso(con({ meta: "hacer_crecer", saldo: 509999 })).ruta.alternativas.some(a => a.entrada.id === "fondo-mutuo")).toBe(false);
+  });
+  it("es pura y explica el hueco con fecha y cifra calculadas", () => {
+    const perfil = aPerfil(datosDeEjemplo());
+    const analisis = analizar(perfil);
+    const ruta = trazarRuta(perfil, analisis);
     expect(ruta.id).toBe("estar_en_verde");
-    expect(ruta.pasos.join(" ")).toMatch(/Cada mes te sale más de lo que te entra/);
-  });
-
-  it("es pura: las mismas entradas dan exactamente la misma ruta, y sin hechos asume que no hubo crédito", () => {
-    const { perfil, analisis, hechos, ruta } = caso(con({ deuda: tarjeta(3000, 250, "mas_de_dos_meses") }));
-    expect(trazarRuta(perfil, analisis, hechos)).toEqual(ruta);
-    const sinDeuda = caso(base);
-    expect(trazarRuta(sinDeuda.perfil, sinDeuda.analisis).id).toBe("construir_historial");
+    expect(ruta.motivos.join(" ")).toContain(formatoSoles(analisis.proyeccion.deficit!.faltante));
+    expect(ruta.pasos[0]).toContain(formatoLargo(analisis.proyeccion.deficit!.fecha));
+    expect(trazarRuta(perfil, analisis)).toEqual(ruta);
   });
 });
 
 describe("lo que se dice en cada ruta", () => {
   const rutas = [
-    caso(base).ruta, caso(con({ tuvoCredito: true })).ruta, caso(con({ tuvoCredito: true, saldo: soles(9000) })).ruta,
+    caso(base).ruta, caso(con({ meta: "construir_historial" })).ruta, caso(con({ meta: "hacer_crecer", saldo: soles(9000) })).ruta,
     caso(con({ deuda: tarjeta(3000, 250) })).ruta, caso(con({ deuda: tarjeta(3000, 250, "mas_de_dos_meses") })).ruta,
     caso(con({ saldo: soles(10_000), deuda: tarjeta(3000, 250) })).ruta, caso(con({ ingresoMensual: soles(1200), saldo: soles(100) })).ruta,
   ];
 
-  it("cubre las tres rutas", () => {
-    expect(new Set(rutas.map(r => r.id))).toEqual(new Set(["estar_en_verde", "construir_historial", "hacer_crecer"]));
+  it("cubre rutas elegidas y la ruta por déficit", () => {
+    expect(new Set(rutas.map(r => r.id))).toEqual(new Set(["estar_en_verde", "ahorrar", "construir_historial", "hacer_crecer"]));
   });
 
   it("toda ruta trae título, resumen, al menos un motivo y un paso, y el aviso de simulación", () => {
@@ -265,7 +228,7 @@ describe("lo que se dice en cada ruta", () => {
   it("la versión hablada dice la ruta, lo primero y el primer paso; la explicada añade el aviso", () => {
     for (const r of rutas) {
       const hablada = rutaHablada(r);
-      expect(hablada).toContain(r.resumen);
+      expect(hablada).toContain(r.motivos[0].charAt(0).toLowerCase() + r.motivos[0].slice(1));
       expect(hablada).toMatch(/Primer paso: /);
       expect(hablada.length).toBeLessThan(700);
       const explicada = rutaExplicada(r);
@@ -277,8 +240,8 @@ describe("lo que se dice en cada ruta", () => {
   it("propone cuatro preguntas distintas por ruta", () => {
     for (const r of rutas) {
       const preguntas = preguntasSugeridas(r);
-      expect(preguntas).toHaveLength(4);
-      expect(new Set(preguntas).size).toBe(4);
+      expect(preguntas.length).toBeGreaterThanOrEqual(3);
+      expect(new Set(preguntas).size).toBe(preguntas.length);
       expect(preguntas[0]).toBe("¿Por dónde empiezo?");
     }
   });
@@ -287,12 +250,13 @@ describe("lo que se dice en cada ruta", () => {
 describe("saludoDeRuta", () => {
   const casos = [caso(base), caso(con({ deuda: tarjeta(3000, 250, "uno_a_dos_meses") })), caso(con({ tuvoCredito: true, saldo: soles(20000) }))];
 
-  it("en un caso propio dice que armó el caso, lee la ruta y avisa de las fechas aproximadas", () => {
+  it("saluda brevemente, explica con cifras e invita a elegir", () => {
     for (const { ruta } of casos) {
       const texto = saludoDeRuta("Lucía", ruta, true);
-      expect(texto.startsWith("Hola, Lucía. Con lo que me contaste armé tu caso.")).toBe(true);
+      expect(texto.startsWith("Hola, Lucía. Te sugiero")).toBe(true);
       expect(texto).toContain(rutaHablada(ruta));
-      expect(texto).toContain("fechas aproximadas");
+      expect(texto).not.toContain("fechas aproximadas");
+      expect(texto).toContain("Puedes elegir otra ruta en Mi ruta.");
       expect(texto.endsWith("¿Qué quieres saber?")).toBe(true);
     }
   });
@@ -300,7 +264,7 @@ describe("saludoDeRuta", () => {
   it("en el caso de ejemplo saluda sin decir que armó nada ni hablar de fechas", () => {
     for (const { ruta } of casos) {
       const texto = saludoDeRuta("Andrea", ruta, false);
-      expect(texto.startsWith("Hola, Andrea. Tu ruta es:")).toBe(true);
+      expect(texto.startsWith("Hola, Andrea. Te sugiero")).toBe(true);
       expect(texto).not.toContain("armé tu caso");
       expect(texto).not.toContain("fechas aproximadas");
     }
@@ -317,7 +281,7 @@ describe("saludoDeRuta", () => {
 
 describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
   const rutas = [
-    caso(base).ruta, caso(con({ tuvoCredito: true })).ruta, caso(con({ tuvoCredito: true, saldo: soles(9000) })).ruta,
+    caso(base).ruta, caso(con({ meta: "construir_historial" })).ruta, caso(con({ meta: "hacer_crecer", saldo: soles(9000) })).ruta,
     caso(con({ deuda: tarjeta(3000, 250) })).ruta, caso(con({ deuda: tarjeta(3000, 250, "mas_de_dos_meses") })).ruta,
     caso(con({ saldo: soles(10_000), deuda: tarjeta(3000, 250) })).ruta, caso(con({ ingresoMensual: soles(1200), saldo: soles(100) })).ruta,
     caso(con({ ingresoMensual: 0, fijosMensual: 0, diaADiaMensual: 0 })).ruta,
@@ -335,9 +299,11 @@ describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
     }
   });
 
-  it("los ids de una ruta empiezan por su nombre: una marca de otra ruta no se cuela", () => {
-    const prefijo = { estar_en_verde: "verde_", construir_historial: "historial_", hacer_crecer: "crecer_" } as const;
-    for (const r of [...rutas, andrea]) for (const id of r.idsPasos) expect(id.startsWith(prefijo[r.id])).toBe(true);
+  it("las marcas se cruzan con los ids presentes en cada ruta", () => {
+    for (const r of rutas) {
+      const ajenos = IDS_PASO.filter(id => !r.idsPasos.includes(id));
+      expect(avanceDe(r, ajenos).cumplidos).toBe(0);
+    }
   });
 
   it("el id no cambia aunque cambie el texto del paso (otra cifra, misma tarea)", () => {
@@ -406,16 +372,21 @@ describe("avance de la ruta: qué pasos lleva hechos la persona", () => {
 
     const medias = avanceDe(andrea, [andrea.idsPasos[0]]);
     const hablada = rutaHablada(andrea, medias);
-    expect(hablada).toContain(andrea.resumen);
-    expect(hablada).toContain(`Llevas 1 de ${andrea.pasos.length} pasos hechos. Siguiente paso: `);
+    expect(hablada).toContain("Te sugiero");
+    expect(hablada.toLowerCase()).toContain(medias.siguiente!.toLowerCase());
+    expect(hablada).toContain("Siguiente paso");
     expect(hablada).not.toContain("Primer paso");
+    expect(rutaHablada(andrea, sin)).toContain("Primer paso");
     const saludo = saludoDeRuta("Lucía", andrea, true, medias);
-    expect(saludo.startsWith("Hola de nuevo, Lucía.")).toBe(true);
+    expect(saludo.startsWith("Hola, Lucía.")).toBe(true);
     expect(saludo).toContain(hablada);
     expect(saludo).not.toContain("armé tu caso");
     expect(saludo.endsWith("¿Qué quieres saber?")).toBe(true);
 
-    expect(rutaHablada(andrea, avanceDe(andrea, andrea.idsPasos))).toContain("Ya marcaste como hechos todos sus pasos");
+    const completa = rutaHablada(andrea, avanceDe(andrea, andrea.idsPasos));
+    expect(completa).toContain("Puedes elegir otra ruta");
+    expect(completa).toContain("Ya completaste todos sus pasos");
+    expect(completa).not.toMatch(/Primer paso|Siguiente paso/);
   });
 
   it("el esquema solo acepta ids de la lista: ni texto libre ni listas enormes", () => {

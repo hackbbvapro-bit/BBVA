@@ -79,6 +79,8 @@ function MiniProyeccion() {
 export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { reciente?: boolean }) => void }) {
   const { cambiar } = useDatos();
   const [paso, setPaso] = useState<"inicio" | "form">("inicio");
+  const [respuestas, setRespuestas] = useState<Respuestas>();
+  const [externo, setExterno] = useState(false);
   const [error, setError] = useState<string>();
   const [guardando, setGuardando] = useState(false);
 
@@ -94,7 +96,7 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
       borrarHistorial(ID_PROPIO);
       borrarAvances(ID_PROPIO);
       guardarModo("propio");
-      guardarSituacion({ tuvoCredito: tuvoCreditoSegun(r), sinDeudas: !r.deuda || r.deuda.saldo <= 0, externo });
+      guardarSituacion({ tuvoCredito: tuvoCreditoSegun(r), sinDeudas: !r.deuda, externo, meta: r.meta });
       alListo("propio", { reciente: true });
     } catch (e) {
       setError(mensajeDeError(e));
@@ -175,7 +177,17 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
                 {error && <p role="alert" className="mt-4 rounded-xl bg-coral-suave px-4 py-3 text-sm text-coral-fuerte">{error}</p>}
               </>
             ) : (
-              <Entrada alTerminar={(r, externo) => void terminar(r, externo)} volver={() => setPaso("inicio")} guardando={guardando} error={error} />
+              <>
+                {respuestas && (
+                  <ConfirmarPlan externo={externo} alCambiarExterno={setExterno} guardando={guardando}
+                    alVerPlan={() => void terminar(respuestas, externo)}
+                    alVolver={() => { setRespuestas(undefined); setExterno(false); }} error={error} />
+                )}
+                {/* Oculta, no desmontada: al «Revisar mis respuestas» se conserva lo contestado. */}
+                <div hidden={!!respuestas}>
+                  <Entrada alTerminar={r => { setExterno(false); setRespuestas(r); }} volver={() => setPaso("inicio")} guardando={guardando} error={error} />
+                </div>
+              </>
             )}
             <p className="mt-6 border-t border-linea pt-4 text-[13px] leading-relaxed text-gris">
               Prototipo educativo con datos sintéticos; no es un producto de ningún banco. Tu caso se calcula y se guarda en
@@ -187,4 +199,21 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
       </div>
     </div>
   );
+}
+
+/** Consentimiento separado de las respuestas y siempre iniciado desmarcado. */
+export function ConfirmarPlan({ externo, alCambiarExterno, guardando, alVerPlan, alVolver, error }: {
+  externo: boolean; alCambiarExterno: (valor: boolean) => void; guardando: boolean;
+  alVerPlan: () => void; alVolver: () => void; error?: string;
+}) {
+  return <div className="space-y-4">
+    <h2 className="text-xl font-semibold text-noche">Tu plan está listo</h2>
+    <button type="button" onClick={alVerPlan} disabled={guardando} className="min-h-12 w-full rounded-xl bg-electrico px-4 py-3 font-semibold text-white disabled:opacity-60">{guardando ? "Armando tu caso…" : "Ver mi plan"}</button>
+    <label className="flex items-start gap-3 text-sm text-noche">
+      <input type="checkbox" checked={externo} onChange={e => alCambiarExterno(e.target.checked)} disabled={guardando} className="mt-1 size-5 shrink-0 accent-electrico" />
+      <span><span className="block font-semibold">Usar asistente con IA y voz</span><span className="mt-1 block text-gris">Tus respuestas de simulación se envían a un servicio de IA para conversar.</span></span>
+    </label>
+    {error && <p role="alert" className="text-sm text-coral-fuerte">{error}</p>}
+    <button type="button" onClick={alVolver} disabled={guardando} className="min-h-11 text-sm font-semibold text-electrico">Revisar mis respuestas</button>
+  </div>;
 }
