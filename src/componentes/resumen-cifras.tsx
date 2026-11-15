@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useId, useState } from "react";
+import { useCallback, useId, useState, type ReactNode } from "react";
 import type { Cuenta } from "@/datos/tipos";
 import { saldoDeCuentas } from "@/cliente/cuentas";
 import { formatoSoles } from "@/motor/dinero";
@@ -20,6 +20,7 @@ export function ResumenCifras({
   tarjetas,
   alGestionarTarjetas,
   proximoVencimiento,
+  alerta,
 }: {
   cifras: [string, string][];
   deficit: boolean;
@@ -29,6 +30,7 @@ export function ResumenCifras({
   tarjetas?: Cuenta[];
   alGestionarTarjetas?: () => void;
   proximoVencimiento?: string;
+  alerta?: ReactNode;
 }) {
   const [abierto, setAbierto] = useState(false);
   const [seleccion, setSeleccion] = useState<string | null>(null);
@@ -42,11 +44,12 @@ export function ResumenCifras({
   const cerrarTarjetas = useCallback(() => setTarjetasAbiertas(false), []);
   return (
     <section aria-label="Cifras del mes">
-      <dl className="cifras-mes">
+      <dl className="cifras-mes" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
         {cifras.map(([etiqueta, valor], i) => (
           <div
             key={etiqueta}
             className="cifra-tarjeta"
+            style={i === 2 ? { gridColumn: 2, gridRow: 2, width: "100%", justifySelf: "stretch" } : undefined}
             data-cifra
             data-cuota={i === 2 ? "true" : undefined}
             data-cuentas-abiertas={(i === 0 && abierto) || (i === 1 && tarjetasAbiertas) ? "true" : undefined}
@@ -113,6 +116,7 @@ export function ResumenCifras({
             </dd>
           </div>
         ))}
+        {alerta && <div style={{ gridColumn: 1, gridRow: 2, minWidth: 0, padding: 10, border: `1px solid ${deficit ? "#f4dfe2" : "#ccebd8"}`, borderRadius: 17, background: deficit ? "#fceff0" : "#edf8f1" }}><dt className="sr-only">Estado del saldo</dt><dd style={{ display: "flex", flexDirection: "column", height: "100%" }}>{alerta}</dd></div>}
       </dl>
     </section>
   );
