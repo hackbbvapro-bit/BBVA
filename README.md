@@ -23,8 +23,8 @@ Responde a dos preguntas que hoy ninguna app peruana contesta bien:
 1. **Lee movimientos** sintéticos (CSV / JSON con el formato de un estado de cuenta, Yape/Plin incluidos).
 2. **Detecta recurrentes**: sueldo o ingresos irregulares, alquiler, servicios, suscripciones, cuotas.
 3. **Proyecta el saldo a 30 días** de forma determinista (sin IA).
-4. **Avisa del déficit** con fecha y causa: «el lunes 23 te faltarán S/ 200.00 porque se juntan el alquiler y el pago de la tarjeta».
-5. **Propone 2-3 jugadas** con su costo calculado: mover un pago, pagar solo el mínimo (y cuánto cuesta),
+4. **Avisa del déficit** con fecha y causa: «el lunes 23 te faltarán S/ 119.07 porque se juntan el alquiler y el pago de la tarjeta».
+5. **Propone 2-3 jugadas** con su costo calculado: pausar suscripciones, pagar solo el mínimo (y cuánto cuesta),
    recortar una suscripción, adelantar un cobro.
 6. **La IA solo explica** en lenguaje llano lo que el motor ya calculó. Nunca inventa un número.
 
@@ -73,7 +73,7 @@ motor y la voz es la del propio celular. Con `ANTHROPIC_API_KEY` conversa el age
 - [x] Investigación y método
 - [x] Confirmar si se permite código previo (sí)
 - [x] Stack: Next.js + TypeScript + Tailwind + Vitest
-- [x] Datos sintéticos (Rosa, Carlos y Lucía)
+- [x] Datos sintéticos (Andrea, fisioterapeuta independiente inventada; Carlos y Lucía solo en pruebas)
 - [x] Motor de proyección + tests
 - [x] Interfaz para celular, chat con respaldo sin IA y avisos dentro de la app
 - [x] Cifras del pitch revisadas contra su fuente (`investigacion/10-verificacion-de-cifras.md`)

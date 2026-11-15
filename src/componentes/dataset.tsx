@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { analizar, formatoCorto, formatoSoles, formatoTasa, sumar, sumarDias } from "@/motor";
 import type { Categoria } from "@/motor";
-import { aDatos, casoDeRosa, clientesDelDataset, SEMILLA_AGENTE } from "@/evaluacion/casos-agente";
+import { aDatos, casoDeEjemplo, clientesDelDataset, SEMILLA_AGENTE } from "@/evaluacion/casos-agente";
 import type { Datos } from "@/datos/tipos";
 import { aPerfil, saldosReales, type MovimientoEtiquetado } from "@/evaluacion/poblacion";
 import { porSemana, saldoDiario } from "@/evaluacion/series";
@@ -40,7 +40,7 @@ export function Dataset({
   /** Id del caso que el copiloto tiene cargado ahora, para marcar si ya es este cliente. */
   viendo?: string;
 } = {}) {
-  const casos = useMemo(() => [casoDeRosa(), ...clientesDelDataset()], []);
+  const casos = useMemo(() => [casoDeEjemplo(), ...clientesDelDataset()], []);
   // Lo que el copiloto proyecta para cada uno con su historia: si avisa de un día en negativo o no.
   const avisa = useMemo(() => casos.map(c => analizar(aPerfil(c.cliente)).proyeccion.deficit !== null), [casos]);
   const [cargando, setCargando] = useState(false);
@@ -56,7 +56,7 @@ export function Dataset({
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
 
-  const { cliente, nombre, motivo, demo: esRosa = false } = casos[elegido];
+  const { cliente, nombre, motivo, demo: esEjemplo = false } = casos[elegido];
   const todos = useMemo<Fila[]>(
     () =>
       [
@@ -83,7 +83,7 @@ export function Dataset({
   const ATAJOS: [string, string, string][] = [
     ["Todo", "", ""],
     ["Último mes de historia", sumarDias(cliente.corte, -29), cliente.corte],
-    // Rosa no tiene días siguientes guardados: ese atajo no se le ofrece.
+    // El caso de ejemplo no tiene días siguientes guardados: ese atajo no se le ofrece.
     ...(cliente.futuro.length > 0 ? [["Los 30 días siguientes", sumarDias(cliente.corte, 1), sumarDias(cliente.corte, 30)] as [string, string, string]] : []),
   ];
   function fijarFechas(d: string, h: string) {
@@ -144,18 +144,18 @@ export function Dataset({
   const ficha: [string, string][] = [
     ["Fecha de corte («hoy»)", cliente.corte],
     ["Saldo ese día", formatoSoles(cliente.saldoCorte)],
-    [esRosa ? "Ingreso de un mes típico (aprox.)" : "Ingreso mensual de diseño", formatoSoles(cliente.ingresoMensual)],
+    [esEjemplo ? "Ingreso de un mes típico (aprox.)" : "Ingreso mensual de diseño", formatoSoles(cliente.ingresoMensual)],
     ["Movimientos de historia", String(cliente.historia.length)],
-    ["Movimientos de futuro", esRosa ? "No tiene" : String(cliente.futuro.length)],
+    ["Movimientos de futuro", esEjemplo ? "No tiene" : String(cliente.futuro.length)],
     ["Movimientos ocultos", String(cliente.ocultos.length)],
-    ["Lo que pasó de verdad", esRosa ? "No se sabe: no hay días siguientes guardados" : diaDeficit === -1 ? "No cayó en déficit" : `Déficit el día ${diaDeficit + 1}; llegó a faltar ${formatoSoles(faltante)}`],
+    ["Lo que pasó de verdad", esEjemplo ? "No se sabe: no hay días siguientes guardados" : diaDeficit === -1 ? "No cayó en déficit" : `Déficit el día ${diaDeficit + 1}; llegó a faltar ${formatoSoles(faltante)}`],
   ];
 
   return (
     <div className="space-y-6">
       <Encabezado
         titulo="Datos de prueba"
-        bajada={`Rosa, el caso de ejemplo, con sus 90 días de movimientos, y seis clientes inventados más, que además traen los 30 días siguientes que el copiloto no ve. Con esos seis se probó al asistente con IA (semilla ${SEMILLA_AGENTE}). Datos 100 % sintéticos; los comercios no existen.`}
+        bajada={`${casos[0].nombre}, el caso de ejemplo, con sus 90 días de movimientos, y seis clientes inventados más, que además traen los 30 días siguientes que el copiloto no ve. Con esos seis se probó al asistente con IA (semilla ${SEMILLA_AGENTE}). Datos 100 % sintéticos; los comercios no existen.`}
       />
 
       <div role="group" aria-label="Clientes" className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -234,14 +234,14 @@ export function Dataset({
             {nombre} · {cliente.tipo}
           </h2>
           <p className="mt-1 text-sm leading-relaxed text-gris">
-            {esRosa
+            {esEjemplo
               ? "Es el caso de ejemplo de la app. Su historia es regular a propósito: no trae gastos atípicos, datos que falten ni cobros duplicados."
               : `Elegido por: ${motivo}. Escenarios del generador: ${cliente.escenarios.length ? cliente.escenarios.map(lindo).join(", ") : "ninguno"}.`}
           </p>
           {alProbar && (
             <div className="mt-4 rounded-xl bg-niebla p-4">
               {viendo === cliente.id ? (
-                <p className="text-sm font-medium text-noche">El copiloto está mostrando a {nombre}.{esRosa ? "" : " Para volver a Rosa: elígela aquí arriba y cárgala, o ve a Perfil, «Restablecer datos de la demo»."}</p>
+                <p className="text-sm font-medium text-noche">El copiloto está mostrando a {nombre}.{esEjemplo ? "" : ` Para volver a ${casos[0].nombre}: elige su ficha aquí arriba y cárgala, o ve a Perfil, «Restablecer datos de la demo».`}</p>
               ) : (
                 <>
                   <button type="button" className={botonPrincipal} onClick={() => void probar()} disabled={cargando}>

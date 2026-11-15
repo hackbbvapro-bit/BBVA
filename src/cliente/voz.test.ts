@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { paraVoz } from "../explica/explica";
 
 const RESPUESTA =
-  "Rosa, llegas a fin de mes, pero con un bache: el lunes 23 de noviembre te faltarían S/ 200.00, porque ese día salen juntos el alquiler de S/ 650.00 y el pago de la Tarjeta Azul de S/ 600.00. La opción más barata es mover el pago de la tarjeta al viernes 27 de noviembre. Te costaría unos S/ 4.64 de intereses y tu saldo más bajo quedaría en S/ 35.44. Tu paso de hoy es llamar a tu banco y pedir el cambio de fecha antes del 23.";
+  "Andrea, llegas a fin de mes, pero con un bache: el lunes 23 de noviembre te faltarían S/ 119.07, porque ese día salen juntos el alquiler de S/ 850.00 y el pago de la Tarjeta Azul de S/ 600.00. La opción más barata es pausar tus suscripciones este mes: streaming, gimnasio y música en línea. Liberas S/ 161.80 y no te cuesta intereses. Tu paso de hoy es pausarlas desde la app de cada servicio antes del 16.";
 
 interface AudioFalso { src: string; paused: boolean; onended: (() => void) | null; play: () => Promise<void>; pause: () => void }
 let audios: AudioFalso[] = [];

@@ -6,7 +6,7 @@
 2. **Detector de recurrentes**: ingresos, alquiler, servicios, suscripciones, cuotas de deuda.
 3. **Proyección de saldo a 30 días** (determinista) con el día de déficit marcado.
 4. **Aviso con causa**: qué gastos coinciden ese día y cuánto falta.
-5. **2-3 jugadas con costo**: mover un pago, pagar el mínimo (costo en intereses), recortar un gasto.
+5. **2-3 jugadas con costo**: pausar suscripciones, pagar el mínimo (costo en intereses), recortar ocio o delivery (nunca comida básica). Ya no se propone mover la fecha de pago: donde existe, rige desde el ciclo siguiente.
 6. **Orden de deudas por TCEA** (avalancha) y ahorro frente a pagar en otro orden.
 7. **Explicación en lenguaje llano** generada por IA a partir de los números ya calculados.
 8. **Agente con voz** (decidido el 13-nov): se le pregunta hablando o escribiendo y contesta con voz.
@@ -44,7 +44,7 @@ Las ideas y por qué esta primero: `docs/IDEAS.md`.
    de ingresos (SBS-CAF, 2026); las apps te dicen en qué gastaste, no lo que viene. Las frases
    con fuente están en `investigacion/10-verificacion-de-cifras.md`.
 2. **La persona** (20 s): independiente con ingresos irregulares, dos tarjetas, Yape diario.
-3. **El aviso** (60 s): «el lunes 23 te faltarán S/ 200.00» (perfil Rosa) → por qué → 3 jugadas
+3. **El aviso** (60 s): «el lunes 23 te faltarán S/ 119.07» (perfil Andrea) → por qué → 3 jugadas
    con su costo. El guion detallado, con las cifras que hoy muestra la app, está en
    `docs/GUIA-FINAL.md`.
 4. **La deuda** (40 s): qué tarjeta pagar primero y cuánto ahorra.

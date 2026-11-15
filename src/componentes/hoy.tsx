@@ -15,7 +15,7 @@ import { avisos, mejorJugada, proximosPagos, resumenHablado, CAUSA_DIA_A_DIA } f
 import { consultarEstado, type EstadoServicios } from "@/cliente/estado";
 import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Cifras, Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
-import { cifras, pulso } from "@/componentes/tablero";
+import { cifras, pulso, type DestinoCifra } from "@/componentes/tablero";
 
 /** A dónde puede mandar el Inicio (lo resuelve el armazón). */
 export type IrDesdeInicio = "agregar-deuda" | "ruta" | "dinero" | "deudas" | "asistente";
@@ -46,7 +46,7 @@ export function Hoy({
   leer: (texto: string) => void;
   detener: () => void;
   ir?: (a: IrDesdeInicio) => void;
-  /** Caso de ejemplo (Rosa, inventada) o caso propio (simulación armada por la persona). */
+  /** Caso de ejemplo (Andrea, inventada) o caso propio (simulación armada por la persona). */
   demo?: boolean;
   /** Hay permiso para IA y voz: siempre en el ejemplo; en un caso propio, solo si la persona lo aceptó. */
   externo?: boolean;
@@ -60,6 +60,12 @@ export function Hoy({
   const alternarVoz = () => (sonando ? detener() : leer(resumenHablado(perfil, analisis)));
   const barata = mejorJugada(analisis);
   const kpis = cifras(perfil, analisis);
+  /** Cada indicador lleva a donde se puede actuar sobre él. Sin `ir` (pruebas), los de otras pestañas no son botones. */
+  const irA = (destino: DestinoCifra): (() => void) | undefined => {
+    if (destino === "dinero" || destino === "deudas") return ir ? () => ir(destino) : undefined;
+    if (destino === "como-evitarlo") return () => desplazar(document.getElementById("como-evitarlo") ?? grafico.current, "start");
+    return () => desplazar(grafico.current, "start");
+  };
   const d = analisis.proyeccion.deficit;
 
   return (
@@ -146,12 +152,14 @@ export function Hoy({
       {/* Cifras de un vistazo: una franja compacta. */}
       <Cifras
         etiqueta="Cifras del mes"
-        items={kpis.map(([titulo, valor], i) => ({
+        items={kpis.map(({ etiqueta, valor, nota, destino, accion }, i) => ({
           icono: ICONOS_KPI[i],
-          etiqueta: titulo,
+          etiqueta,
           valor,
+          nota,
+          accion,
           tono: i === 3 ? (d ? "ambar" : "verde") : "azul",
-          nota: i === 3 && d && barata ? barata.titulo : undefined,
+          ir: irA(destino),
         }))}
       />
 

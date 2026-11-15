@@ -1,5 +1,5 @@
 import { hayGastoLlamadoComoPagoDe, nombreFijoRepetido } from "./nombres";
-import { datosDeRosa } from "./semilla";
+import { datosDeEjemplo } from "./semilla";
 import type { Cobro, Cuenta, Datos, DatosPerfil, DeudaGuardada, DocumentoAnalizado, Fijo, Sentido } from "./tipos";
 import {
   ErrorDatos, validarCobro, validarCuenta, validarDeuda, validarDocumento, validarFijo, validarPerfil,
@@ -22,7 +22,7 @@ export interface Repositorio {
   marcarAvisoLeido(clave: string): Promise<void>;
   /** Reemplaza todo lo guardado por estos datos (empezar con datos propios o con la demo). */
   cargar(datos: Datos): Promise<void>;
-  /** Vuelve a los datos de la demo (Rosa). */
+  /** Vuelve a los datos de la demo (Andrea). */
   restablecer(): Promise<void>;
 }
 
@@ -76,7 +76,7 @@ function reemplazar<T extends { id: string }>(lista: T[], item: T): T[] {
 }
 
 /** Implementación en memoria: no persiste. Sirve para tests y como respaldo visible si el navegador no deja guardar. */
-export function crearRepositorioMemoria(inicial: Datos = datosDeRosa()): Repositorio {
+export function crearRepositorioMemoria(inicial: Datos = datosDeEjemplo()): Repositorio {
   let datos: Datos = structuredClone(inicial);
   const sin = <T extends { id: string }>(lista: T[], id: string) => lista.filter(x => x.id !== id);
   const base: Repositorio = {
@@ -99,7 +99,7 @@ export function crearRepositorioMemoria(inicial: Datos = datosDeRosa()): Reposit
     guardarDocumento: async d => { datos = { ...datos, documentos: reemplazar(datos.documentos, structuredClone(d)) }; },
     marcarAvisoLeido: async clave => { if (!datos.avisosLeidos.includes(clave)) datos = { ...datos, avisosLeidos: [...datos.avisosLeidos, clave] }; },
     cargar: async nuevos => { datos = structuredClone(nuevos); },
-    restablecer: async () => { datos = datosDeRosa(); },
+    restablecer: async () => { datos = datosDeEjemplo(); },
   };
   return validado(base);
 }

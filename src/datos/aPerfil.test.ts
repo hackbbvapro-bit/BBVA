@@ -2,29 +2,29 @@ import { describe, expect, it } from "vitest";
 import { analizar, soles } from "@/motor";
 import { PERFILES } from "./perfiles";
 import { aPerfil } from "./aPerfil";
-import { datosDeRosa } from "./semilla";
+import { datosDeEjemplo } from "./semilla";
 import type { Datos } from "./tipos";
 
-const ROSA = PERFILES.find(p => p.id === "independiente")!;
+const ANDREA = PERFILES.find(p => p.id === "independiente")!;
 const clonar = (d: Datos): Datos => structuredClone(d);
 
-describe("aPerfil · test de oro con la semilla de Rosa", () => {
-  const analisis = analizar(aPerfil(datosDeRosa()));
+describe("aPerfil · test de oro con la semilla de Andrea", () => {
+  const analisis = analizar(aPerfil(datosDeEjemplo()));
 
   it("da las cifras exactas de siempre", () => {
-    expect(aPerfil(datosDeRosa()).saldoActual).toBe(46140);
-    expect(analisis.proyeccion.deficit?.faltante).toBe(20000);
-    expect(analisis.deudas?.avalancha.meses).toBe(5);
-    expect(analisis.deudas?.minimos.meses).toBe(20);
-    expect(analisis.deudas?.ahorroVsMinimos).toBe(120637);
-    expect(analisis.deudas?.avalancha.interesTotal).toBe(34405);
-    expect(analisis.deudas?.minimos.interesTotal).toBe(155042);
+    expect(aPerfil(datosDeEjemplo()).saldoActual).toBe(116873);
+    expect(analisis.proyeccion.deficit?.faltante).toBe(11907);
+    expect(analisis.deudas?.avalancha.meses).toBe(9);
+    expect(analisis.deudas?.minimos.meses).toBe(25);
+    expect(analisis.deudas?.ahorroVsMinimos).toBe(243317);
+    expect(analisis.deudas?.avalancha.interesTotal).toBe(128183);
+    expect(analisis.deudas?.minimos.interesTotal).toBe(371500);
     expect(analisis.deudas?.primera?.tceaBp).toBe(10000);
-    expect(analisis.deudas?.bolaDeNieve.orden).toHaveLength(2);
+    expect(analisis.deudas?.bolaDeNieve.orden).toHaveLength(3);
   });
 
   it("el análisis completo coincide con el del perfil sintético original", () => {
-    const original = analizar(ROSA);
+    const original = analizar(ANDREA);
     expect(analisis.proyeccion.deficit).toEqual(original.proyeccion.deficit);
     expect(analisis.proyeccion.dias).toEqual(original.proyeccion.dias);
     expect(analisis.deudas).toEqual(original.deudas);
@@ -36,7 +36,7 @@ describe("aPerfil · test de oro con la semilla de Rosa", () => {
   });
 
   it("no muta lo guardado", () => {
-    const datos = datosDeRosa();
+    const datos = datosDeEjemplo();
     const copia = clonar(datos);
     aPerfil(datos);
     expect(datos).toEqual(copia);
@@ -44,14 +44,14 @@ describe("aPerfil · test de oro con la semilla de Rosa", () => {
 });
 
 describe("aPerfil · lo que la persona agrega cambia el motor", () => {
-  const base = datosDeRosa();
+  const base = datosDeEjemplo();
   const deficitBase = analizar(aPerfil(base)).proyeccion.deficit!.faltante;
 
   it("un gasto fijo nuevo agranda el déficit y se reconoce como recurrente", () => {
     const d = clonar(base);
-    d.gastosFijos.push({ id: "f1", descripcion: "Gimnasio", monto: soles(50), dia: 20, categoria: "suscripciones" });
+    d.gastosFijos.push({ id: "f1", descripcion: "Clases de inglés", monto: soles(50), dia: 20, categoria: "suscripciones" });
     const a = analizar(aPerfil(d));
-    expect(a.recurrentes.find(r => r.descripcion === "Gimnasio")).toMatchObject({ monto: -5000, diaDelMes: 20, frecuencia: "mensual", veces: 3 });
+    expect(a.recurrentes.find(r => r.descripcion === "Clases de inglés")).toMatchObject({ monto: -5000, diaDelMes: 20, frecuencia: "mensual", veces: 3 });
     expect(a.proyeccion.deficit!.faltanteMaximo).toBeGreaterThan(analizar(aPerfil(base)).proyeccion.deficit!.faltanteMaximo);
   });
 
@@ -82,6 +82,7 @@ describe("aPerfil · lo que la persona agrega cambia el motor", () => {
     const d = clonar(base);
     d.deudas[0].pagada = true;
     d.deudas[1].saldo = 0;
+    d.deudas[2].pagada = true;
     const perfil = aPerfil(d);
     expect(perfil.deudas).toHaveLength(0);
     expect(perfil.movimientos.some(m => m.categoria === "deuda")).toBe(false);
@@ -91,7 +92,7 @@ describe("aPerfil · lo que la persona agrega cambia el motor", () => {
   it("el saldo es la suma de las cuentas, en céntimos exactos", () => {
     const d = clonar(base);
     d.cuentas.push({ id: "c2", nombre: "Ahorros", saldo: 10 }, { id: "c3", nombre: "Efectivo", saldo: 20 });
-    expect(aPerfil(d).saldoActual).toBe(46170);
+    expect(aPerfil(d).saldoActual).toBe(116903);
   });
 
   it("editar el monto de un fijo cambia la proyección y el día 31 cae en el último día de los meses cortos", () => {

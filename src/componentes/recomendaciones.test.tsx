@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { analizar } from "@/motor";
 import { aPerfil } from "@/datos/aPerfil";
-import { datosDeRosa } from "@/datos/semilla";
+import { datosDeEjemplo } from "@/datos/semilla";
 import { DatosDePrueba } from "@/componentes/datos";
 import { Recomendaciones } from "@/componentes/recomendaciones";
 
 describe("Recomendaciones", () => {
   it("sin ninguna opción no renderiza nada", () => {
-    const datos = datosDeRosa();
+    const datos = datosDeEjemplo();
     datos.cuentas = [{ id: "c", nombre: "Cuenta", saldo: 900_000_000 }];
     const analisis = analizar(aPerfil(datos));
     analisis.proyeccion = { ...analisis.proyeccion, deficit: null };
@@ -16,7 +16,7 @@ describe("Recomendaciones", () => {
   });
 
   it("con atraso muestra título, motivo y la frase fija; sin marca, sin enlaces y sin cifras de mercado", () => {
-    const datos = datosDeRosa();
+    const datos = datosDeEjemplo();
     // Con plata de sobra: a quien le falta para fin de mes no se le propone inmovilizar un depósito.
     datos.cuentas = [{ id: "c", nombre: "Cuenta", saldo: 900_000_000 }];
     datos.deudas = datos.deudas.map((d, i) => (i === 0 ? { ...d, diasAtraso: 12 } : d));

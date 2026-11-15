@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { crearRepositorioPGlite } from "./pglite";
 import { crearRepositorioMemoria, type Repositorio } from "./repositorio";
 import { MIGRACIONES, VERSION_ACTUAL, migrar } from "./esquema";
-import { ID_PROPIO, datosDeRosa, datosVacios, hoyEnLima } from "./semilla";
+import { ID_PROPIO, datosDeEjemplo, datosVacios, hoyEnLima } from "./semilla";
 import { aPerfil } from "./aPerfil";
 import { analizar } from "../motor";
 import { ErrorDatos } from "./validar";
@@ -29,15 +29,16 @@ const deuda = (extra: Partial<DeudaGuardada> = {}): DeudaGuardada => ({
 });
 
 describe.each(fabricas)("repositorio %s (mismo contrato)", (_, crear) => {
-  it("arranca con la semilla de Rosa idéntica", async () => {
+  it("arranca con la semilla de Andrea idéntica", async () => {
     const repo = await crear();
     const datos = await repo.leerTodo();
-    const semilla = datosDeRosa();
+    const semilla = datosDeEjemplo();
     expect(datos.perfil).toEqual(semilla.perfil);
     expect(datos.cuentas).toEqual(semilla.cuentas);
-    expect(datos.gastosFijos.map(f => f.descripcion).sort()).toEqual(["Agua", "Alquiler", "Internet", "Luz", "Streaming"]);
+    expect(datos.gastosFijos.map(f => f.descripcion).sort()).toEqual(["Agua", "Alquiler", "Gimnasio", "Internet y celular", "Luz", "Música en línea", "Seguro de salud", "Software de agenda y recibos", "Streaming de películas"]);
     expect(datos.ingresosFijos).toEqual([]);
-    expect(datos.deudas.map(d => d.id).sort()).toEqual(["independiente-tarjeta", "segunda"]);
+    expect(datos.deudas.map(d => d.id).sort()).toEqual(["independiente-prestamo", "independiente-tarjeta", "segunda"]);
+    expect(datos.cobros).toEqual(semilla.cobros);
     expect(datos.movimientos).toHaveLength(semilla.movimientos.length);
     expect(datos.movimientos.length).toBeGreaterThan(200);
   });
@@ -53,7 +54,7 @@ describe.each(fabricas)("repositorio %s (mismo contrato)", (_, crear) => {
 
   it("un fijo cambia de sentido sin duplicarse", async () => {
     const repo = await crear();
-    const f = { id: "f1", descripcion: "Gimnasio", monto: 5000, dia: 12, categoria: "suscripciones" as const };
+    const f = { id: "f1", descripcion: "Clases de inglés", monto: 5000, dia: 12, categoria: "suscripciones" as const };
     await repo.guardarFijo("gasto", f);
     await repo.guardarFijo("ingreso", f);
     const d = await repo.leerTodo();
@@ -92,11 +93,11 @@ describe.each(fabricas)("repositorio %s (mismo contrato)", (_, crear) => {
     await repo.marcarAvisoLeido("deficit-2026-11-20");
     await repo.marcarAvisoLeido("deficit-2026-11-20");
     const d = await repo.leerTodo();
-    expect(d.cobros).toEqual([{ id: "k1", quien: "Juan", monto: 5000, fechaPrometida: "2026-11-20", nota: "", cobrado: false }]);
+    expect(d.cobros.filter(c => c.id === "k1")).toEqual([{ id: "k1", quien: "Juan", monto: 5000, fechaPrometida: "2026-11-20", nota: "", cobrado: false }]);
     expect(d.documentos[0]).toMatchObject({ id: "x1", datos: { deudas: [1, 2] } });
     expect(d.avisosLeidos).toEqual(["deficit-2026-11-20"]);
     await repo.borrarCobro("k1");
-    expect((await repo.leerTodo()).cobros).toEqual([]);
+    expect((await repo.leerTodo()).cobros).toEqual(datosDeEjemplo().cobros);
   });
 
   it("actualiza el perfil y conserva el id", async () => {
@@ -131,17 +132,17 @@ describe.each(fabricas)("repositorio %s (mismo contrato)", (_, crear) => {
     expect((await repo.leerTodo()).cobros.find(c => c.id === "k2")?.quien).toBe(raro);
   });
 
-  it("restablecer vuelve a Rosa y borra lo agregado", async () => {
+  it("restablecer vuelve a Andrea y borra lo agregado", async () => {
     const repo = await crear();
     await repo.guardarDeuda(deuda());
     await repo.guardarCobro({ id: "k1", quien: "Juan", monto: 5000, fechaPrometida: "2026-11-20", nota: "", cobrado: false });
     await repo.marcarAvisoLeido("a");
     await repo.restablecer();
     const d = await repo.leerTodo();
-    expect(d.deudas).toHaveLength(2);
-    expect(d.cobros).toEqual([]);
+    expect(d.deudas).toHaveLength(3);
+    expect(d.cobros).toEqual(datosDeEjemplo().cobros);
     expect(d.avisosLeidos).toEqual([]);
-    expect(d.perfil).toEqual(datosDeRosa().perfil);
+    expect(d.perfil).toEqual(datosDeEjemplo().perfil);
   });
 });
 
@@ -165,8 +166,31 @@ describe("PGlite · esquema versionado y persistencia", () => {
     const repo2 = await crearRepositorioPGlite(db2);
     const datos = await repo2.leerTodo();
     expect(datos.deudas.some(d => d.id === "persiste")).toBe(true);
-    expect(datos.deudas).toHaveLength(3);
+    expect(datos.deudas).toHaveLength(4);
     await db2.close();
+  });
+
+  it("un caso de ejemplo retirado guardado en el navegador se cambia por el actual; lo propio no se toca", async () => {
+    const db = new PGlite();
+    const repo = await crearRepositorioPGlite(db);
+    await repo.guardarPerfil({ ...datosDeEjemplo().perfil, nombre: "Rosa" });
+    const viejo = await db.dumpDataDir("none");
+    await db.close();
+    const db2 = new PGlite({ loadDataDir: viejo });
+    expect((await (await crearRepositorioPGlite(db2)).leerTodo()).perfil).toEqual(datosDeEjemplo().perfil);
+    await db2.close();
+    // Si la persona renombró el ejemplo a su gusto, o usa sus propios datos, se respeta.
+    for (const perfil of [{ ...datosDeEjemplo().perfil, nombre: "Mi prueba" }, { ...datosDeEjemplo().perfil, id: ID_PROPIO, nombre: "Rosa" }]) {
+      const db3 = new PGlite();
+      const r3 = await crearRepositorioPGlite(db3);
+      if (perfil.id === ID_PROPIO) await r3.cargar({ ...(await r3.leerTodo()), perfil });
+      else await r3.guardarPerfil(perfil);
+      const dump = await db3.dumpDataDir("none");
+      await db3.close();
+      const db4 = new PGlite({ loadDataDir: dump });
+      expect((await (await crearRepositorioPGlite(db4)).leerTodo()).perfil.nombre).toBe(perfil.nombre);
+      await db4.close();
+    }
   });
 
   it("rechaza en la base valores que rompen las reglas (CHECK)", async () => {
@@ -180,7 +204,7 @@ describe("PGlite · esquema versionado y persistencia", () => {
 describe.each(fabricas)("empezar con datos propios (%s)", (_n, crear) => {
   const ana = () => datosVacios({ nombre: "  Ana  ", tipo: "dependiente", saldo: 85050, ingresoAprox: 250000, hoy: "2026-11-14" });
 
-  it("cargar reemplaza todo: queda una cuenta con su saldo y nada de Rosa", async () => {
+  it("cargar reemplaza todo: queda una cuenta con su saldo y nada de la demo", async () => {
     const repo = await crear();
     await repo.cargar(ana());
     const d = await repo.leerTodo();
@@ -196,11 +220,11 @@ describe.each(fabricas)("empezar con datos propios (%s)", (_n, crear) => {
     expect(await repo.leerTodo()).toEqual(antes);
   });
 
-  it("restablecer vuelve a la demo de Rosa", async () => {
+  it("restablecer vuelve a la demo de Andrea", async () => {
     const repo = await crear();
     await repo.cargar(ana());
     await repo.restablecer();
-    expect((await repo.leerTodo()).perfil.nombre).toBe(datosDeRosa().perfil.nombre);
+    expect((await repo.leerTodo()).perfil.nombre).toBe(datosDeEjemplo().perfil.nombre);
   });
 
   it("el motor analiza una cuenta recién creada sin historia", () => {

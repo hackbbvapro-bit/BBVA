@@ -19,7 +19,7 @@ describe('perfiles sintéticos', () => {
       expect(new Set(fechas).size).toBe(90);
       expect(new Set(perfil.movimientos.map(m => m.id)).size).toBe(perfil.movimientos.length);
       // Saldo = apertura elegida + movimientos que sí afectan la cuenta.
-      const apertura = { independiente: 97605, dependiente: 180000, mixto: 219560 }[perfil.tipo];
+      const apertura = { independiente: 82000, dependiente: 180000, mixto: 219560 }[perfil.tipo];
       expect(perfil.saldoActual).toBe(apertura + perfil.movimientos.filter(m => m.canal !== 'tarjeta').reduce((s, m) => s + m.monto, 0));
       for (const d of perfil.deudas) {
         expect(d.tceaBp).toBeGreaterThanOrEqual(4500); expect(d.tceaBp).toBeLessThanOrEqual(11000);
@@ -28,7 +28,7 @@ describe('perfiles sintéticos', () => {
       verificar(perfil); verificar(analizar(perfil));
     });
   }
-  it('Rosa: déficit en 7–15 días, de 100–400 soles y al menos una solución', () => {
+  it('Andrea: déficit en 7–15 días, de 100–400 soles y al menos una solución', () => {
     const a = analizar(generarPerfil('independiente')), d = a.proyeccion.deficit!;
     expect(d).not.toBeNull(); expect(d.diasRestantes).toBeGreaterThanOrEqual(7); expect(d.diasRestantes).toBeLessThanOrEqual(15);
     expect(d.faltanteMaximo).toBeGreaterThanOrEqual(10000); expect(d.faltanteMaximo).toBeLessThanOrEqual(40000);

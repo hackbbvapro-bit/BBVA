@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { sumar } from "@/motor/dinero";
 import { diasEntre, sumarDias } from "@/motor/fechas";
-import { casoDeRosa, clientesDelDataset } from "./casos-agente";
+import { casoDeEjemplo, clientesDelDataset } from "./casos-agente";
 import { saldosReales } from "./poblacion";
 import { inicioDeHistoria, porSemana, saldoDiario } from "./series";
 
-const casos = [casoDeRosa(), ...clientesDelDataset()];
+const casos = [casoDeEjemplo(), ...clientesDelDataset()];
 
 describe("saldoDiario", () => {
   it("trae un punto por día, sin huecos, y pasa por el saldo del corte", () => {
@@ -31,7 +31,7 @@ describe("saldoDiario", () => {
     }
   });
 
-  it("los días siguientes al corte son los saldos reales; Rosa no tiene", () => {
+  it("los días siguientes al corte son los saldos reales; el caso de ejemplo no tiene", () => {
     for (const { cliente, nombre, demo } of casos) {
       const futuro = saldoDiario(cliente).filter(p => p.futuro);
       if (demo) expect(futuro, nombre).toEqual([]);

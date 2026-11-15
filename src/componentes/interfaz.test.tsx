@@ -8,7 +8,7 @@ import { Hoy } from "@/componentes/hoy";
 import { Deudas } from "@/componentes/deudas";
 import { Chat } from "@/componentes/chat";
 import { DatosDePrueba } from "@/componentes/datos";
-import { datosDeRosa } from "@/datos/semilla";
+import { datosDeEjemplo } from "@/datos/semilla";
 import { Grafico } from "@/componentes/grafico";
 import { Dataset } from "@/componentes/dataset";
 import { Evaluacion } from "@/componentes/evaluacion";
@@ -20,7 +20,7 @@ describe("Interfaz con perfiles sintéticos", () => {
       const analisis = analizar(perfil);
       for (const vista of [
         <Hoy key="hoy" perfil={perfil} analisis={analisis} {...voz} />,
-        <DatosDePrueba key="deudas" datos={datosDeRosa()}><Deudas perfil={perfil} analisis={analisis} /></DatosDePrueba>,
+        <DatosDePrueba key="deudas" datos={datosDeEjemplo()}><Deudas perfil={perfil} analisis={analisis} /></DatosDePrueba>,
         <Chat key="chat" perfil={perfil} analisis={analisis} {...voz} />,
       ]) {
         const html = renderToStaticMarkup(vista);
@@ -60,21 +60,21 @@ describe("Interfaz con perfiles sintéticos", () => {
     const perfil = PERFILES[0],
       analisis = analizar(perfil);
     const antes = JSON.stringify(perfil.deudas);
-    renderToStaticMarkup(<DatosDePrueba datos={datosDeRosa()}><Deudas perfil={perfil} analisis={analisis} /></DatosDePrueba>);
+    renderToStaticMarkup(<DatosDePrueba datos={datosDeEjemplo()}><Deudas perfil={perfil} analisis={analisis} /></DatosDePrueba>);
     expect(JSON.stringify(perfil.deudas)).toBe(antes);
     expect(
-      renderToStaticMarkup(<DatosDePrueba datos={{ ...datosDeRosa(), deudas: [] }}><Deudas perfil={perfil} analisis={{ ...analisis, deudas: null }} /></DatosDePrueba>),
+      renderToStaticMarkup(<DatosDePrueba datos={{ ...datosDeEjemplo(), deudas: [] }}><Deudas perfil={perfil} analisis={{ ...analisis, deudas: null }} /></DatosDePrueba>),
     ).toContain("No tienes deudas abiertas");
   });
 });
 describe("Perfil y menú de usuario", () => {
-  it("el perfil muestra a Rosa y no pide datos sensibles", async () => {
+  it("el perfil muestra a Andrea y no pide datos sensibles", async () => {
     const { Perfil } = await import("@/componentes/perfil");
     const { MenuUsuario } = await import("@/componentes/menu-usuario");
-    const html = renderToStaticMarkup(<DatosDePrueba datos={datosDeRosa()}><Perfil /></DatosDePrueba>);
-    expect(html).toContain("Rosa");
+    const html = renderToStaticMarkup(<DatosDePrueba datos={datosDeEjemplo()}><Perfil /></DatosDePrueba>);
+    expect(html).toContain("Andrea");
     expect(html).not.toMatch(/<input|NaN|undefined/);
-    const menu = renderToStaticMarkup(<MenuUsuario nombre="Rosa" variante="lateral" alPerfil={() => undefined} alComoFunciona={() => undefined} />);
+    const menu = renderToStaticMarkup(<MenuUsuario nombre="Andrea" variante="lateral" alPerfil={() => undefined} alComoFunciona={() => undefined} />);
     expect(menu).toContain("Caso de ejemplo");
   });
 });
@@ -91,9 +91,9 @@ describe("Cómo funciona", () => {
 });
 
 describe("Datos de prueba", () => {
-  it("muestra a Rosa y a los seis clientes del dataset sin marcas ni valores rotos", () => {
+  it("muestra el caso de ejemplo y a los seis clientes del dataset sin marcas ni valores rotos", () => {
     const html = renderToStaticMarkup(<Dataset />);
-    for (const nombre of ["Rosa", "Ana", "Luis", "Carmen", "Jorge", "Marta", "Diego"]) expect(html).toContain(nombre);
+    for (const nombre of [PERFILES[0].nombre, "Ana", "Luis", "Carmen", "Jorge", "Marta", "Diego"]) expect(html).toContain(nombre);
     expect(html).toContain("cli-0004");
     expect(html).not.toMatch(/NaN|undefined|yape|plin/i);
   });
