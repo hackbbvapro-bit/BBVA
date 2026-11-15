@@ -143,17 +143,18 @@ describe("la ruta que ve el agente", () => {
   const rutaDe = (r: Respuestas) => {
     const datos = armarCaso(r);
     const perfil = aPerfil(datos);
-    return trazarRuta(perfil, analizar(perfil), hechosDe(datos, tuvoCreditoSegun(r)));
+    return trazarRuta(perfil, analizar(perfil), { ...hechosDe(datos, tuvoCreditoSegun(r)), ...(r.meta && { meta: r.meta }) });
   };
   const rutas = [
-    rutaDe(base),
+    rutaDe({ ...base, meta: "construir_historial" }),
+    rutaDe({ ...base, meta: "ahorrar" }),
     rutaDe({ ...base, deuda: { tipo: "tarjeta", saldo: 300_000, cuota: 25_000, atraso: "uno_a_dos_meses" } }),
-    rutaDe({ ...base, tuvoCredito: true, saldo: 2_000_000 }),
+    rutaDe({ ...base, meta: "hacer_crecer", tuvoCredito: true, saldo: 2_000_000 }),
     rutaDe({ ...base, ingresoMensual: 100_000 }),
   ];
 
-  it("cubre las tres rutas", () => {
-    expect(new Set(rutas.map(r => r.id))).toEqual(new Set(["construir_historial", "estar_en_verde", "hacer_crecer"]));
+  it("cubre rutas elegidas y recomendadas", () => {
+    expect(new Set(rutas.map(r => r.id))).toEqual(new Set(["construir_historial", "estar_en_verde", "hacer_crecer", "ahorrar"]));
   });
 
   it("no deja pasar NaN, undefined ni montos sin formato, y siempre lleva el aviso de simulación", () => {
