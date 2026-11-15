@@ -9,9 +9,10 @@ export const maxDuration = 30;
 
 const FISH_TTS = "https://api.fish.audio/v1/tts";
 const ESPERA_MS = 20_000;
-const limite = crearLimite(30, 60_000);
+// Una respuesta larga son 4-6 trozos de audio: con 30 por minuto, dos preguntas seguidas caían a la voz robótica.
+const limite = crearLimite(90, 60_000);
 // Tope para todos los visitantes juntos: acota el gasto de la clave si alguien rota direcciones.
-const topeGlobal = crearLimite(400, 3_600_000);
+const topeGlobal = crearLimite(800, 3_600_000);
 const Peticion = z.object({ texto: z.string().trim().min(1).max(800) });
 
 /** Convierte un texto en audio con Fish Audio. La clave nunca sale del servidor. */

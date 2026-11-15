@@ -13,7 +13,7 @@ import { registrarFallo } from "@/servidor/registro";
 
 export const maxDuration = 60;
 
-const limite = crearLimite(20, 60_000);
+const limite = crearLimite(40, 60_000);
 // Tope para todos los visitantes juntos: acota el gasto de la clave si alguien rota direcciones.
 const topeGlobal = crearLimite(300, 3_600_000);
 

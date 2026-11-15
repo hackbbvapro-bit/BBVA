@@ -11,6 +11,7 @@ import type { Analisis, Perfil } from "../motor";
 import type { Avance, Hechos, Ruta } from "../ruta/ruta";
 import { claveAnthropic } from "../servidor/entorno";
 import { registrarFallo } from "../servidor/registro";
+import { extraerFrases } from "../texto/frases";
 import type { CobroPendiente } from "../motor/cobros";
 import { cerebroDeRespaldo, elegirCerebro, etiquetaCerebro, type Cerebro } from "./cerebro";
 import { crearHerramientas } from "./herramientas";
@@ -49,7 +50,8 @@ export interface EntradaAgente {
 }
 
 const MAXIMO_DE_VUELTAS = 6;
-const ESPERA_MS = 45_000;
+/** Por llamada al modelo. El navegador corta a los 22 s sin noticias y responde el motor: esperar más no sirve. */
+const ESPERA_MS = 25_000;
 
 /** Quita mensajes vacíos y los del asistente que queden al principio: la conversación debe abrirla la persona. */
 export function limpiarMensajes(mensajes: readonly MensajeEntrada[]): MensajeEntrada[] {
@@ -62,6 +64,14 @@ export function limpiarMensajes(mensajes: readonly MensajeEntrada[]): MensajeEnt
 export function ultimaPregunta(mensajes: readonly MensajeEntrada[]): string | undefined {
   const ultimo = limpiarMensajes(mensajes).at(-1);
   return ultimo?.rol === "usuario" ? ultimo.texto : undefined;
+}
+
+/** Si el modelo se quedó sin espacio a media frase, se quita esa frase incompleta (no se lee ni se muestra cortada). */
+export function sinFraseCortada(texto: string): string {
+  const limpio = texto.trim();
+  if (/[.!?…]["»”)]*$/.test(limpio)) return limpio;
+  const completas = extraerFrases(limpio).frases.join("").trim();
+  return completas || limpio;
 }
 
 type Salida = { tipo: "texto"; texto: string } | { tipo: "accion"; accion: Accion; texto: string };
@@ -125,7 +135,7 @@ async function* conIA(clave: string, entrada: EntradaAgente, cerebro: Cerebro): 
       throw new Error("La respuesta se cortó antes de terminar una consulta al motor");
     }
     if (consulta) continue;
-    const texto = trozos.join("").trim();
+    const texto = mensaje.stop_reason === "max_tokens" ? sinFraseCortada(trozos.join("")) : trozos.join("").trim();
     if (!texto) continue;
     yield { tipo: "texto", texto: huboTexto ? `\n\n${texto}` : texto };
     huboTexto = true;

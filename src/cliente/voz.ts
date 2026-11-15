@@ -13,6 +13,19 @@ let reproductor: HTMLAudioElement | undefined;
 let urlActual: string | undefined;
 let cancelarSesion: (() => void) | undefined;
 let turno = 0;
+/**
+ * La frase que lee el navegador se guarda aquí: si nadie la referencia, algunos navegadores la descartan
+ * a medio leer y nunca avisan que terminó (la voz se queda muda y el turno no se cierra).
+ */
+let fraseViva: SpeechSynthesisUtterance | undefined;
+/** Cuánto se espera el audio de Fish: el primero corto (si tarda, lee el navegador al toque); los siguientes van precargados. */
+export const ESPERA_PRIMER_AUDIO_MS = 5_000;
+export const ESPERA_AUDIO_MS = 8_000;
+
+/** Tiempo máximo razonable para leer un texto en voz alta (unos 11 caracteres por segundo, con margen). */
+export function tiempoMaximoLectura(texto: string): number {
+  return 3_000 + texto.length * 90;
+}
 
 function obtenerReproductor(): HTMLAudioElement {
   reproductor ??= new Audio();
@@ -64,25 +77,47 @@ function hablarConNavegador(texto: string, alTerminar?: () => void, alEmpezar?: 
   frase.lang = voz?.lang ?? "es-PE";
   frase.rate = 1.02;
   let finalizada = false;
-  const acabar = () => { if (!finalizada) { finalizada = true; alTerminar?.(); } };
+  // Vigilante: si el navegador nunca avisa el final, se sigue con la siguiente frase igual.
+  const vigilante = setTimeout(() => acabar(), tiempoMaximoLectura(texto));
+  const acabar = () => {
+    if (finalizada) return;
+    finalizada = true;
+    clearTimeout(vigilante);
+    if (fraseViva === frase) fraseViva = undefined;
+    alTerminar?.();
+  };
   frase.onstart = () => alEmpezar?.();
   frase.onend = acabar;
   frase.onerror = acabar;
+  fraseViva = frase;
   window.speechSynthesis.speak(frase);
   return "navegador";
 }
 
-async function pedirAudio(texto: string, signal: AbortSignal): Promise<Blob | undefined> {
-  if (!salidasPermitidas() || signal.aborted) return undefined;
+/** reintentar = false cuando Fish tardó o pidió esperar (429): insistir solo alargaría el silencio. */
+export interface AudioPedido { audio?: Blob; reintentar: boolean }
+
+export async function pedirAudio(texto: string, signal: AbortSignal, esperaMs = ESPERA_AUDIO_MS): Promise<AudioPedido> {
+  if (!salidasPermitidas() || signal.aborted) return { reintentar: false };
+  const plazo = new AbortController();
+  const cortar = () => plazo.abort();
+  signal.addEventListener("abort", cortar, { once: true });
+  let vencio = false;
+  const reloj = setTimeout(() => { vencio = true; plazo.abort(); }, esperaMs);
   try {
     const respuesta = await fetch("/api/voz", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ texto }), signal,
+      body: JSON.stringify({ texto }), signal: plazo.signal,
     });
-    if (!respuesta.ok) return undefined;
+    if (!respuesta.ok) return { reintentar: respuesta.status !== 429 };
     const audio = await respuesta.blob();
-    return audio.size ? audio : undefined;
-  } catch { return undefined; }
+    return audio.size ? { audio, reintentar: false } : { reintentar: true };
+  } catch {
+    return { reintentar: !vencio && !signal.aborted };
+  } finally {
+    clearTimeout(reloj);
+    signal.removeEventListener("abort", cortar);
+  }
 }
 
 /** Agrupa frases cortas; en frases largas prefiere comas. Nunca descarta texto. */
@@ -128,7 +163,7 @@ export function hablarEnVivo(alTerminar?: () => void): VozEnVivo {
   callar();
   const miTurno = turno;
   const corte = new AbortController();
-  const cola: { texto: string; audio?: Promise<Blob | undefined> }[] = [];
+  const cola: { texto: string; audio?: Promise<AudioPedido> }[] = [];
   const inicioTiempo = performance.now();
   let resolver!: (motor: MotorVoz) => void;
   const inicio = new Promise<MotorVoz>(r => { resolver = r; });
@@ -156,7 +191,9 @@ export function hablarEnVivo(alTerminar?: () => void): VozEnVivo {
   const precargar = () => {
     if (navegador || !vigente()) return;
     // Como máximo el actual y uno por delante.
-    for (const item of cola.slice(0, 2)) item.audio ??= pedirAudio(item.texto, corte.signal);
+    for (const item of cola.slice(0, 2)) {
+      item.audio ??= pedirAudio(item.texto, corte.signal, sonaron ? ESPERA_AUDIO_MS : ESPERA_PRIMER_AUDIO_MS);
+    }
   };
   const siguiente = () => {
     if (!vigente()) return;
@@ -171,12 +208,14 @@ export function hablarEnVivo(alTerminar?: () => void): VozEnVivo {
     if (!cola.length) { acabar(); return; }
     ocupado = true;
     const item = cola[0];
+    let leido = false;
     precargar();
     if (!navegador) {
-      let audio = await item.audio;
+      let pedido = (await item.audio) ?? { reintentar: false };
       if (!vigente()) return;
-      if (!audio && sonaron > 0) audio = await pedirAudio(item.texto, corte.signal);
+      if (!pedido.audio && pedido.reintentar && sonaron > 0) pedido = await pedirAudio(item.texto, corte.signal);
       if (!vigente()) return;
+      const audio = pedido.audio;
       if (!salidasPermitidas()) { cola.length = 0; cerrado = true; ocupado = false; acabar(); return; }
       if (audio) {
         try {
@@ -193,7 +232,9 @@ export function hablarEnVivo(alTerminar?: () => void): VozEnVivo {
     }
     leerNavegador();
     function leerNavegador() {
-      if (!vigente()) return;
+      // Un mismo trozo puede fallar por dos vías (play rechazado y onerror): se lee una sola vez.
+      if (!vigente() || leido) return;
+      leido = true;
       marcar("speechSynthesis" in window ? "navegador" : "ninguna");
       hablarConNavegador(item.texto, siguiente, medir);
     }

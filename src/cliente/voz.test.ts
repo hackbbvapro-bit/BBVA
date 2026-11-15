@@ -214,3 +214,49 @@ it("el navegador lee todo un texto de más de 800 caracteres", async () => {
   expect(leidoPorNavegador.join(" ")).toBe(texto);
   expect(fin).toHaveBeenCalledTimes(1);
 });
+
+describe("la voz nunca se queda colgada", () => {
+  it("si el navegador nunca avisa que terminó de leer, el vigilante cierra el turno igual", async () => {
+    vi.useFakeTimers();
+    try {
+      const { hablar, tiempoMaximoLectura } = await cargar();
+      servidor = () => false;
+      // Navegador que lee pero nunca dispara onend (fallo conocido de algunos celulares).
+      (window as unknown as { speechSynthesis: { speak: (f: { text: string }) => void } }).speechSynthesis.speak =
+        f => { leidoPorNavegador.push(f.text); };
+      const alTerminar = vi.fn();
+      const texto = "No, hoy no te alcanza. Mejor espera al viernes.";
+      await hablar(texto, alTerminar);
+      await vi.advanceTimersByTimeAsync(10);
+      expect(leidoPorNavegador).toEqual([texto]);
+      expect(alTerminar).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(tiempoMaximoLectura(texto));
+      expect(alTerminar).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("un 429 de la voz no se reintenta (insistir alarga el silencio)", async () => {
+    const { pedirAudio } = await cargar();
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 429 })));
+    expect(await pedirAudio("hola", new AbortController().signal)).toEqual({ reintentar: false });
+  });
+
+  it("si Fish tarda más que el plazo, se corta y no se reintenta", async () => {
+    vi.useFakeTimers();
+    try {
+      const { pedirAudio, ESPERA_PRIMER_AUDIO_MS } = await cargar();
+      vi.stubGlobal("fetch", vi.fn((_u: string, init: { signal: AbortSignal }) => new Promise((_r, rechazar) => {
+        init.signal.addEventListener("abort", () => rechazar(new DOMException("cortado", "AbortError")));
+      })));
+      const pedido = pedirAudio("hola", new AbortController().signal, ESPERA_PRIMER_AUDIO_MS);
+      await vi.advanceTimersByTimeAsync(ESPERA_PRIMER_AUDIO_MS + 10);
+      expect(await pedido).toEqual({ reintentar: false });
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("un fallo de red normal sí se puede reintentar", async () => {
+    const { pedirAudio } = await cargar();
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("sin red"); }));
+    expect(await pedirAudio("hola", new AbortController().signal)).toEqual({ reintentar: true });
+  });
+});

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { PERFILES } from "../datos/perfiles";
 import { responderSinIA } from "../explica/explica";
 import { analizar } from "../motor";
-import { limpiarMensajes, responder, ultimaPregunta, type EventoAgente } from "./conversar";
+import { limpiarMensajes, responder, sinFraseCortada, ultimaPregunta, type EventoAgente } from "./conversar";
 import { preguntaSinIA } from "./estilo";
 import { crearHerramientas } from "./herramientas";
 import { SIN_HECHOS, trazarRuta } from "../ruta/ruta";
@@ -202,4 +202,28 @@ it("directo es corto, explicado educa y la inversión no repite el colchón", ()
   expect(promptSistema(perfil, analisis, undefined, "explicado")).toContain("explica siempre tres cosas");
   expect(directo).toContain("COMO MUCHO UNA VEZ");
   expect(directo).toContain("revisa el historial");
+});
+
+describe("respuestas que el modelo no alcanzó a terminar", () => {
+  it("quita la frase cortada y conserva las completas", () => {
+    expect(sinFraseCortada("Te faltan S/ 119.07 el lunes. Lo más barato es pausar tus suscrip")).toBe("Te faltan S/ 119.07 el lunes.");
+  });
+  it("no toca un texto que termina bien ni pierde la última frase", () => {
+    expect(sinFraseCortada("Hola. Adiós.")).toBe("Hola. Adiós.");
+    expect(sinFraseCortada("¿Te alcanza? Sí.")).toBe("¿Te alcanza? Sí.");
+  });
+  it("si no hay ninguna frase completa, deja el texto tal cual (mejor algo que nada)", () => {
+    expect(sinFraseCortada("Lo más barato es pausar")).toBe("Lo más barato es pausar");
+  });
+});
+
+describe("«Explícame más» dos veces seguidas", () => {
+  it("amplía la última pregunta de verdad", () => {
+    const charla = [
+      { rol: "usuario", texto: "¿Por dónde empiezo?" }, { rol: "asistente", texto: "Por la tarjeta." },
+      { rol: "usuario", texto: "Explícame más" }, { rol: "asistente", texto: "Porque cobra más interés." },
+      { rol: "usuario", texto: "Dime más" },
+    ];
+    expect(preguntaSinIA(charla, "directo")).toEqual({ pregunta: "¿Por dónde empiezo?", estilo: "explicado" });
+  });
 });
