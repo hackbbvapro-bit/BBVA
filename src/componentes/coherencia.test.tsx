@@ -101,7 +101,7 @@ describe("P0-2: el aviso no subestima el hueco", () => {
     const alerta = alertaPrincipal(analisis)!;
     expect(alerta.monto).toBe(formatoSoles(d.faltante));
     expect(alerta.detalle).toContain(crece);
-    expect(alerta.detalle).toContain("Ese día sale pago azul.");
+    expect(alerta.detalle).toContain("Ese día sale pago azul (S/ 100.00).");
     expect(alerta.detalle).not.toMatch(/estás a tiempo/i);
     expect(trazarRuta(perfil, analisis).motivos.join(" ")).toContain(crece);
   });
@@ -113,6 +113,8 @@ describe("P0-2: el aviso no subestima el hueco", () => {
     expect(crecimientoDelHueco(d)).toBe("");
     const alerta = alertaPrincipal(analisis)!;
     expect(alerta.detalle).toMatch(/^Ese día se juntan .+ y .+\. Quedan \d+ días para evitarlo\.$/);
+    // Las causas llevan su monto del motor y suman más que lo que faltará.
+    expect(alerta.detalle).toBe("Ese día se juntan alquiler (S/ 850.00) y pago tarjeta azul (S/ 600.00). Quedan 10 días para evitarlo.");
   });
 
   it("si ningún pago fijo causa el día en rojo, la alerta dice que es el día a día (no deja un hueco)", () => {
