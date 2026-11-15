@@ -6,7 +6,7 @@ import { datosDeEjemplo } from "../datos/semilla";
 import type { Datos } from "../datos/tipos";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "./entrada";
 import {
-  AVISO_SIMULACION, avanceDe, colchon, contadorDeAvance, EsquemaAvances, EsquemaHechos, flujoMensual, fraseAvance, fraseLibre, fraseRitmo, fraseLlegasPero, fechaConDia, hechosDe, IDS_PASO,
+  AVISO_SIMULACION, avanceDe, colchon, contadorDeAvance, EsquemaAvances, EsquemaHechos, flujoMensual, fraseAvance, fraseLibre, fraseRitmo, fraseLlegasPero, fechaConDia, opcionesVisibles, QUE_LOGRA, hechosDe, IDS_PASO,
   opcionesDeRuta, recomendada, preguntasSugeridas, rutaExplicada, rutaHablada, saludoDeRuta, SIN_HECHOS, TITULOS, trazarRuta, type FlujoMensual, type Hechos, type IdPaso, type Ruta,
 } from "./ruta";
 
@@ -431,5 +431,30 @@ describe("fraseRitmo y fraseLlegasPero (tarjeta de Inicio sin déficit)", () => 
   });
   it("fechaConDia da día abreviado y fecha corta", () => {
     expect(fechaConDia("2026-12-05")).toBe("sáb 5 dic");
+  });
+});
+
+describe("opcionesVisibles (Mi ruta)", () => {
+  const datos = datosDeEjemplo();
+  const perfil = aPerfil(datos);
+  const analisis = analizar(perfil);
+  const opciones = opcionesDeRuta(perfil, analisis, hechosDe(datos));
+  it("con el mes en negativo oculta «Invertir lo que te sobra» y deja las demás", () => {
+    expect(flujoMensual(perfil, analisis).libre).toBeLessThan(0);
+    expect(opciones.some(o => o.id === "hacer_crecer")).toBe(true);
+    const visibles = opcionesVisibles(opciones);
+    expect(visibles.some(o => o.id === "hacer_crecer")).toBe(false);
+    expect(visibles.length).toBe(opciones.length - 1);
+  });
+  it("si ya estaba elegida, no desaparece de la pantalla", () => {
+    expect(opcionesVisibles(opciones, "hacer_crecer").some(o => o.id === "hacer_crecer")).toBe(true);
+  });
+  it("con el mes en positivo se ofrecen todas", () => {
+    const positivo = opciones.map(o => ({ ...o, flujo: { ...o.flujo, libre: 100 } }));
+    expect(opcionesVisibles(positivo)).toHaveLength(opciones.length);
+  });
+  it("cada ruta tiene un subtítulo propio y sin cifras", () => {
+    expect(new Set(Object.values(QUE_LOGRA)).size).toBe(Object.keys(QUE_LOGRA).length);
+    expect(Object.values(QUE_LOGRA).join(" ")).not.toMatch(/\d/);
   });
 });
