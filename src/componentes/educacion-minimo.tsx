@@ -125,7 +125,7 @@ export function EducacionMinimo({ deudas }: { deudas: readonly Deuda[] }) {
         <ol className="mt-2 space-y-2">
           {PARA_SALIR.map((t, i) => (
             <li key={i} className="flex gap-2.5 text-[13px] leading-relaxed text-tinta md:text-sm">
-              <span aria-hidden="true" className="flex size-5 shrink-0 items-center justify-center rounded-full bg-electrico text-[11px] font-semibold text-white">
+              <span aria-hidden="true" className="flex size-5 shrink-0 items-center justify-center rounded-full bg-electrico text-xs font-semibold text-white">
                 {i + 1}
               </span>
               <span>{t}</span>
@@ -133,7 +133,7 @@ export function EducacionMinimo({ deudas }: { deudas: readonly Deuda[] }) {
           ))}
         </ol>
       </div>
-      <p className="mt-4 text-[11px] leading-snug text-gris md:text-xs">{NOTA_MINIMO}</p>
+      <p className="mt-4 text-xs leading-snug text-gris md:text-xs">{NOTA_MINIMO}</p>
     </section>
   );
 }

@@ -652,7 +652,7 @@ export function Chat({
                     <Icono nombre={icono} />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[11px] font-semibold uppercase tracking-wide text-gris">
+                    <span className="block text-xs font-semibold uppercase tracking-wide text-gris">
                       {tema}
                     </span>
                     <span className="block text-sm font-medium leading-snug text-noche">{unido(p)}</span>
@@ -912,7 +912,7 @@ export function Chat({
               <Icono nombre="enviar" />
             </button>
           </form>
-          <p className="mt-2 hidden text-center text-[11px] text-gris md:block">
+          <p className="mt-2 hidden text-center text-xs text-gris md:block">
             Caso de simulación · las cifras las calcula el copiloto con tus datos, no la IA
           </p>
         </div>

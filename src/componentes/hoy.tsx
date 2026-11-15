@@ -89,7 +89,7 @@ export function Hoy({
           <h1 className="text-xl font-semibold leading-tight tracking-[-0.02em] text-noche md:text-2xl">Hola, {perfil.nombre}</h1>
           <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] leading-tight text-gris md:text-sm">
             <span>Tu mes al {formatoLargo(analisis.hoy)}</span>
-            <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-gris ring-1 ring-linea">
+            <span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-gris ring-1 ring-linea">
               {demo ? "Caso de ejemplo" : "Simulación"}
             </span>
           </p>
@@ -151,7 +151,7 @@ export function Hoy({
                 <h2 className="text-base font-semibold tracking-tight text-noche md:text-lg">{tituloH}</h2>
                 {(despues ?? base).dias.some(dia => dia.saldo < 0) && (
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-coral-fuerte">
-                    <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-coral-fuerte text-[11px] text-white" aria-hidden="true">!</span>
+                    <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-coral-fuerte text-xs text-white" aria-hidden="true">!</span>
                     Cuidado, te faltará dinero
                   </span>
                 )}
@@ -180,13 +180,13 @@ export function Hoy({
                 onClick={() => setHorizonte(h.id)}
                 className={`min-h-11 min-w-0 whitespace-nowrap rounded-lg px-0.5 font-semibold leading-none sm:min-h-9 sm:px-3 sm:text-sm transition-colors duration-150 ${horizonte === h.id ? "bg-white text-noche shadow-sm ring-1 ring-linea" : "text-gris hover:text-noche"}`}
               >
-                <span className="flex flex-col items-center gap-0.5 sm:hidden" aria-hidden="true"><span className="text-[15px]">{h.etiqueta.split(" ")[0]}</span><span className="text-[10.5px] font-medium">{h.etiqueta.split(" ")[1]}</span></span><span className="hidden sm:inline" aria-hidden="true">{h.etiqueta}</span>
+                <span className="flex flex-col items-center gap-0.5 sm:hidden" aria-hidden="true"><span className="text-[15px]">{h.etiqueta.split(" ")[0]}</span><span className="text-xs font-medium">{h.etiqueta.split(" ")[1]}</span></span><span className="hidden sm:inline" aria-hidden="true">{h.etiqueta}</span>
               </button>
             ))}
           </div>
           <GraficoSiTePagan base={base} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} fondo="white" horizonte={horizonte} />
           <TablaHorizonte p={base} hoy={perfil.hoy} horizonte={horizonte} />
-          <p className="mt-3 text-[11px] leading-snug text-gris md:text-xs">
+          <p className="mt-3 text-xs leading-snug text-gris md:text-xs">
             Proyección referencial basada en los movimientos registrados: supone que todo sigue igual (ingresos con el estimado prudente,
             los mismos gastos y las mismas cuotas, aunque alguna deuda se termine antes). Mientras más lejos, más incierta.
           </p>
@@ -219,7 +219,7 @@ export function Hoy({
         <section id="como-evitarlo" aria-labelledby="titulo-evitar" className="scroll-mt-24 space-y-3 md:space-y-4">
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-agua-fuerte">Para no quedarte sin plata</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-agua-fuerte">Para no quedarte sin plata</p>
               <h2 id="titulo-evitar" className="mt-0.5 text-lg font-semibold tracking-[-0.015em] text-noche md:text-xl">Qué puedes hacer</h2>
               <p className="mt-0.5 text-sm text-gris md:text-[15px]">Cada opción te dice qué hacer, cuánta plata te deja libre y cuánto te cuesta. Toca «Probar» y mira cómo quedaría tu saldo.</p>
             </div>
@@ -267,7 +267,7 @@ function TablaHorizonte({ p, hoy, horizonte }: { p: Proyeccion; hoy: string; hor
       <div className="@container mt-3 overflow-x-auto rounded-xl border border-linea">
         <table className="w-full text-sm">
           <caption className="sr-only">{encabezado}: lo que entra, lo que sale y cómo queda tu saldo</caption>
-          <thead className="bg-niebla text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">
+          <thead className="bg-niebla text-xs font-semibold uppercase tracking-[0.06em] text-gris">
             <tr>
               <th scope="col" className="px-3 py-2 text-left">{encabezado}</th>
               <th scope="col" className="hidden px-3 py-2 text-right @lg:table-cell">Entra</th>
@@ -364,10 +364,10 @@ function Comparacion({ jugada, antes, despues, reiniciar }: { jugada: Jugada; an
       <dl className="mt-2.5 grid grid-cols-3 divide-x divide-linea rounded-lg bg-white">
         {celdas.map(([titulo, etiqueta, monto, tono, fecha]) => (
           <div key={titulo} className="min-w-0 px-2 py-2 md:px-3">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">{titulo}</dt>
-            <dd className="text-[11px] leading-tight text-gris md:text-xs">{etiqueta}</dd>
+            <dt className="text-xs font-semibold uppercase tracking-[0.06em] text-gris">{titulo}</dt>
+            <dd className="text-xs leading-tight text-gris md:text-xs">{etiqueta}</dd>
             <dd className={`mt-0.5 text-[15px] font-semibold leading-tight tabular-nums md:text-base ${tono}`}>{unido(monto)}</dd>
-            <dd className="text-[11px] leading-tight text-gris md:text-xs">{fecha}</dd>
+            <dd className="text-xs leading-tight text-gris md:text-xs">{fecha}</dd>
           </div>
         ))}
       </dl>
@@ -409,11 +409,11 @@ function TarjetaJugada({
       {(barata || activa) && <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-electrico" />}
       <div className="flex flex-1 flex-col p-4 md:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gris tabular-nums">Opción {orden + 1}</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-gris tabular-nums">Opción {orden + 1}</span>
           <div className="flex flex-wrap gap-1.5">
-            {barata && <span className="rounded-full bg-agua-suave px-2 py-0.5 text-[11px] font-semibold text-electrico">La más barata</span>}
+            {barata && <span className="rounded-full bg-agua-suave px-2 py-0.5 text-xs font-semibold text-electrico">La más barata</span>}
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${j.efecto === "elimina" && j.costo === 0 ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${j.efecto === "elimina" && j.costo === 0 ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
             >
               <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
               {j.efecto === "elimina" && j.costo > 0 ? "Te saca del rojo, pero cuesta" : INSIGNIA_EFECTO[j.efecto]}
@@ -424,11 +424,11 @@ function TarjetaJugada({
         <p className="mt-1 text-[13px] leading-relaxed text-gris md:text-sm">{unido(j.detalle)}</p>
         <dl className="mt-4 grid grid-cols-2 divide-x divide-linea rounded-xl border border-linea">
           <div className="min-w-0 px-3 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-verde-fuerte">Plata que te deja libre</dt>
+            <dt className="text-xs font-semibold uppercase tracking-[0.06em] text-verde-fuerte">Plata que te deja libre</dt>
             <dd className="mt-1 text-lg font-semibold leading-tight tracking-[-0.01em] text-noche tabular-nums">{unido(formatoSoles(j.libera))}</dd>
           </div>
           <div className="min-w-0 px-3 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">Lo que te cuesta</dt>
+            <dt className="text-xs font-semibold uppercase tracking-[0.06em] text-gris">Lo que te cuesta</dt>
             <dd className={`mt-1 text-lg font-semibold leading-tight tracking-[-0.01em] tabular-nums ${j.costo === 0 && j.certezaCosto === "conocido" ? "text-verde-fuerte" : "text-noche"}`}>
               {unido(costoCorto(j))}
             </dd>
@@ -439,7 +439,7 @@ function TarjetaJugada({
           {j.costoDetalle.includes("TCEA") && " (TCEA: lo que te cuesta al año)."}
         </p>
         <div className="mt-auto pt-4">
-          <button aria-pressed={activa} onClick={elegir} className={`${activa ? botonSecundario : botonPrincipal} w-full`}>
+          <button aria-pressed={activa} onClick={elegir} className={`${activa ? botonSecundario : botonPrincipal} min-h-11 w-full`}>
             <Icono nombre={activa ? "cerrar" : "tendencia"} />
             {activa ? "Quitar la prueba" : "Probar en mi saldo"}
           </button>
@@ -459,7 +459,7 @@ function Pagos({ analisis }: { analisis: Analisis }) {
         pagos.map((p, i) => (
           <div key={`${p.fecha}-${i}`} className="flex items-center gap-3 border-t border-linea py-2 md:py-3">
             <span className="flex size-9 md:size-10 shrink-0 flex-col items-center justify-center rounded-xl bg-papel text-center leading-none">
-              <span className="text-[10px] font-semibold uppercase text-gris">{formatoCorto(p.fecha).split(" ")[1] ?? ""}</span>
+              <span className="text-xs font-semibold uppercase text-gris">{formatoCorto(p.fecha).split(" ")[1] ?? ""}</span>
               <span className="mt-0.5 text-[15px] font-semibold text-noche">{formatoCorto(p.fecha).split(" ")[0]}</span>
             </span>
             <p className="min-w-0 flex-1 text-sm font-medium text-noche md:text-[15px]">{p.descripcion}</p>
@@ -487,7 +487,7 @@ function Pie({ demo, externo }: { demo: boolean; externo: boolean }) {
     };
   }, [externo]);
   return (
-    <footer className="flex flex-col items-center gap-2 border-t border-linea pt-4 text-center text-[11px] md:gap-3 md:pt-5 md:text-xs text-gris sm:flex-row sm:justify-between">
+    <footer className="flex flex-col items-center gap-2 border-t border-linea pt-4 text-center text-xs md:gap-3 md:pt-5 md:text-xs text-gris sm:flex-row sm:justify-between">
       <div className="flex gap-2">
         {!externo && <span className="rounded-full bg-white px-3 py-1.5 ring-1 ring-linea">Sin servicios externos</span>}
         {externo && (
