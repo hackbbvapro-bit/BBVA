@@ -7,6 +7,7 @@
 import { formatoSoles, semanalAMes, type Centimos, type FechaISO, type Movimiento } from "../motor";
 import { sumarDias } from "../motor/fechas";
 import { datosVacios } from "../datos/semilla";
+import { CUOTAS_POR_DETALLAR } from "./ruta";
 import type { Datos, DeudaGuardada, Fijo, TipoDeudaDebo } from "../datos/tipos";
 
 export type Cobro = "fin_de_mes" | "quincena" | "semanal" | "variable" | "diario";
@@ -211,7 +212,7 @@ export function armarCaso(r: Respuestas): Datos {
   }
   datos.gastosFijos = [
     ...fijos("gasto-total", ["Gastos mensuales por detallar"], [5], r.gastosMensual ?? 0, "otros"),
-    ...fijos("cuotas-pendientes", ["Cuotas de deudas por detallar"], [15], r.deuda && r.deuda.saldo === undefined ? r.deuda.cuota : 0, "otros"),
+    ...fijos("cuotas-pendientes", [CUOTAS_POR_DETALLAR], [15], r.deuda && r.deuda.saldo === undefined ? r.deuda.cuota : 0, "otros"),
     ...fijos("gasto-alquiler", ["Alquiler y servicios"], [5], r.fijosMensual ?? 0, "alquiler"),
     ...fijos("gasto-dia", NOMBRES_DE_GASTO, DIAS_DE_GASTO, r.diaADiaMensual ?? 0, "comida"),
     ...fijos("gasto-trabajo", ["Gastos del trabajo, primera quincena", "Gastos del trabajo, segunda quincena"], [3, 18], r.gastosTrabajo ?? 0, "otros"),
