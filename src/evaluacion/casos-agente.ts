@@ -8,7 +8,7 @@
 import { analizar, detectarRecurrentes, idsRecurrentes, mediana } from "@/motor";
 import type { Analisis, Movimiento, Perfil } from "@/motor";
 import { generarPerfil, HOY_DEMO } from "@/datos/perfiles";
-import { datosDeRosa } from "@/datos/semilla";
+import { datosDeEjemplo } from "@/datos/semilla";
 import type { Datos, Fijo } from "@/datos/tipos";
 import { aPerfil, generarCliente, generarPoblacion, type Cliente } from "./poblacion";
 
@@ -17,7 +17,7 @@ export const SEMILLA_AGENTE = 20261116;
 const CANDIDATOS = 150;
 /**
  * Todos estos clientes comparten el «hoy» del caso de ejemplo de la app: su historia son los 90 días anteriores
- * y su futuro los 30 siguientes. Así las fechas no cambian de un cliente a otro ni respecto a Rosa.
+ * y su futuro los 30 siguientes. Así las fechas no cambian de un cliente a otro ni respecto al caso de ejemplo.
  */
 export const CORTE_AGENTE = HOY_DEMO;
 
@@ -41,29 +41,29 @@ export const CASOS_FIJOS: readonly CasoFijo[] = [
 
 export interface ClienteDelDataset extends CasoFijo {
   cliente: Cliente;
-  /** true solo para Rosa: es el caso de ejemplo de la app, no uno de los clientes con los que se evaluó al asistente. */
+  /** true solo para el caso de ejemplo de la app: no uno de los clientes con los que se evaluó al asistente. */
   demo?: boolean;
 }
 
 /**
- * Rosa, el caso de ejemplo de la app, con la misma forma que los clientes del dataset para poder verla en
+ * El caso de ejemplo de la app, con la misma forma que los clientes del dataset para poder verla en
  * «Datos de prueba». Su historia son sus 90 días de movimientos; no tiene 30 días siguientes guardados ni
  * movimientos ocultos, porque sirve para la demo y no para medir. Lo «fijo» se marca por construcción:
  * son los pagos que su generador repite cada mes.
  */
-export function casoDeRosa(): ClienteDelDataset {
-  const rosa = generarPerfil("independiente");
-  const historia = rosa.movimientos.map(m => {
+export function casoDeEjemplo(): ClienteDelDataset {
+  const ejemplo = generarPerfil("independiente");
+  const historia = ejemplo.movimientos.map(m => {
     const fijo = m.id.includes("-mensual-");
     return { ...m, comercio: m.descripcion, recurrente: fijo, ...(fijo ? { serie: "mensual" as const } : {}), duplicado: false, atipico: false };
   });
   return {
-    indice: -1, nombre: rosa.nombre, motivo: "el caso de ejemplo de la app", demo: true,
+    indice: -1, nombre: ejemplo.nombre, motivo: "el caso de ejemplo de la app", demo: true,
     cliente: {
-      id: rosa.id, tipo: rosa.tipo, escenarios: [], corte: rosa.hoy, ingresoMensual: datosDeRosa().perfil.ingresoAprox,
+      id: ejemplo.id, tipo: ejemplo.tipo, escenarios: [], corte: ejemplo.hoy, ingresoMensual: datosDeEjemplo().perfil.ingresoAprox,
       // Su saldo de apertura es el de hoy menos todo lo que se movió en su cuenta (lo pagado con tarjeta no la toca).
-      saldoApertura: rosa.saldoActual - rosa.movimientos.filter(m => m.canal !== "tarjeta").reduce((suma, m) => suma + m.monto, 0),
-      saldoCorte: rosa.saldoActual, historia, ocultos: [], futuro: [], deudas: rosa.deudas,
+      saldoApertura: ejemplo.saldoActual - ejemplo.movimientos.filter(m => m.canal !== "tarjeta").reduce((suma, m) => suma + m.monto, 0),
+      saldoCorte: ejemplo.saldoActual, historia, ocultos: [], futuro: [], deudas: ejemplo.deudas,
     },
   };
 }
@@ -75,7 +75,7 @@ export function clientesDelDataset(): ClienteDelDataset[] {
 
 /**
  * Uno de estos clientes como caso de la app, para verlo en el copiloto con sus 90 días de historia reales.
- * Igual que con Rosa: lo que el motor reconoce como fijo cada mes (sueldo, alquiler, servicios, suscripciones) pasa a
+ * Igual que con el caso de ejemplo: lo que el motor reconoce como fijo cada mes (sueldo, alquiler, servicios, suscripciones) pasa a
  * las listas de «Mi dinero», con su día y su monto, y se puede editar; el resto de la historia queda como movimientos
  * del día a día (sin etiquetas de verdad ni comercio). Los pagos de sus deudas se quitan de la historia porque la app
  * los vuelve a armar desde cada deuda: así no se cuentan dos veces.
@@ -86,8 +86,8 @@ export function clientesDelDataset(): ClienteDelDataset[] {
  * No es un caso propio: el id del cliente lo deja como caso de ejemplo, con su fecha de corte como «hoy».
  */
 export function aDatos({ cliente, nombre, demo }: ClienteDelDataset): Datos {
-  // Rosa ya tiene su propia forma de cargarse en la app: la de siempre, para que sus cifras no cambien.
-  if (demo) return datosDeRosa();
+  // El caso de ejemplo ya tiene su propia forma de cargarse en la app: la de siempre, para que sus cifras no cambien.
+  if (demo) return datosDeEjemplo();
   const pagosDeDeuda = new Set(cliente.deudas.map(d => `Pago ${d.nombre}`));
   const pagoHabitual = (d: Cliente["deudas"][number]) => {
     const pagados = cliente.historia.filter(m => m.descripcion === `Pago ${d.nombre}`).map(m => -m.monto);

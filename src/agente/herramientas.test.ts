@@ -1,12 +1,12 @@
 /** Las herramientas para anotar: el monto lo lee el código (no el modelo) y lo anotado cambia lo que ven las demás. */
 import { describe, expect, it, vi } from "vitest";
-import { datosDeRosa } from "../datos/semilla";
+import { datosDeEjemplo } from "../datos/semilla";
 import { aPerfil } from "../datos/aPerfil";
 import { analizar, formatoSoles } from "../motor";
 import { crearHerramientas, leerTcea } from "./herramientas";
 import { leerFecha, type Accion } from "./registro";
 
-const datos = datosDeRosa();
+const datos = datosDeEjemplo();
 const perfil = aPerfil(datos);
 const analisis = analizar(perfil);
 

@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { aPerfil } from "../datos/aPerfil";
-import { datosDeRosa } from "../datos/semilla";
+import { datosDeEjemplo } from "../datos/semilla";
 import type { Datos } from "../datos/tipos";
 import { analizar } from "../motor";
 import { EsquemaAccion, aplicar, efectoDe, frase, interpretarRegistro, leerFecha, responderRegistro, sinFechasNiPorcentajes, soloAfirmaciones, type Situacion } from "./registro";
 
-// «Hoy» de la demo de Rosa: viernes 13 de noviembre de 2026.
+// «Hoy» de la demo de Andrea: viernes 13 de noviembre de 2026.
 const HOY = "2026-11-13";
 
-function rosa(): { datos: Datos; situacion: Situacion } {
-  const datos = datosDeRosa();
+function andrea(): { datos: Datos; situacion: Situacion } {
+  const datos = datosDeEjemplo();
   return { datos, situacion: { perfil: aPerfil(datos), cobros: [] } };
 }
 
@@ -142,8 +142,8 @@ describe("interpretarRegistro: qué se anota con cada frase", () => {
 });
 
 describe("efecto calculado por el motor", () => {
-  it("+S/ 1,000 hoy saca a Rosa del rojo: el punto más bajo sube exactamente S/ 1,000", () => {
-    const { situacion } = rosa();
+  it("+S/ 1,000 hoy saca a Andrea del rojo: el punto más bajo sube exactamente S/ 1,000", () => {
+    const { situacion } = andrea();
     const accion = EsquemaAccion.parse({ tipo: "saldo", monto: 100_000, descripcion: "Ingreso extra" });
     const e = efectoDe(accion, situacion);
     expect(e.despues.saldoHoy - e.antes.saldoHoy).toBe(100_000);
@@ -156,7 +156,7 @@ describe("efecto calculado por el motor", () => {
   });
 
   it("un pago por llegar no toca el saldo de hoy ni el plan prudente; solo el escenario «si te pagan»", () => {
-    const { situacion } = rosa();
+    const { situacion } = andrea();
     const accion = EsquemaAccion.parse({ tipo: "cobro", quien: "Limpiar", monto: 10_000, fecha: "2026-11-20" });
     const e = efectoDe(accion, situacion);
     expect(e.despues.saldoHoy).toBe(e.antes.saldoHoy);
@@ -178,7 +178,7 @@ describe("efecto calculado por el motor", () => {
   });
 
   it("si ya le debían otros pagos, la frase avisa que la cifra los cuenta (para que no choque con el inicio)", () => {
-    const { situacion } = rosa();
+    const { situacion } = andrea();
     const accion = EsquemaAccion.parse({ tipo: "cobro", quien: "Limpiar", monto: 10_000, fecha: "2026-11-20" });
     expect(frase(accion, efectoDe(accion, situacion), true)).not.toContain("lo que ya te deben");
     const conOtro: Situacion = {
@@ -189,13 +189,13 @@ describe("efecto calculado por el motor", () => {
   });
 
   it("un pago que llega después del día en rojo lo dice: ese día no lo salva", () => {
-    const { situacion } = rosa();
+    const { situacion } = andrea();
     const accion = EsquemaAccion.parse({ tipo: "cobro", quien: "Cliente", monto: 30_000, fecha: "2026-11-30" });
     expect(frase(accion, efectoDe(accion, situacion), true)).toContain("no lo salva");
   });
 
   it("un pago prometido para hoy no se cuenta hasta que llegue", () => {
-    const { situacion } = rosa();
+    const { situacion } = andrea();
     const accion = EsquemaAccion.parse({ tipo: "cobro", quien: "Cliente", monto: 30_000, fecha: HOY });
     const e = efectoDe(accion, situacion);
     expect(e.despues.siTePagan.saldoMasBajo).toBe(e.antes.siTePagan.saldoMasBajo);
@@ -203,7 +203,7 @@ describe("efecto calculado por el motor", () => {
   });
 
   it("el chat calcula lo mismo que el panel: un gasto fijo aplicado al vuelo = el mismo gasto guardado", () => {
-    const { datos, situacion } = rosa();
+    const { datos, situacion } = andrea();
     const accion = EsquemaAccion.parse({ tipo: "fijo", sentido: "gasto", descripcion: "Luz", monto: 5_000, dia: 15, categoria: "servicios" });
     const alVuelo = analizar(aplicar(accion, situacion).perfil).proyeccion;
     const guardado = analizar(aPerfil({
@@ -215,7 +215,7 @@ describe("efecto calculado por el motor", () => {
   });
 
   it("y una deuda aplicada al vuelo = la misma deuda guardada", () => {
-    const { datos, situacion } = rosa();
+    const { datos, situacion } = andrea();
     const accion = EsquemaAccion.parse({
       tipo: "deuda", entidad: "Caja", nombre: "Préstamo moto", tipoDeuda: "prestamo", saldo: 300_000, pagoMensual: 25_000, dia: 18, tceaBp: 4_500,
     });
@@ -244,8 +244,8 @@ describe("efecto calculado por el motor", () => {
 });
 
 describe("responderRegistro: respuesta sin IA", () => {
-  it("la conversación de Rosa: primero pregunta el día, luego anota con el efecto calculado", () => {
-    const { situacion } = rosa();
+  it("la conversación de Andrea: primero pregunta el día, luego anota con el efecto calculado", () => {
+    const { situacion } = andrea();
     const primero = responderRegistro([{ rol: "usuario", texto: "me van a dar 100 soles por limpiar ¿cómo cambia mi situación esto?" }], situacion);
     expect(primero?.accion).toBeUndefined();
     expect(primero?.texto).toContain("¿Qué día te pagan");
@@ -261,7 +261,7 @@ describe("responderRegistro: respuesta sin IA", () => {
   });
 
   it("no responde si el último mensaje no es de la persona o no hay nada que anotar", () => {
-    const { situacion } = rosa();
+    const { situacion } = andrea();
     expect(responderRegistro([], situacion)).toBeNull();
     expect(responderRegistro([{ rol: "usuario", texto: "me pagaron 100" }, { rol: "asistente", texto: "ok" }], situacion)).toBeNull();
     expect(responderRegistro([{ rol: "usuario", texto: "¿cómo voy?" }], situacion)).toBeNull();
@@ -283,7 +283,7 @@ describe("una pregunta nunca anota nada", () => {
   });
   it("el respaldo tampoco anota: deja que responda quien corresponde", () => {
     for (const pregunta of PREGUNTAS) {
-      expect(responderRegistro([{ rol: "usuario", texto: pregunta }], { perfil: aPerfil(datosDeRosa()), cobros: [] }), pregunta).toBeNull();
+      expect(responderRegistro([{ rol: "usuario", texto: pregunta }], { perfil: aPerfil(datosDeEjemplo()), cobros: [] }), pregunta).toBeNull();
     }
   });
   it("si antes de la pregunta hay algo que anotar, se anota eso", () => {

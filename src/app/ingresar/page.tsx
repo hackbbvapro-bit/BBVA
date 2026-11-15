@@ -15,7 +15,7 @@ export default function Ingresar() {
           <p className="mt-2 text-lg leading-relaxed text-gris">Prototipo de hackathon con datos sintéticos. No es un producto oficial de ningún banco.</p>
           <p className="mt-6 leading-relaxed text-tinta">
             Te avisa antes de que te falte dinero y te dice qué pagar primero. Para probarlo entras con un caso de
-            ejemplo: Rosa, una persona inventada que vende comida y cobra con billeteras digitales.
+            ejemplo: Andrea, una fisioterapeuta inventada que trabaja por su cuenta y cobra por sesión.
           </p>
           <form method="post" action="/api/ingresar" className="mt-8">
             <button

@@ -75,7 +75,7 @@ export function medirJugadas(c: Cliente, jugadas: Jugada[]): Resultado {
   let futuro = c.futuro, aplicada = false;
   for (const jugada of jugadas) {
     for (const ajuste of jugada.ajustes) {
-      const r = aplicarAjuste(c, futuro, ajuste, jugada.tipo === 'mover_pago' ? jugada.costo : 0);
+      const r = aplicarAjuste(c, futuro, ajuste, ajuste.tipo === 'mover' ? jugada.costo : 0);
       futuro = r.futuro;
       aplicada = aplicada || r.aplicado;
     }

@@ -94,7 +94,7 @@ export function detectarRecurrentes(movimientos: Movimiento[], deudas: Deuda[]):
 export function idsRecurrentes(movimientos: Movimiento[], deudas: Deuda[]): Set<string> {
   return new Set(grupos(movimientos).flatMap(g => series(g, deudas)).flatMap(s => s.movimientos.map(m => m.id)));
 }
-function variables(movimientos: Movimiento[], deudas: Deuda[], hoy: FechaISO): Movimiento[] {
+export function variables(movimientos: Movimiento[], deudas: Deuda[], hoy: FechaISO): Movimiento[] {
   const historia = movimientos.filter(m => m.fecha <= hoy);
   const ids = idsRecurrentes(historia, deudas);
   return historia.filter(m => m.fecha >= sumarDias(hoy, -83) && m.canal !== 'tarjeta' && !ids.has(m.id));

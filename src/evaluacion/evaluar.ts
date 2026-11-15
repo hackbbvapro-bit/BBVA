@@ -198,7 +198,7 @@ function medirDetectores(clientes: Cliente[]) {
 
 // ── ¿La jugada mejora la decisión? ───────────────────────────────────────────
 
-const ORDEN_JUGADAS: TipoJugada[] = ['pagar_minimo', 'mover_pago', 'recortar_gasto'];
+const ORDEN_JUGADAS: TipoJugada[] = ['pagar_minimo', 'pausar_suscripciones', 'recortar_gasto'];
 interface Decidido { caso: Caso; analisis: Analisis; primera?: Jugada; unaJugada?: Resultado; todas?: Resultado }
 
 function resumenJugada(lista: Resultado[]) {

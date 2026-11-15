@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { aPerfil } from "../datos/aPerfil";
-import { datosDeRosa } from "../datos/semilla";
+import { datosDeEjemplo } from "../datos/semilla";
 import type { Datos, DeudaGuardada } from "../datos/tipos";
 import { analizar } from "../motor";
 import { avisosDelCentro, pendientesSinLeer } from "./centro";
@@ -15,19 +15,19 @@ const deuda = (extra: Partial<DeudaGuardada>): DeudaGuardada => ({
   pagoMinimo: 10000, pagoHabitual: 10000, diaPago: 28, diasAtraso: 0, pagada: false, ...extra,
 });
 
-const con = (cambios: Partial<Datos>): Datos => ({ ...datosDeRosa(), ...cambios });
+const con = (cambios: Partial<Datos>): Datos => ({ ...datosDeEjemplo(), ...cambios });
 
 describe("centro de avisos", () => {
-  it("con la semilla de Rosa el déficit va primero y es urgente", () => {
-    const a = lista(datosDeRosa());
+  it("con la semilla de Andrea el déficit va primero y es urgente", () => {
+    const a = lista(datosDeEjemplo());
     expect(a[0]).toMatchObject({ id: "deficit", nivel: "urgente", destino: "hoy" });
-    expect(a[0].titulo).toContain("S/ 200.00");
+    expect(a[0].titulo).toContain("S/ 119.07");
     expect(a.every(x => x.clave.length > 0)).toBe(true);
     expect(new Set(a.map(x => x.clave)).size).toBe(a.length);
   });
 
   it("avisa de la deuda que vence en 3 días o menos, con la fecha y el monto guardados", () => {
-    const hoy = datosDeRosa().perfil.hoy;
+    const hoy = datosDeEjemplo().perfil.hoy;
     const a = lista(con({ deudas: [deuda({ diaPago: 15 })] }));
     const vence = a.find(x => x.id === "vence-d-x");
     expect(hoy).toBe("2026-11-13");
@@ -86,7 +86,7 @@ describe("centro de avisos", () => {
   });
 
   it("no repite el pago del mismo día que ya dice «vence»", () => {
-    const holgado = datosDeRosa();
+    const holgado = datosDeEjemplo();
     holgado.cuentas = [{ id: "c", nombre: "Cuenta", saldo: 50_000_000 }];
     holgado.gastosFijos = [{ id: "f1", descripcion: "Gimnasio", monto: 5000, dia: 16, categoria: "suscripciones" }];
     const base = lista(holgado).find(x => x.id === "pago");

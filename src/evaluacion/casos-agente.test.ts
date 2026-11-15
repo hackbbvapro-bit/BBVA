@@ -3,9 +3,9 @@ import { aPerfil as perfilDeDatos } from "@/datos/aPerfil";
 import { crearRepositorioMemoria } from "@/datos/repositorio";
 import { avisos, CAUSA_DIA_A_DIA } from "@/explica/explica";
 import { analizar } from "@/motor";
-import { datosDeRosa } from "@/datos/semilla";
+import { datosDeEjemplo } from "@/datos/semilla";
 import { generarPerfil } from "@/datos/perfiles";
-import { aDatos, casoDeRosa, CASOS_FIJOS, clientesDelDataset, elegirCasos } from "./casos-agente";
+import { aDatos, casoDeEjemplo, CASOS_FIJOS, clientesDelDataset, elegirCasos } from "./casos-agente";
 import { aPerfil } from "./poblacion";
 
 describe("casos del asistente", () => {
@@ -64,19 +64,22 @@ describe("casos del asistente", () => {
     expect(avisos(ana, analizar(ana))[0].cuerpo).toContain(CAUSA_DIA_A_DIA);
   });
 
-  it("Rosa se ve con su historia completa y se carga en la app con sus cifras de siempre", () => {
-    const rosa = casoDeRosa();
+  it("el caso de ejemplo se ve con su historia completa y se carga en la app con sus cifras de siempre", () => {
+    const ejemplo = casoDeEjemplo();
     const perfil = generarPerfil("independiente");
-    expect(rosa.demo).toBe(true);
-    expect(rosa.cliente.id).toBe(perfil.id);
-    expect(rosa.cliente.historia).toHaveLength(perfil.movimientos.length);
-    expect(rosa.cliente.historia.map(m => m.monto)).toEqual(perfil.movimientos.map(m => m.monto));
-    expect(rosa.cliente.futuro).toEqual([]);
-    expect(rosa.cliente.saldoCorte).toBe(perfil.saldoActual);
-    // Lo marcado como fijo son exactamente sus pagos de cada mes.
-    expect(new Set(rosa.cliente.historia.filter(m => m.recurrente).map(m => m.descripcion))).toEqual(
-      new Set(["Alquiler", "Luz", "Agua", "Internet", "Streaming", "Pago Tarjeta Azul", "Pago Tarjeta Verde"]),
-    );
-    expect(aDatos(rosa)).toEqual(datosDeRosa());
+    expect(ejemplo.demo).toBe(true);
+    expect(ejemplo.nombre).toBe(perfil.nombre);
+    expect(ejemplo.cliente.id).toBe(perfil.id);
+    expect(ejemplo.cliente.historia).toHaveLength(perfil.movimientos.length);
+    expect(ejemplo.cliente.historia.map(m => m.monto)).toEqual(perfil.movimientos.map(m => m.monto));
+    expect(ejemplo.cliente.futuro).toEqual([]);
+    expect(ejemplo.cliente.saldoCorte).toBe(perfil.saldoActual);
+    // Lo marcado como fijo son sus pagos de cada mes: el alquiler y el pago de cada una de sus deudas, entre otros.
+    const fijos = new Set(ejemplo.cliente.historia.filter(m => m.recurrente).map(m => m.descripcion));
+    expect(fijos.has("Alquiler")).toBe(true);
+    for (const deuda of perfil.deudas) expect(fijos.has(`Pago ${deuda.nombre}`), deuda.nombre).toBe(true);
+    expect(fijos.has("Mercado")).toBe(false);
+    expect(aDatos(ejemplo)).toEqual(datosDeEjemplo());
   });
+
 });

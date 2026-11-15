@@ -100,7 +100,7 @@ function Contenido() {
     );
   }
   function cambiarModo() {
-    if (perfil.id === ID_PROPIO && !window.confirm("Vas a volver a la pantalla de inicio. Si eliges el caso de Rosa o empiezas de nuevo, se reemplaza el caso que armaste, guardado en este equipo. ¿Continuar?")) return;
+    if (perfil.id === ID_PROPIO && !window.confirm("Vas a volver a la pantalla de inicio. Si eliges el caso de Andrea o empiezas de nuevo, se reemplaza el caso que armaste, guardado en este equipo. ¿Continuar?")) return;
     guardarModo(null);
     setReciente(false);
     setModo(null);
@@ -112,7 +112,7 @@ function Contenido() {
   );
 }
 
-/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo (Rosa) o el caso que armó la persona, y si algo sale del equipo. */
+/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo o el caso que armó la persona, y si algo sale del equipo. */
 function TarjetaModo({ demo, externo, nombre, cambiar }: { demo: boolean; externo: boolean; nombre: string; cambiar: () => void }) {
   return (
     <div className="rounded-xl border border-linea bg-papel p-3">
