@@ -1,0 +1,100 @@
+{
+  "practicaA": {
+    "semilla": 20261114,
+    "clientes": 1000,
+    "conservador": {
+      "d7": {
+        "errorMedioAbsoluto": 503.8,
+        "sesgoMedio": -248.6,
+        "porDebajoDelReal": 0.63
+      },
+      "d14": {
+        "errorMedioAbsoluto": 759.1,
+        "sesgoMedio": -438.2,
+        "porDebajoDelReal": 0.675
+      },
+      "d30": {
+        "errorMedioAbsoluto": 1261,
+        "sesgoMedio": -913.9,
+        "porDebajoDelReal": 0.711
+      }
+    },
+    "esperado": {
+      "d7": {
+        "errorMedioAbsoluto": 479.3,
+        "sesgoMedio": -125.6,
+        "porDebajoDelReal": 0.521
+      },
+      "d14": {
+        "errorMedioAbsoluto": 681,
+        "sesgoMedio": -192.1,
+        "porDebajoDelReal": 0.529
+      },
+      "d30": {
+        "errorMedioAbsoluto": 1049.1,
+        "sesgoMedio": -386.5,
+        "porDebajoDelReal": 0.545
+      }
+    },
+    "avisos": {
+      "iguales": 1000,
+      "rojoConservador": 330,
+      "rojoEsperado": 226
+    },
+    "criterios": {
+      "c1ConservadorPorDebajo80": false,
+      "c2EsperadoMenorSesgo": true,
+      "c3AvisoSinCambios": true
+    },
+    "cumple": false
+  },
+  "oficialB": {
+    "semilla": 20261115,
+    "clientes": 1000,
+    "conservador": {
+      "d7": {
+        "errorMedioAbsoluto": 480.6,
+        "sesgoMedio": -236.4,
+        "porDebajoDelReal": 0.634
+      },
+      "d14": {
+        "errorMedioAbsoluto": 790.1,
+        "sesgoMedio": -494.9,
+        "porDebajoDelReal": 0.656
+      },
+      "d30": {
+        "errorMedioAbsoluto": 1359.7,
+        "sesgoMedio": -1019.1,
+        "porDebajoDelReal": 0.723
+      }
+    },
+    "esperado": {
+      "d7": {
+        "errorMedioAbsoluto": 447.2,
+        "sesgoMedio": -114.9,
+        "porDebajoDelReal": 0.538
+      },
+      "d14": {
+        "errorMedioAbsoluto": 705,
+        "sesgoMedio": -251.8,
+        "porDebajoDelReal": 0.523
+      },
+      "d30": {
+        "errorMedioAbsoluto": 1129.5,
+        "sesgoMedio": -498.2,
+        "porDebajoDelReal": 0.563
+      }
+    },
+    "avisos": {
+      "iguales": 1000,
+      "rojoConservador": 331,
+      "rojoEsperado": 240
+    },
+    "criterios": {
+      "c1ConservadorPorDebajo80": false,
+      "c2EsperadoMenorSesgo": true,
+      "c3AvisoSinCambios": true
+    },
+    "cumple": false
+  }
+}

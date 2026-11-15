@@ -24,8 +24,8 @@ pasó en esos 30 días.
 | ¿Acierta el saldo? | A 7 y 14 días tiene el menor error medio de los cuatro métodos (S/ 481 y S/ 790). **A 30 días sigue siendo el peor de los cuatro** (S/ 1 360) y es pesimista: prevé de media S/ 1 019 menos de lo que hubo. |
 | ¿Por qué se equivoca? | Porque **subestima el dinero que entra**. Una causa ya está corregida (no reconocía el sueldo quincenal). La otra se mantiene a propósito: usa un estimado muy prudente del ingreso variable. |
 | ¿Dice qué tan seguro está? | Sí. La probabilidad de déficit calibrada tiene mejor puntaje (Brier 0,114) que decir a todos la tasa media (0,166) y que el aviso sí/no (0,185). La banda del 80 % cubre el 79,8 % de los casos a 30 días. |
-| ¿La recomendación mejora la decisión? | Sí, pero poco: si la persona sigue la primera jugada, el déficit se evita en el **14,6 %** de los avisos acertados y el faltante baja de S/ 793 a S/ 625 de media. Con todas las jugadas, 24,7 % y S/ 502. |
-| ¿Hace daño cuando se equivoca? | No lo encontramos: en 153 falsas alarmas, seguir la jugada **no creó ningún déficit** y su costo medio fue de 2 céntimos. |
+| ¿La recomendación mejora la decisión? | **Poco.** Con las jugadas actuales, si la persona sigue la primera el déficit se evita en el **5,1 %** de los avisos acertados (9 de 178) y el faltante baja de S/ 792,82 a S/ 736,55 de media. Con todas las jugadas, 9,6 % y S/ 685,11. (La versión anterior de este informe decía 14,6 % y 24,7 %: se midió con jugadas que la app ya no usa; ver sección 15.) |
+| ¿Hace daño cuando se equivoca? | No lo encontramos: en 153 falsas alarmas, seguir la jugada **no creó ningún déficit**; el 2,6 % tuvo algún costo y el costo medio fue de 26 céntimos. |
 | ¿Trata peor a algún grupo? | Por tramo de ingreso el aviso funciona parecido (detecta entre 83 % y 88 %). Por tipo de perfil no: tras la corrección detecta **72,7 %** de los déficits de dependientes frente a 90,8 % en independientes y 93,5 % en mixtos. |
 
 Lo que **no** se puede concluir de aquí: que el copiloto acierte con personas reales. El generador de
@@ -246,46 +246,48 @@ sobre el futuro **real** del cliente (no sobre la proyección), y se vuelve a ca
 **Supuesto que hay que tener presente:** la persona hace exactamente lo que dice la jugada. Es un techo
 de lo que se puede ganar, no una medida de cuánta gente la seguiría.
 
+Medido de nuevo el 14-nov-2026 con las jugadas actuales (las de la app: pausar suscripciones, recortar
+un gasto que no sea comida, pagar el mínimo). La versión anterior de esta sección se midió con jugadas que
+ya no existen («mover un pago», recorte de comida) y **sobrestimaba el efecto unas tres veces**; la sección 15
+cuenta cómo se encontró.
+
 En toda la población (1 000 clientes):
 
 | | Sin copiloto | Sigue la primera jugada | Sigue todas |
 |---|---:|---:|---:|
-| Clientes en déficit | 21,0 % | 18,2 % | 16,3 % |
-| Faltante medio por cliente | S/ 157,31 | S/ 126,08 | S/ 102,74 |
+| Clientes en déficit | 21,0 % | 20,1 % | 19,3 % |
+| Faltante medio por cliente | S/ 157,31 | S/ 147,29 | S/ 138,13 |
 
-En los 186 avisos acertados:
+En los 178 avisos acertados:
 
 | | Primera jugada | Todas las jugadas |
 |---|---:|---:|
-| Déficit evitado del todo | 15,1 % | 25,3 % |
-| Reducción mediana del faltante | 25,1 % | 49,4 % |
-| Faltante medio (antes S/ 795,42) | S/ 627,55 | S/ 502,07 |
+| Déficit evitado del todo | 5,1 % | 9,6 % |
+| Reducción mediana del faltante | 6,4 % | 15,0 % |
+| Faltante medio (antes S/ 792,82) | S/ 736,55 | S/ 685,11 |
 
-Costo medio de seguir la jugada: 4 céntimos.
+Costo medio de seguir la jugada: 11 céntimos.
 
 **Por tipo de primera jugada:**
 
 | Jugada | Casos | Evita el déficit | Reducción mediana |
 |---|---:|---:|---:|
-| Recortar un gasto | 131 | 19,1 % | 43,6 % |
-| Mover un pago | 55 | 5,5 % | 2,0 % |
-
-> Nota (14-nov-2026): estas cifras se midieron con la versión anterior de las jugadas. La app ya no propone
-> mover la fecha de pago (no sirve para el mes en curso) y el recorte ya no toca la comida; hay que volver a
-> medir con las jugadas actuales antes de citar estos porcentajes.
-| Pagar el mínimo | 0 | — | — |
+| Pausar suscripciones | 100 | 5,0 % | 3,8 % |
+| Recortar un gasto | 76 | 3,9 % | 9,9 % |
+| Pagar el mínimo | 2 | 50 % | 84,3 % |
 
 **Lectura sin adornos.**
 
-- La recomendación **ayuda, pero no resuelve**: en 3 de cada 4 avisos acertados la persona sigue en
-  déficit aunque haga todo lo que se le propone. Lo que sí baja es el tamaño del hueco.
-- **«Mover un pago» casi no sirve** en los datos: cambia la fecha del problema, no el problema.
-- Cuando el copiloto dice que la jugada «resuelve» (33 casos), el déficit se evita solo en el 24 %.
-  **Esa promesa es demasiado optimista** y hay que suavizar el texto en la app.
-- La jugada «pagar el mínimo» no salió primera ni una vez: no está evaluada.
+- La recomendación **alivia, pero casi nunca resuelve**: en 9 de cada 10 avisos acertados la persona sigue
+  en déficit aunque haga todo lo que se le propone. Lo que sí baja, un poco, es el tamaño del hueco.
+- Las jugadas de hoy son prudentes a propósito (no mueven pagos ni recortan comida), y eso se paga en
+  efecto: el valor principal medible del copiloto es **avisar a tiempo**, no la jugada.
+- Cuando el copiloto dice que la jugada evita el día en rojo (10 casos), en la realidad lo evita en 1.
+  Con 10 casos no es una estadística, pero va en la misma línea que antes: **esa promesa es optimista**.
+- «Pagar el mínimo» salió primera solo 2 veces: no está evaluada.
 
-**Cuando el copiloto se equivoca.** En las 181 falsas alarmas, seguir la jugada no creó ningún déficit;
-el 0,55 % tuvo algún costo y el costo medio fue de 1 céntimo. El daño medido de una falsa alarma es la
+**Cuando el copiloto se equivoca.** En las 153 falsas alarmas, seguir la jugada no creó ningún déficit;
+el 2,6 % tuvo algún costo y el costo medio fue de 26 céntimos. El daño medido de una falsa alarma es la
 molestia, no el dinero.
 
 **Deudas (dato descriptivo, no contrastado).** De 695 clientes con deuda, en 281 el simulador encuentra
@@ -571,3 +573,133 @@ respuestas del asistente de esta sección corresponden a la evaluación.
 - Solo preguntas sueltas: no se midieron conversaciones de varias vueltas, la voz, el caso propio ni la
   función de anotar ingresos y gastos cuando sí toca (solo que ya no se dispara con una pregunta).
 - Costo y tokens por respuesta no se midieron.
+
+## 15. Fase 3: ¿se puede pronosticar mejor sin perder avisos?
+
+Todo con datos sintéticos. Ninguna cifra de esta sección viene de clientes reales, y nada de esto
+demuestra que el copiloto funcione con personas reales.
+
+**Analogía.** Es como probar un cambio de receta: primero se escribe qué nota tiene que sacar para
+quedarse (antes de cocinar), se prueba en la cocina de práctica, y solo lo que aprueba se sirve una vez
+en la mesa del examen. Si nada aprueba, no se sirve nada.
+
+### 15.1 La regla, fijada antes de medir
+
+La regla está en [`evaluacion/CRITERIOS-FASE3.md`](evaluacion/CRITERIOS-FASE3.md), guardada en un commit
+propio antes de probar ningún cambio. Resumen: cada cambio se mide en la población de práctica **A**
+(semilla 20261114, 1 000 clientes) contra el motor de `main`, y se acepta solo si:
+
+- **C1** el recall no baja de 76,3 % (un error estándar bajo la base);
+- **C2** las falsas alarmas no pasan de 21,8 %;
+- **C3** el error a 7 y 14 días no empeora más de 2 %;
+- **C4** mejora de verdad algo: error a 30 días −2 %, o falsas alarmas −1,44 puntos, o recall +2,77 puntos.
+
+Si cumple C1-C3 sin C4 es **neutro** y no se promueve: añade complejidad sin beneficio medible.
+Lo aceptado se mediría una sola vez en una cohorte nueva **C** (semilla 20261117).
+
+Base A (motor de `main`) [MEDIDO]: recall 79,1 % (170 de 215), precisión 51,5 %, F1 0,624,
+falsas alarmas 20,4 % (160 de 785), error medio absoluto a 7 / 14 / 30 días S/ 503,9 / 759,1 / 1 261,0.
+
+### 15.2 Qué se probó y qué salió [MEDIDO, población A]
+
+| Variante | Qué cambia | Recall | Falsas al. | Precisión | F1 | Error 7 / 14 / 30 d | Veredicto |
+|---|---|---:|---:|---:|---:|---|---|
+| Base | motor de `main` | 79,1 % | 20,4 % | 51,5 % | 0,624 | 503,9 / 759,1 / 1 261,0 | — |
+| A1 | pago de tarjeta declarado que no aparece en la historia | 81,4 % | 20,6 % | 51,9 % | 0,634 | 499,2 / 757,0 / 1 262,1 | neutro |
+| A2 | A1 con otra regla de monto | 81,4 % | 20,6 % | 51,9 % | 0,634 | 499,2 / 757,0 / 1 262,1 | neutro |
+| A3 | A1 + no volver a cobrar un pago ya hecho este mes | 81,4 % | 20,3 % | 52,4 % | 0,637 | 481,4 / 742,3 / 1 249,6 | neutro |
+| Solo «ya pagado» | la mitad de A3 | 79,1 % | 20,0 % | 52,0 % | 0,627 | 485,9 / 744,3 / 1 248,5 | neutro |
+| B1 | sueldo atrasado: esperar unos días antes de darlo por perdido | 79,1 % | 20,4 % | 51,5 % | 0,624 | 502,3 / 761,2 / 1 258,9 | neutro |
+| B2a | semanas sin datos no cuentan como semanas sin ingresos | 78,1 % | 19,0 % | 53,0 % | 0,632 | 500,1 / 749,8 / 1 237,0 | neutro |
+| B2b | lo mismo, en los gastos | 79,1 % | 21,8 % | 49,8 % | 0,612 | 506,9 / 768,0 / 1 283,4 | **rechazado** (empeora todo) |
+| B2a+b | las dos juntas | 78,1 % | 20,3 % | 51,4 % | 0,620 | 502,1 / 754,6 / 1 250,8 | neutro o peor |
+
+**Ningún cambio cumple C4, así que ninguno entra al motor.** Los más cerca:
+
+- **A3** mejora todo a la vez (5 déficits más avisados, 1 falsa alarma menos, error a 7 días −4,5 %),
+  pero el recall sube 2,33 puntos y la regla pedía 2,77; el error a 30 días baja 0,9 %, no 2 %.
+- **B2a** baja las falsas alarmas 1,40 puntos (11 de 785) [CALCULADO], la regla pedía 1,44; el error
+  a 30 días baja 1,9 %, la regla pedía 2 %. Y pierde 2 déficits avisados (en «datos incompletos» pasan de
+  5 a 7 sin aviso). Mejor saldo a cambio de dos personas más sin aviso: por la regla, no se acepta.
+
+Estar «casi» no basta: con 215 déficits en la población, diferencias de 2 puntos están dentro del ruido.
+
+**Por tipo de perfil** (déficits sin aviso; base → variante):
+
+| Perfil | A1 | A3 | B2a |
+|---|---|---|---|
+| Dependiente | 20 → 19 | 20 → 19 | 20 → 20 |
+| Independiente | 13 → 13 | 13 → 13 | 13 → 14 |
+| Mixto | 12 → **8** | 12 → **8** | 12 → 13 |
+
+Ningún grupo pierde más de 2 avisos ni sube más de 2 puntos sus falsas alarmas. El arreglo de tarjeta
+ayuda sobre todo a los mixtos; por escenario, a «gasto atípico» (22 → 18 sin aviso).
+
+**Efecto de las recomendaciones en A.** Con A3, la primera jugada evita el déficit en el 4,6 % de los
+avisos acertados (base: 4,1 %) y, siguiendo todas, en el 12,0 % (base: 10,0 %). Mismo tamaño que en la
+sección 8: las jugadas alivian, casi nunca resuelven.
+
+**Por qué no se usó la cohorte C.** La regla dice que C se corre solo con los cambios aceptados. No hubo
+ninguno: correrla para «ver qué sale» la gastaría como examen. Queda sin mirar para la próxima fase.
+
+El código de todos los experimentos está guardado, apagado, en
+[`evaluacion/experimentos-fase3.diff`](evaluacion/experimentos-fase3.diff), y cada corrida en
+`evaluacion/ajuste/*.json`.
+
+### 15.3 Escenarios «esperado» y «conservador» (fuera de la pantalla)
+
+`src/motor/escenarios.ts` calcula dos proyecciones con el mismo motor: la **conservadora** es la de hoy
+(ingreso variable de «la peor quincena normal», percentil 25) y la **esperada** usa «la quincena de
+siempre» (la mediana). El aviso de déficit sigue saliendo solo de la conservadora. No se muestra en la app.
+
+| A 30 días [MEDIDO] | Conservador A | Esperado A | Conservador B | Esperado B |
+|---|---:|---:|---:|---:|
+| Error medio absoluto | S/ 1 261,0 | S/ 1 049,1 | S/ 1 359,7 | S/ 1 129,5 |
+| Sesgo medio | −S/ 913,9 | −S/ 386,5 | −S/ 1 019,1 | −S/ 498,2 |
+| Clientes por debajo del saldo real | 71,1 % | 54,5 % | 72,3 % | 56,3 % |
+| Clientes con día en rojo | 330 | 226 | 331 | 240 |
+
+Criterios fijados antes de medir:
+
+- El esperado tiene menos sesgo que el conservador: **se cumple** (A y B).
+- Ninguno cambia el aviso: **se cumple** (1 000 de 1 000 avisos iguales en A y en B).
+- El conservador queda por debajo del saldo real en al menos el 80 % de los clientes: **no se cumple**.
+  En unos 28 de cada 100 clientes el motor actual **sobrestima** el saldo a 30 días. Por eso no se le
+  puede llamar «conservador» en pantalla sin más.
+
+**Costo-beneficio.** El esperado acierta más el saldo (−16,8 % de error a 30 días en A), pero vería
+unas 100 personas menos en rojo. Como lo primero es no dejar déficits sin aviso, el aviso se queda con
+el conservador y el esperado no se promueve a la interfaz.
+
+### 15.4 Corrección de este informe
+
+Al regenerar los resultados con el código de `main` apareció que la sección 8 citaba el efecto de las
+recomendaciones medido con jugadas que la app ya no usa: decía que la primera jugada evita el déficit en
+el 14,6 % de los avisos acertados; con las jugadas actuales es el **5,1 %** (y 9,6 % siguiendo todas, no
+24,7 %). Ya estaba anotado que había que volver a medir; ahora está medido, y las secciones 0 y 8 y
+`evaluacion/resultados.json` están al día. El resto de cifras de `resultados.json` no cambió. La comparación
+histórica de la sección 13.3 se dejó como estaba (compara dos versiones del motor con las jugadas de entonces).
+
+### 15.5 Pruebas nuevas y cómo reproducirlo
+
+- `src/motor/regresion-fase3.test.ts`: el pago de tarjeta cae una sola vez y en el día correcto
+  (fin de mes, 29 de febrero bisiesto, cruce de año) sin contar dos veces las compras con tarjeta; el
+  escenario conservador es idéntico al motor; el esperado nunca queda por debajo del conservador y siempre
+  en céntimos enteros; el aviso no cambia aunque solo el conservador vea rojo.
+- `.github/workflows/ci.yml`: en cada pull request corre tipos, lint, pruebas y compilación. No despliega
+  ni usa secretos.
+
+```bash
+AJUSTE=base-f3 npm run evaluar        # base A en evaluacion/ajuste/base-f3.json (también rehace la corrida B)
+npm run evaluar                       # corrida oficial B (escribe evaluacion/resultados.json)
+ESCENARIOS=1 npx vitest run --config vitest.evaluacion.mts src/evaluacion/escenarios.evaluacion.ts
+```
+
+### 15.6 Límites
+
+- Datos sintéticos de un generador escrito por el mismo equipo: sirven para comparar versiones del motor,
+  no para decir cuánto acierta con personas reales. **No se ha validado con usuarios reales.**
+- 1 000 clientes y 215 déficits en A: el ruido de ±2,8 puntos de recall tapa mejoras pequeñas como A3.
+  Para decidir sobre A3 haría falta una población de práctica mayor (unas 3 000 personas) y una regla
+  nueva fijada antes de medir.
+- La población B ya se miró muchas veces; sus cifras son descriptivas, no un examen limpio.
