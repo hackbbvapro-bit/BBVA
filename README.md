@@ -40,6 +40,7 @@ pantalla debe salir de una función con test.
 ## Qué hay en este repositorio
 | Carpeta | Contenido |
 |---|---|
+| **`entregables/`** | **Índice de los 5 entregables pedidos por la organización** (demo, dataset, modelo/IA, evidencia, arquitectura), cada uno con su resumen y enlaces |
 | `investigacion/01-problemas-financieros-peru.md` | Qué le duele al peruano con su plata (SBS, Ipsos, Indecopi, INEI) |
 | `investigacion/02-que-hace-bbva-y-que-no.md` | Qué ya tiene la app de BBVA Perú y dónde están los huecos |
 | `investigacion/03-benchmark-asesores-ia-top.md` | Qué hacen los mejores asesores con IA del mundo (Cleo, Monarch, Rocket Money, Plum…) |
