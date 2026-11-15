@@ -33,7 +33,7 @@ export const CATALOGO: readonly EntradaCatalogo[] = [
     id: "cuenta-de-ahorro",
     titulo: "Cuenta de ahorro separada",
     paraQuien: "Para guardar tu colchón aparte de la plata del día a día, sin que se mezcle con lo que gastas.",
-    condicion: "Puedes retirar cuando quieras. El rendimiento y las comisiones dependen de cada entidad: compáralos antes de decidir.",
+    condicion: "Puedes retirar cuando quieras. El rendimiento y las comisiones dependen del producto: revísalos en su ficha oficial antes de decidir.",
   },
   {
     id: "deposito-a-plazo",
