@@ -136,8 +136,8 @@ export function Hoy({
       />
 
       {/* Proyección (2/3) + lo que sale esta semana (1/3). */}
-      <div className="grid gap-3 md:gap-6 lg:grid-cols-3">
-        <section ref={grafico} className="aparecer scroll-mt-24 rounded-2xl border border-linea bg-white p-4 md:p-6 lg:col-span-2">
+      <div className="grid gap-3 md:gap-6 xl:grid-cols-3 [&>*]:min-w-0">
+        <section ref={grafico} className="aparecer min-w-0 scroll-mt-24 rounded-2xl border border-linea bg-white p-4 md:p-6 xl:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -164,25 +164,20 @@ export function Hoy({
               )}
             </div>
           </div>
-          <div role="group" aria-label="Cuánto mirar hacia adelante" className="mt-3 flex gap-1 overflow-x-auto rounded-xl bg-niebla p-1">
+          <div role="group" aria-label="Cuánto mirar hacia adelante" className="mt-3 grid grid-cols-5 gap-1 rounded-xl bg-niebla p-1">
             {HORIZONTES.map(h => (
               <button
                 key={h.id}
                 aria-pressed={horizonte === h.id}
+                aria-label={h.etiqueta}
                 onClick={() => setHorizonte(h.id)}
-                className={`min-h-9 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-semibold transition-colors duration-150 ${horizonte === h.id ? "bg-white text-noche shadow-sm ring-1 ring-linea" : "text-gris hover:text-noche"}`}
+                className={`min-h-11 min-w-0 whitespace-nowrap rounded-lg px-0.5 font-semibold leading-none sm:min-h-9 sm:px-3 sm:text-sm transition-colors duration-150 ${horizonte === h.id ? "bg-white text-noche shadow-sm ring-1 ring-linea" : "text-gris hover:text-noche"}`}
               >
-                {h.etiqueta}
+                <span className="flex flex-col items-center gap-0.5 sm:hidden" aria-hidden="true"><span className="text-[15px]">{h.etiqueta.split(" ")[0]}</span><span className="text-[10.5px] font-medium">{h.etiqueta.split(" ")[1]}</span></span><span className="hidden sm:inline" aria-hidden="true">{h.etiqueta}</span>
               </button>
             ))}
           </div>
-          {/* Dos proporciones: angosta en celular, ancha en escritorio (el SVG escala con su viewBox). */}
-          <div className="lg:hidden">
-            <GraficoSiTePagan base={base} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} fondo="white" />
-          </div>
-          <div className="hidden lg:block">
-            <GraficoSiTePagan base={base} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} ancho={640} fondo="white" />
-          </div>
+          <GraficoSiTePagan base={base} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} fondo="white" horizonte={horizonte} />
           <TablaHorizonte p={base} hoy={perfil.hoy} horizonte={horizonte} />
           <p className="mt-3 text-[11px] leading-snug text-gris md:text-xs">
             Proyección referencial basada en los movimientos registrados: supone que todo sigue igual (ingresos con el estimado prudente,
@@ -262,14 +257,14 @@ function TablaHorizonte({ p, hoy, horizonte }: { p: Proyeccion; hoy: string; hor
         <span className={`font-semibold tabular-nums ${p.saldoMinimo < 0 ? "text-coral-fuerte" : "text-noche"}`}>{unido(formatoSoles(p.saldoMinimo))}</span> el {formatoLargo(p.fechaSaldoMinimo)}.{" "}
         {rojo > 0 ? <span className="font-semibold text-coral-fuerte">{rojo} {rojo === 1 ? "día" : "días"} en rojo.</span> : <span className="font-semibold text-verde-fuerte">Ningún día en rojo.</span>}
       </p>
-      <div className="mt-3 overflow-hidden rounded-xl border border-linea">
+      <div className="@container mt-3 overflow-x-auto rounded-xl border border-linea">
         <table className="w-full text-sm">
           <caption className="sr-only">{encabezado}: lo que entra, lo que sale y cómo queda tu saldo</caption>
           <thead className="bg-niebla text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">
             <tr>
               <th scope="col" className="px-3 py-2 text-left">{encabezado}</th>
-              <th scope="col" className="hidden px-3 py-2 text-right sm:table-cell">Entra</th>
-              <th scope="col" className="hidden px-3 py-2 text-right sm:table-cell">Sale</th>
+              <th scope="col" className="hidden px-3 py-2 text-right @lg:table-cell">Entra</th>
+              <th scope="col" className="hidden px-3 py-2 text-right @lg:table-cell">Sale</th>
               <th scope="col" className="px-3 py-2 text-right">Más bajo</th>
               <th scope="col" className="px-3 py-2 text-right">Al final</th>
             </tr>
@@ -282,8 +277,8 @@ function TablaHorizonte({ p, hoy, horizonte }: { p: Proyeccion; hoy: string; hor
                   {por !== "dia" && <span className="block text-xs text-gris">{rango(f.desde, f.hasta)}</span>}
                   {f.diasEnRojo > 0 && <span className="block text-xs font-semibold text-coral-fuerte">{f.diasEnRojo} {f.diasEnRojo === 1 ? "día" : "días"} en rojo</span>}
                 </th>
-                <td className="hidden px-3 py-2 text-right tabular-nums text-verde-fuerte sm:table-cell">{unido(formatoSoles(f.entra))}</td>
-                <td className="hidden px-3 py-2 text-right tabular-nums text-noche sm:table-cell">{unido(formatoSoles(-f.sale))}</td>
+                <td className="hidden px-3 py-2 text-right tabular-nums text-verde-fuerte @lg:table-cell">{unido(formatoSoles(f.entra))}</td>
+                <td className="hidden px-3 py-2 text-right tabular-nums text-noche @lg:table-cell">{unido(formatoSoles(-f.sale))}</td>
                 <td className={`px-3 py-2 text-right tabular-nums ${f.saldoMinimo < 0 ? "font-semibold text-coral-fuerte" : "text-noche"}`}>{unido(formatoSoles(f.saldoMinimo))}</td>
                 <td className={`px-3 py-2 text-right font-semibold tabular-nums ${f.saldoFinal < 0 ? "text-coral-fuerte" : "text-noche"}`}>{unido(formatoSoles(f.saldoFinal))}</td>
               </tr>
