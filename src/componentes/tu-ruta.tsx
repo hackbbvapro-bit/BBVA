@@ -124,7 +124,7 @@ function Presupuesto({ plan }: { plan: PlanDelMes }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-electrico">Tu presupuesto este mes</p>
       <h2
         id="presupuesto"
-        className={`mt-1 text-lg font-semibold tabular-nums leading-snug md:text-xl ${plan.alcanza ? "text-noche" : "text-coral-fuerte"}`}
+        className={`mt-1 text-lg font-semibold leading-snug [font-variant-numeric:tabular-nums] md:text-xl ${plan.alcanza ? "text-noche" : "text-coral-fuerte"}`}
       >
         {unido(plan.titulo)}
       </h2>
