@@ -429,6 +429,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             {aviso}
           </p>
         )}
+        <div key={pestana} className="cambio-pestana">
         {pestana === "hoy" && (
           <Hoy
             perfil={perfil}
@@ -471,6 +472,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
         {pestana === "asistente" && (
           <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} avance={avance} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} cobros={datos.cobros} alAnotar={anotar} guardar={persistente} />
         )}
+        </div>
       </main>
       <nav
         aria-label="Navegación inferior"

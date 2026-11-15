@@ -372,6 +372,26 @@ body {
   to { text-decoration-color: currentColor; }
 }
 
+/* Chat: tres puntos que respiran mientras llega la respuesta. */
+.punto-pensando { animation: respirar 1s ease-in-out infinite; }
+@keyframes respirar {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-2px); }
+}
+
+/* Cambio de pestaña: fundido corto, solo opacidad (un transform movería las barras fijas).
+   «backwards»: al terminar no deja capa propia, así las hojas modales siguen por encima de la barra. */
+.cambio-pestana {
+  animation-name: fundido;
+  animation-duration: 0.18s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: backwards;
+}
+@keyframes fundido {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Indicador de la pestaña activa */
 .pestana-activa {
   animation: aparecer 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
