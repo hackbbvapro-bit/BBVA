@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { conCobros, formatoLargo, formatoSoles, type CobroPendiente, type EscenarioCobros, type Proyeccion } from "@/motor";
+import { conCobros, formatoLargo, formatoSoles, type CobroPendiente, type EscenarioCobros, type Horizonte, type Proyeccion } from "@/motor";
 import { Grafico } from "@/componentes/grafico";
 import { unido } from "@/componentes/ui";
 
@@ -26,6 +26,7 @@ export function GraficoSiTePagan({
   descripcion,
   ancho,
   fondo,
+  horizonte,
 }: {
   base: Proyeccion;
   despues?: Proyeccion;
@@ -33,6 +34,7 @@ export function GraficoSiTePagan({
   descripcion: string;
   ancho?: number;
   fondo?: string;
+  horizonte?: Horizonte;
 }) {
   const [ver, setVer] = useState(false);
   const e = useMemo(() => conCobros(base, cobros), [base, cobros]);
@@ -40,7 +42,7 @@ export function GraficoSiTePagan({
   const mostrar = ver && hayContados && !despues;
   return (
     <>
-      <Grafico base={base} despues={despues} siPagan={mostrar ? e.dias : undefined} descripcion={descripcion} ancho={ancho} fondo={fondo} />
+      <Grafico base={base} despues={despues} siPagan={mostrar ? e.dias : undefined} descripcion={descripcion} ancho={ancho} fondo={fondo} horizonte={horizonte} />
       {hayContados && !despues && (
         <div className="mt-4">
           <button

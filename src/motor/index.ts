@@ -23,3 +23,4 @@ export function analizar(perfil: Perfil): Analisis {
     proyeccion, jugadas: proponerJugadas(perfil, proyeccion), deudas: compararEstrategias(perfil.deudas) };
 }
 export * from './horizonte';
+export * from './puntos-grafico';
