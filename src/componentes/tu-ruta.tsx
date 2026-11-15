@@ -329,7 +329,7 @@ export function MiRuta({
                       />
                       <span
                         aria-hidden="true"
-                        className={`mt-px flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors duration-150 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-electrico [&_svg]:size-4 ${p.hecho ? "border-electrico bg-electrico text-white" : toca ? "border-electrico bg-white text-electrico" : "border-linea bg-white text-gris"}`}
+                        className={`mt-px flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors duration-150 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-electrico [&_svg]:size-4 ${p.hecho ? "check-pop border-electrico bg-electrico text-white" : toca ? "border-electrico bg-white text-electrico" : "border-linea bg-white text-gris"}`}
                       >
                         {p.hecho ? <Icono nombre="check" /> : i + 1}
                       </span>
@@ -340,7 +340,7 @@ export function MiRuta({
                           </span>
                         )}
                         <span
-                          className={`block text-sm leading-relaxed md:text-[15px] ${p.hecho ? "text-gris line-through" : "text-tinta"}`}
+                          className={`paso-texto block text-sm leading-relaxed md:text-[15px] ${p.hecho ? "text-gris line-through" : "text-tinta"}`}
                         >
                           {unido(p.texto)}
                         </span>
