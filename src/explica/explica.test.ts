@@ -3,7 +3,7 @@ import { PERFILES } from "../datos/perfiles";
 import { analizar, formatoLargo, formatoSoles } from "../motor";
 import { aPerfil } from "../datos/aPerfil";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "../ruta/entrada";
-import { fraseLibre, hechosDe, rutaExplicada, trazarRuta } from "../ruta/ruta";
+import { fraseLibre, hechosDe, rutaDirecta, rutaExplicada, trazarRuta } from "../ruta/ruta";
 import { CAMBIAR_FECHA_DE_PAGO } from "./educacion";
 import { avisos, costoEnPalabras, enLista, mejorJugada, paraVoz, proximosPagos, responderSinIA, resumenHablado } from "./explica";
 
@@ -201,6 +201,18 @@ describe("respuestas sin IA cuando hay ruta", () => {
       expect(texto).toBe(rutaExplicada(ruta));
       expect(texto).toContain(ruta.aviso);
     }
+  });
+
+  it("en modo Directo responde con un solo paso, sin productos ni aviso, y nunca con «Tu ruta es»", () => {
+    const empiezo = responderSinIA("¿Por dónde empiezo?", perfil, analisis, ruta, undefined, "directo");
+    expect(empiezo).toBe(rutaDirecta(ruta));
+    expect(empiezo).toMatch(/^Para .+, empieza por esto: /);
+    expect(empiezo).not.toContain(ruta.aviso);
+    expect(empiezo.split(/\s+/).length).toBeLessThan(rutaExplicada(ruta).split(/\s+/).length / 2);
+    const historial = responderSinIA("¿Cómo construyo mi historial?", perfil, analisis, ruta, undefined, "directo");
+    expect(ruta.pasos).toContain(historial);
+    expect(historial.toLowerCase()).toMatch(/historial|tarjeta|crédito/);
+    expect(rutaExplicada(ruta)).not.toContain("Tu ruta es");
   });
 
   it("un gasto concreto sigue respondiéndose con la simulación, no con la ruta", () => {

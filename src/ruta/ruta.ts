@@ -428,8 +428,23 @@ export function rutaExplicada(ruta: Ruta): string {
   const alternativas = ruta.alternativas.length
     ? ` Alternativas para comparar: ${ruta.alternativas.map(a => minuscula(a.entrada.titulo)).join("; ")}.`
     : "";
-  return `Tu ruta es: ${minuscula(ruta.titulo)}. ${ruta.resumen} ${pasos}${alternativas} ${ruta.aviso}`;
+  return `${ruta.titulo}. ${ruta.resumen} ${pasos}${alternativas} ${ruta.aviso}`;
 }
+
+/**
+ * Respuesta corta sin IA (modo Directo): un solo paso, sin productos ni aviso.
+ * `tema` elige el paso que habla de lo preguntado (p. ej. el colchón); si ninguno, el siguiente pendiente o el primero.
+ */
+export function rutaDirecta(ruta: Ruta, tema?: RegExp, avance?: Avance): string {
+  const delTema = tema && ruta.pasos.find(p => tema.test(normalizarTexto(p)));
+  if (delTema) return delTema;
+  if (avance && avance.total > 0 && !avance.siguiente) return "Ya completaste todos los pasos de tu ruta. Puedes elegir otra en Mi ruta.";
+  const retoma = avance && avance.cumplidos > 0 && avance.siguiente;
+  const paso = (retoma ? avance.siguiente : undefined) ?? ruta.pasos[0];
+  return paso ? `Para ${minuscula(ruta.titulo)}, ${retoma ? "tu siguiente paso es" : "empieza por esto"}: ${minuscula(paso)}` : rutaExplicada(ruta);
+}
+
+const normalizarTexto = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 const PREGUNTAS: Record<IdRuta, string[]> = {
   ahorrar: ["¿Por dónde empiezo?", "¿De cuánto debe ser mi colchón?", "¿Cuánto me queda libre al mes?"],

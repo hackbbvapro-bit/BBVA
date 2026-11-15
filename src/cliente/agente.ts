@@ -1,5 +1,5 @@
 import { limpiarCompetencia } from "../agente/competencia";
-import type { Estilo } from "../agente/estilo";
+import { preguntaSinIA, type Estilo } from "../agente/estilo";
 /**
  * Conversación con el agente. Si la IA no responde (sin clave, sin red, error),
  * contesta el propio motor en el celular: la demo nunca se queda muda.
@@ -107,7 +107,7 @@ async function leerFlujo(
 /** Sin IA: primero el registro («me acaban de pagar 1.000»), y si no es eso, la respuesta del motor. */
 function responderLocal(
   mensajes: readonly MensajeChat[],
-  { perfil, analisis, ruta, avance, cobros = [], alTexto, alAccion }: Peticion,
+  { perfil, analisis, ruta, avance, cobros = [], estilo: elegido, alTexto, alAccion }: Peticion,
 ): RespuestaAgente {
   const registro = responderRegistro(mensajes, { perfil, cobros: cobros.filter(c => !c.cobrado) });
   if (registro) {
@@ -116,8 +116,8 @@ function responderLocal(
     alTexto?.(registro.texto);
     return { texto: registro.texto, origen: "motor", acciones: registro.accion ? [registro.accion] : [] };
   }
-  const pregunta = [...mensajes].reverse().find(m => m.rol === "usuario")?.texto ?? "";
-  const texto = limpiarCompetencia(responderSinIA(pregunta, perfil, analisis, ruta, avance)).texto;
+  const { pregunta, estilo } = preguntaSinIA(mensajes, elegido ?? "directo");
+  const texto = limpiarCompetencia(responderSinIA(pregunta, perfil, analisis, ruta, avance, estilo)).texto;
   alTexto?.(texto);
   return { texto, origen: "respaldo", acciones: [] };
 }

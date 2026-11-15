@@ -13,7 +13,8 @@ import { crecimientoDelHueco } from "./hueco";
 import { costoEnPalabras, efectoEnPalabras } from "./costo";
 export { costoCorto, costoEnPalabras, efectoEnPalabras } from "./costo";
 export { crecimientoDelHueco } from "./hueco";
-import { fraseAvance, fraseLibre, rutaExplicada, type Avance, type Ruta } from "../ruta/ruta";
+import { fraseAvance, fraseLibre, rutaDirecta, rutaExplicada, type Avance, type Ruta } from "../ruta/ruta";
+import type { Estilo } from "../agente/estilo";
 
 export type NivelAviso = "urgente" | "atencion" | "bien";
 
@@ -182,10 +183,20 @@ function responderJugada(texto: string, analisis: Analisis): string | undefined 
 }
 
 /** Preguntas sobre la ruta: por dónde empezar, historial, colchón, cuánto queda libre. */
-function responderRuta(texto: string, ruta: Ruta): string | undefined {
+function responderRuta(texto: string, ruta: Ruta, estilo: Estilo, avance?: Avance): string | undefined {
   if (/libre|queda al mes/.test(texto)) return fraseLibre(ruta.flujo);
-  if (/historial|invert|crecer|ruta|empiez|empez|por donde|colchon|garantia/.test(texto)) return rutaExplicada(ruta);
-  if (ruta.id === "construir_historial" && /tarjeta|credito|prestamo/.test(texto)) return rutaExplicada(ruta);
+  const deRuta = /historial|invert|crecer|ruta|empiez|empez|por donde|colchon|garantia/.test(texto)
+    || (ruta.id === "construir_historial" && /tarjeta|credito|prestamo/.test(texto));
+  if (!deRuta) return undefined;
+  if (estilo === "explicado") return rutaExplicada(ruta);
+  return rutaDirecta(ruta, temaDe(texto), avance);
+}
+
+/** Qué paso de la ruta responde mejor una pregunta concreta en modo Directo. */
+function temaDe(texto: string): RegExp | undefined {
+  if (/colchon/.test(texto)) return /colchon/;
+  if (/historial|tarjeta|credito|prestamo/.test(texto)) return /historial|tarjeta|credito/;
+  if (/invert|crecer/.test(texto)) return /invert|fondo|plazo/;
   return undefined;
 }
 
@@ -197,7 +208,7 @@ function responderRuta(texto: string, ruta: Ruta): string | undefined {
 const PREGUNTA_FECHA_DE_PAGO = /\b(mover|muevo|cambiar|cambio|aplazar|aplazo|postergar|postergo|retrasar|retraso|correr|corro)\b.{0,30}\bfecha/;
 const PREGUNTA_DE_AVANCE =
   /\bcomo voy\b|\bmi avance\b|como va mi ruta|siguiente paso|\bque sigue\b|que paso (sigue|me toca|doy)|me falta hacer|\bya hice\b|\bya marque\b/;
-export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Analisis, ruta?: Ruta, avance?: Avance): string {
+export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Analisis, ruta?: Ruta, avance?: Avance, estilo: Estilo = "explicado"): string {
   const texto = normalizar(pregunta);
   // «¿Cómo voy?», «¿qué me falta?», «siguiente paso»: lo que la persona marcó en «Mi ruta».
   // Frases concretas: «avance de efectivo», «¿qué pasó con mi sueldo?» o «¿cuánto me falta para pagar?» no cuentan.
@@ -210,7 +221,7 @@ export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Anali
   }
   const jugada = responderJugada(texto, analisis);
   if (jugada) return jugada;
-  const deRuta = ruta && responderRuta(texto, ruta);
+  const deRuta = ruta && responderRuta(texto, ruta, estilo, avance);
   if (deRuta) return deRuta;
   if (/deuda|tarjeta|primero|tcea|interes|prestamo/.test(texto)) {
     const deuda = avisos(perfil, analisis).find(a => a.id === "deuda");

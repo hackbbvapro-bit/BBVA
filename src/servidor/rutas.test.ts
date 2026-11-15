@@ -214,7 +214,8 @@ describe("POST /api/agente con un caso armado por la persona", () => {
   });
 
   it("con consentimiento responde con la ruta que traza el servidor", async () => {
-    const r = await pedir({ perfil: PROPIO, mensajes, hechos, consentimiento: true });
+    // Explicado: la ruta completa, con alternativas y el aviso de que no garantiza la aprobación.
+    const r = await pedir({ perfil: PROPIO, mensajes, hechos, consentimiento: true, estilo: "explicado" });
     expect(r.status).toBe(200);
     const texto = await textoDe(r);
     expect(texto.toLowerCase()).toContain(TITULOS.ahorrar.toLowerCase());
