@@ -5,7 +5,7 @@ import { aPerfil } from "../datos/aPerfil";
 import { armarCaso, tuvoCreditoSegun, type Respuestas } from "../ruta/entrada";
 import { fraseLibre, hechosDe, rutaExplicada, trazarRuta } from "../ruta/ruta";
 import { CAMBIAR_FECHA_DE_PAGO } from "./educacion";
-import { avisos, enLista, mejorJugada, paraVoz, proximosPagos, responderSinIA, resumenHablado } from "./explica";
+import { avisos, costoEnPalabras, enLista, mejorJugada, paraVoz, proximosPagos, responderSinIA, resumenHablado } from "./explica";
 
 const [andrea, carlos, lucia] = PERFILES;
 const a = { andrea: analizar(andrea), carlos: analizar(carlos), lucia: analizar(lucia) };
@@ -24,7 +24,11 @@ describe("avisos", () => {
     const jugada = mejorJugada(a.andrea)!;
     expect(jugada.resuelve).toBe(true);
     expect(a.andrea.jugadas.filter(j => j.resuelve).every(j => j.costo >= jugada.costo)).toBe(true);
-    expect(avisos(andrea, a.andrea)[0].cuerpo).toContain(jugada.costo > 0 ? formatoSoles(jugada.costo) : "no cuesta dinero");
+    const cuerpo = avisos(andrea, a.andrea)[0].cuerpo;
+    expect(cuerpo).toContain(costoEnPalabras(jugada));
+    // Su costo es estimado (puede haber cargos por cancelar): nunca se dice «no cuesta dinero».
+    expect(jugada.certezaCosto).toBe("estimado");
+    expect(cuerpo).not.toContain("no cuesta dinero");
   });
 
   it("si el hueco crece después del primer día en rojo, dice hasta dónde llega y cuándo", () => {

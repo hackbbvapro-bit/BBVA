@@ -1,7 +1,7 @@
 import { exigirCentimos, porcentaje, redondear, sumar } from './dinero';
 import { diasEntre, ocurrenciasCada, ocurrenciasMensuales, rangoDias, sumarDias } from './fechas';
 import { detectarRecurrentes, estimarGastoVariable, estimarIngresoVariable } from './recurrentes';
-import type { Ajuste, Deficit, DiaProyectado, EventoProyectado, Perfil, Proyeccion } from './tipos';
+import type { Ajuste, Deficit, DiaProyectado, EfectoDeficit, EventoProyectado, Perfil, Proyeccion } from './tipos';
 export interface OpcionesProyeccion { dias?: number; ajustes?: Ajuste[] }
 
 function eventosBase(perfil: Perfil, desde: string, hasta: string): EventoProyectado[] {
@@ -37,7 +37,13 @@ export function proyectar(perfil: Perfil, opciones: OpcionesProyeccion = {}): Pr
   if (!Number.isInteger(cantidad) || cantidad < 1) throw new Error('Los días deben ser un entero positivo');
   const desde = sumarDias(perfil.hoy, 1), hasta = sumarDias(perfil.hoy, cantidad);
   const ajustes = opciones.ajustes ?? [];
-  const eventos = ajustar(eventosBase(perfil, desde, hasta), ajustes);
+  for (const a of ajustes) {
+    if (a.tipo === 'mover' && a.hacia < desde) throw new Error(`No se puede mover un pago a antes del ${desde}`);
+  }
+  const ajustados = ajustar(eventosBase(perfil, desde, hasta), ajustes);
+  // Un pago movido más allá del horizonte no desaparece: se sigue debiendo, solo que no cae en estos días.
+  const eventos = ajustados.filter(e => e.fecha <= hasta);
+  const fueraDeVentana = ajustados.filter(e => e.fecha > hasta);
   const ingreso = Math.floor(estimarIngresoVariable(perfil.movimientos, perfil.deudas, perfil.hoy).semanalPrudente / 7);
   const gasto = estimarGastoVariable(perfil.movimientos, perfil.deudas, perfil.hoy);
   let saldo = exigirCentimos(perfil.saldoActual);
@@ -57,5 +63,20 @@ export function proyectar(perfil: Perfil, opciones: OpcionesProyeccion = {}): Pr
   const minimo = dias.reduce((a, b) => a.saldo <= b.saldo ? a : b);
   return { perfilId: perfil.id, desde, hasta, saldoInicial: perfil.saldoActual, dias,
     saldoMinimo: minimo.saldo, fechaSaldoMinimo: minimo.fecha, saldoFinal: saldo,
-    deficit: deficit(dias, perfil.hoy, minimo) };
+    deficit: deficit(dias, perfil.hoy, minimo), fueraDeVentana };
+}
+
+/**
+ * Compara la proyección sin hacer nada (`antes`) con la de un ajuste (`despues`) y dice si el ajuste
+ * elimina, reduce o solo posterga el déficit. Si el ajuste empujó un pago fuera de la ventana, nunca
+ * cuenta como «elimina»: ese pago llega después y aquí no se puede comprobar que alcance.
+ */
+export function efectoSobreDeficit(antes: Proyeccion, despues: Proyeccion): EfectoDeficit {
+  const pendientes = (p: Proyeccion) => p.fueraDeVentana.filter(e => e.monto < 0).length;
+  if (!antes.deficit) return 'no_mejora'; // sin rojo no hay nada que arreglar
+  if (pendientes(despues) > pendientes(antes)) return 'posterga';
+  if (!despues.deficit) return 'elimina';
+  if (despues.deficit.faltanteMaximo < antes.deficit.faltanteMaximo) return 'reduce';
+  if (despues.deficit.fecha > antes.deficit.fecha) return 'posterga';
+  return 'no_mejora';
 }

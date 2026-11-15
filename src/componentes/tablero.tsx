@@ -1,5 +1,5 @@
 import { formatoLargo, formatoSoles, sumar, type Analisis, type Perfil } from "@/motor";
-import { CAUSA_DIA_A_DIA, crecimientoDelHueco, enLista, mejorJugada } from "@/explica/explica";
+import { CAUSA_DIA_A_DIA, costoCorto, crecimientoDelHueco, enLista, mejorJugada } from "@/explica/explica";
 
 /**
  * La franja de alerta de Inicio, en palabras. El monto es el del primer día en rojo; si después el hueco crece,
@@ -45,7 +45,7 @@ export function cifras(perfil: Perfil, analisis: Analisis): CifraInicio[] {
   const cuarta: CifraInicio = p.deficit && barata
     ? {
         etiqueta: "Salida más barata",
-        valor: formatoSoles(barata.costo),
+        valor: costoCorto(barata),
         nota: `${barata.titulo} · libera ${formatoSoles(barata.libera)}`,
         destino: "como-evitarlo",
         accion: "Ver las opciones para evitar el déficit",
