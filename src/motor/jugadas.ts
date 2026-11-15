@@ -1,6 +1,6 @@
 import { formatoSoles, formatoTasa, interesMensual, sumar } from './dinero';
 import { formatoLargo } from './fechas';
-import { proyectar } from './proyeccion';
+import { efectoSobreDeficit, proyectar } from './proyeccion';
 import { detectarRecurrentes, estimarGastoVariable, variables } from './recurrentes';
 import type { Ajuste, Categoria, EventoProyectado, Jugada, Perfil, Proyeccion, Recurrente } from './tipos';
 
@@ -16,9 +16,11 @@ type Candidato = { evento: EventoProyectado; recurrente: Recurrente };
 /** Categorías que se pueden recortar sin tocar lo básico. */
 const RECORTABLES: Categoria[] = ['ocio', 'compras'];
 
-function evaluar(perfil: Perfil, ajustes: Ajuste[]) {
+function evaluar(perfil: Perfil, base: Proyeccion, ajustes: Ajuste[]) {
   const proyeccion = proyectar(perfil, { ajustes });
-  return { ajustes, resuelve: proyeccion.deficit === null, saldoMinimoDespues: proyeccion.saldoMinimo };
+  const efecto = efectoSobreDeficit(base, proyeccion);
+  // «Resuelve» solo si elimina el rojo de verdad: sacar un pago de la ventana no cuenta.
+  return { ajustes, efecto, resuelve: efecto === 'elimina', saldoMinimoDespues: proyeccion.saldoMinimo };
 }
 /** «a», «a y b», «a, b y c». */
 function lista(partes: string[]): string {
@@ -27,18 +29,19 @@ function lista(partes: string[]): string {
 function minuscula(texto: string): string {
   return texto.charAt(0).toLowerCase() + texto.slice(1);
 }
-function pausar(perfil: Perfil, candidatos: Candidato[]): Jugada | undefined {
+function pausar(perfil: Perfil, base: Proyeccion, candidatos: Candidato[]): Jugada | undefined {
   const suscripciones = candidatos.filter(c => c.recurrente.categoria === 'suscripciones');
   if (suscripciones.length === 0) return;
   const libera = sumar(suscripciones.map(c => -c.evento.monto));
   const nombres = lista(suscripciones.map(c => `${minuscula(c.evento.descripcion)} (${formatoSoles(-c.evento.monto)}, ${formatoLargo(c.evento.fecha)})`));
   return { id: 'jugada-pausar', tipo: 'pausar_suscripciones', titulo: 'Pausa tus suscripciones este mes',
     detalle: `Pausa o cancela ${nombres} antes de que se cobren y liberas ${formatoSoles(libera)}.`,
-    libera, costo: 0,
-    costoDetalle: `${formatoSoles(0)}: no genera intereses. Revisa antes si alguna cobra por cancelar o congelar.`,
-    ...evaluar(perfil, suscripciones.map(c => ({ tipo: 'cambiar_monto' as const, recurrenteId: c.recurrente.id, fecha: c.evento.fecha, monto: 0 }))) };
+    // No genera intereses, pero en los datos no se ve si algún servicio cobra por cancelar o congelar: costo estimado, no conocido.
+    libera, costo: 0, certezaCosto: 'estimado',
+    costoDetalle: 'No genera intereses. Lo que no sabemos: si algún servicio cobra por cancelar o congelar; revísalo antes.',
+    ...evaluar(perfil, base, suscripciones.map(c => ({ tipo: 'cambiar_monto' as const, recurrenteId: c.recurrente.id, fecha: c.evento.fecha, monto: 0 }))) };
 }
-function minimo(perfil: Perfil, candidatos: Candidato[]): Jugada | undefined {
+function minimo(perfil: Perfil, base: Proyeccion, candidatos: Candidato[]): Jugada | undefined {
   const opciones = candidatos.flatMap(c => {
     const deuda = perfil.deudas.find(d => d.id === c.recurrente.deudaId && d.tipo === 'tarjeta' && d.pagoHabitual > d.pagoMinimo);
     return deuda ? [{ ...c, deuda, libera: sumar([deuda.pagoHabitual, -deuda.pagoMinimo]) }] : [];
@@ -47,10 +50,10 @@ function minimo(perfil: Perfil, candidatos: Candidato[]): Jugada | undefined {
   if (!c) return;
   const costo = interesMensual(c.libera, c.deuda.tceaBp);
   return { id: 'jugada-minimo', tipo: 'pagar_minimo', titulo: 'Paga solo el mínimo este mes',
-    detalle: `Paga ${formatoSoles(c.deuda.pagoMinimo)} de ${c.deuda.nombre} el ${formatoLargo(c.evento.fecha)} y libera ${formatoSoles(c.libera)}.`,
-    libera: c.libera, costo,
-    costoDetalle: `${formatoSoles(costo)} de intereses estimados de un mes sobre lo que dejas de pagar, a la tasa anual (TCEA) de ${formatoTasa(c.deuda.tceaBp)} de tu tarjeta.`,
-    ...evaluar(perfil, [{ tipo: 'cambiar_monto', recurrenteId: c.recurrente.id, fecha: c.evento.fecha, monto: -c.deuda.pagoMinimo }]) };
+    detalle: `Paga ${formatoSoles(c.deuda.pagoMinimo)} de ${c.deuda.nombre} el ${formatoLargo(c.evento.fecha)} y libera ${formatoSoles(c.libera)}. Es un escenario para entender, no una salida: pagar solo el mínimo hace tu deuda más larga y más cara.`,
+    libera: c.libera, costo, certezaCosto: 'estimado',
+    costoDetalle: `Unos ${formatoSoles(costo)} de intereses estimados de un mes sobre lo que dejas de pagar, a la tasa anual (TCEA) de ${formatoTasa(c.deuda.tceaBp)} de tu tarjeta. Si tardas más en ponerte al día, cuesta más.`,
+    ...evaluar(perfil, base, [{ tipo: 'cambiar_monto', recurrenteId: c.recurrente.id, fecha: c.evento.fecha, monto: -c.deuda.pagoMinimo }]) };
 }
 /** Las dos descripciones en las que más se gastó de esa categoría, para nombrar el recorte con palabras de la persona. */
 function enQueSeGasta(perfil: Perfil, categoria: Categoria): string[] {
@@ -67,7 +70,7 @@ function recortar(perfil: Perfil, proyeccion: Proyeccion): Jugada | undefined {
   if (!categoria) return;
   const hasta = proyeccion.deficit!.fechaFaltanteMaximo;
   const pruebas = [1000, 2000, 3000, 4000, 5000].map(bp => ({ bp,
-    ...evaluar(perfil, [{ tipo: 'recortar', categoria: categoria.categoria, bp, hasta }]),
+    ...evaluar(perfil, proyeccion, [{ tipo: 'recortar', categoria: categoria.categoria, bp, hasta }]),
   }));
   const mejor = pruebas.find(p => p.resuelve) ?? pruebas[2];
   const despues = proyectar(perfil, { ajustes: mejor.ajustes });
@@ -78,9 +81,15 @@ function recortar(perfil: Perfil, proyeccion: Proyeccion): Jugada | undefined {
   const que = nombres.length > 0 ? lista(nombres) : categoria.categoria;
   return { id: 'jugada-recortar', tipo: 'recortar_gasto', titulo: `Recorta ${que}`,
     detalle: `Gasta ${mejor.bp / 100} % menos en ${que} hasta el ${formatoLargo(hasta)} y guardas ${formatoSoles(libera)}. No toca tu comida básica ni tus gastos de trabajo.`,
-    libera, costo: 0, costoDetalle: `${formatoSoles(0)}: no cuesta dinero, pero sí esfuerzo`,
-    ajustes: mejor.ajustes, resuelve: mejor.resuelve, saldoMinimoDespues: mejor.saldoMinimoDespues };
+    libera, costo: 0, certezaCosto: 'conocido', costoDetalle: 'Gastar menos no le paga nada a nadie: no cuesta dinero, pero sí esfuerzo',
+    ajustes: mejor.ajustes, resuelve: mejor.resuelve, efecto: mejor.efecto, saldoMinimoDespues: mejor.saldoMinimoDespues };
 }
+/** Primero las que resuelven; un costo desconocido nunca pasa por barato; luego, de menor a mayor costo. */
+export function compararJugadas(a: Jugada, b: Jugada): number {
+  const desconocido = (j: Jugada) => Number(j.certezaCosto === 'desconocido');
+  return Number(b.resuelve) - Number(a.resuelve) || desconocido(a) - desconocido(b) || a.costo - b.costo;
+}
+
 export function proponerJugadas(perfil: Perfil, proyeccion: Proyeccion): Jugada[] {
   if (!proyeccion.deficit) return [];
   const recurrentes = detectarRecurrentes(perfil.movimientos.filter(m => m.fecha <= perfil.hoy), perfil.deudas);
@@ -88,6 +97,7 @@ export function proponerJugadas(perfil: Perfil, proyeccion: Proyeccion): Jugada[
     const recurrente = recurrentes.find(r => r.id === evento.recurrenteId);
     return recurrente && evento.monto < 0 && evento.fecha <= proyeccion.deficit!.fechaFaltanteMaximo ? [{ evento, recurrente }] : [];
   });
-  return [pausar(perfil, candidatos), minimo(perfil, candidatos), recortar(perfil, proyeccion)]
-    .filter((j): j is Jugada => j !== undefined).sort((a, b) => Number(b.resuelve) - Number(a.resuelve) || a.costo - b.costo);
+  return [pausar(perfil, proyeccion, candidatos), minimo(perfil, proyeccion, candidatos), recortar(perfil, proyeccion)]
+    .filter((j): j is Jugada => j !== undefined)
+    .sort(compararJugadas);
 }

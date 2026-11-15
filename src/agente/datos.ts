@@ -2,7 +2,7 @@
  * Lo que el agente puede «ver». Cada función devuelve datos del motor con los montos, tasas y
  * fechas YA escritos como texto, para que el modelo los copie tal cual y no tenga que calcular nada.
  */
-import { mejorJugada, proximosPagos } from "../explica/explica";
+import { costoEnPalabras, mejorJugada, proximosPagos } from "../explica/explica";
 import { formatoLargo, formatoSoles, formatoTasa, leccionesMinimo, redondear, simularGasto, type LeccionMinimo } from "../motor";
 import { GLOSARIO, NOTA_MINIMO, PARA_SALIR, SI_NO_PAGAS, SI_PAGAS_EL_MINIMO } from "../explica/educacion";
 import { conCobros, type CobroPendiente } from "../motor/cobros";
@@ -88,9 +88,13 @@ export function datosJugadas(analisis: Analisis) {
       titulo: j.titulo,
       que_hacer: j.detalle,
       libera: formatoSoles(j.libera),
-      cuesta: j.costo > 0 ? formatoSoles(j.costo) : "no cuesta dinero",
+      cuesta: costoEnPalabras(j),
+      // conocido = cifra exacta; estimado = dilo como aproximado; desconocido = no des monto ni digas gratis.
+      certeza_del_costo: j.certezaCosto,
       por_que_cuesta_eso: j.costoDetalle,
       resuelve_sola_el_deficit: j.resuelve,
+      // elimina | reduce | posterga (el pago se sigue debiendo) | no_mejora
+      efecto_sobre_el_deficit: j.efecto,
       saldo_mas_bajo_si_se_aplica: formatoSoles(j.saldoMinimoDespues),
     })),
   };

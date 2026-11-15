@@ -25,8 +25,11 @@ function buscar(futuro: MovimientoEtiquetado[], c: Cliente, recurrenteId: string
   return mejor;
 }
 
-/** Devuelve el futuro real con el ajuste hecho y si el ajuste encontró algo que cambiar. */
-export function aplicarAjuste(c: Cliente, futuro: MovimientoEtiquetado[], ajuste: Ajuste, costo: Centimos): { futuro: MovimientoEtiquetado[]; aplicado: boolean } {
+/**
+ * Devuelve el futuro real con el ajuste hecho y si el ajuste encontró algo que cambiar.
+ * `postergado` es lo que se sacó de la ventana medida pero se sigue debiendo (pago movido más allá de los 30 días).
+ */
+export function aplicarAjuste(c: Cliente, futuro: MovimientoEtiquetado[], ajuste: Ajuste, costo: Centimos): { futuro: MovimientoEtiquetado[]; aplicado: boolean; postergado?: Centimos } {
   const fin = sumarDias(c.corte, DIAS_FUTURO);
   if (ajuste.tipo === 'recortar') {
     let aplicado = false;
@@ -48,8 +51,9 @@ export function aplicarAjuste(c: Cliente, futuro: MovimientoEtiquetado[], ajuste
   }
   const fecha = sumarDias(original.fecha, diasEntre(ajuste.desde, ajuste.hacia));
   const resto = futuro.filter((_, i) => i !== indice);
-  // Si el pago se va más allá de los 30 días, sale de la ventana que se mide.
-  if (fecha > fin) return { futuro: resto, aplicado: true };
+  // Si el pago se va más allá de los 30 días, sale de la ventana que se mide, pero NO desaparece:
+  // se sigue debiendo (y su costo también), así que se devuelve aparte para no contarlo como resuelto.
+  if (fecha > fin) return { futuro: resto, aplicado: true, postergado: Math.max(0, -original.monto) + costo };
   const movido = [...resto, { ...original, fecha }];
   if (costo > 0) movido.push({ ...original, id: `${original.id}-costo`, fecha, monto: -costo, descripcion: 'Costo de mover el pago', recurrente: false, serie: undefined });
   return { futuro: movido, aplicado: true };
@@ -65,6 +69,8 @@ export interface Resultado {
   faltanteDespues: Centimos;
   /** Costo declarado por el motor para la jugada. */
   costo: Centimos;
+  /** Pagos empujados más allá de la ventana que se siguen debiendo (0 si ninguno). */
+  postergado: Centimos;
 }
 
 const faltante = (saldos: Centimos[]) => Math.max(0, -Math.min(...saldos));
@@ -72,15 +78,19 @@ const faltante = (saldos: Centimos[]) => Math.max(0, -Math.min(...saldos));
 /** Aplica una o varias jugadas al futuro real del cliente y mide el antes y el después. */
 export function medirJugadas(c: Cliente, jugadas: Jugada[]): Resultado {
   const antes = saldosReales(c);
-  let futuro = c.futuro, aplicada = false;
+  let futuro = c.futuro, aplicada = false, postergado = 0;
   for (const jugada of jugadas) {
     for (const ajuste of jugada.ajustes) {
       const r = aplicarAjuste(c, futuro, ajuste, ajuste.tipo === 'mover' ? jugada.costo : 0);
       futuro = r.futuro;
       aplicada = aplicada || r.aplicado;
+      postergado += r.postergado ?? 0;
     }
   }
   const despues = saldosReales({ ...c, futuro });
-  return { aplicada, deficitAntes: antes.some(s => s < 0), deficitDespues: despues.some(s => s < 0),
-    faltanteAntes: faltante(antes), faltanteDespues: faltante(despues), costo: jugadas.reduce((s, j) => s + j.costo, 0) };
+  // Lo postergado se descuenta del saldo al cierre: si no alcanza para cubrirlo, el déficit solo se aplazó.
+  const faltaAlCierre = Math.max(0, postergado - despues[despues.length - 1]);
+  return { aplicada, deficitAntes: antes.some(s => s < 0), deficitDespues: despues.some(s => s < 0) || faltaAlCierre > 0,
+    faltanteAntes: faltante(antes), faltanteDespues: Math.max(faltante(despues), faltaAlCierre),
+    costo: jugadas.reduce((s, j) => s + j.costo, 0), postergado };
 }

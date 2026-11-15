@@ -10,6 +10,8 @@ import type { Analisis, EventoProyectado, FechaISO, Jugada, Perfil } from "../mo
 import { buscarMonto } from "../motor/numeros";
 import { CAMBIAR_FECHA_DE_PAGO } from "./educacion";
 import { crecimientoDelHueco } from "./hueco";
+import { costoEnPalabras, efectoEnPalabras } from "./costo";
+export { costoCorto, costoEnPalabras, efectoEnPalabras } from "./costo";
 export { crecimientoDelHueco } from "./hueco";
 import { fraseAvance, fraseLibre, rutaExplicada, type Avance, type Ruta } from "../ruta/ruta";
 
@@ -48,9 +50,12 @@ export function proximosPagos(analisis: Analisis, dias = 7): EventoProyectado[] 
     .flatMap(d => d.eventos.filter(e => e.origen === "recurrente" && e.monto < 0));
 }
 
-/** La jugada que resuelve sola el déficit con menor costo (el motor ya las entrega ordenadas). */
+/**
+ * La jugada que resuelve sola el déficit con menor costo (el motor ya las entrega ordenadas).
+ * Una jugada de costo desconocido nunca es «la más barata»: no se puede comparar lo que no se sabe.
+ */
 export function mejorJugada(analisis: Analisis): Jugada | undefined {
-  return analisis.jugadas.find(j => j.resuelve);
+  return analisis.jugadas.find(j => j.resuelve && j.certezaCosto !== "desconocido");
 }
 
 /** Causa del déficit cuando no hay ningún pago fijo cerca: lo que sale en el día a día supera lo que entra. */
@@ -63,7 +68,7 @@ function avisoDeficit(analisis: Analisis): Aviso | undefined {
   const verbo = deficit.causas.length > 1 ? "se juntan" : "sale";
   const jugada = mejorJugada(analisis);
   const salida = jugada
-    ? ` La salida más barata: ${minusculaInicial(jugada.titulo)}; ${jugada.costo > 0 ? `cuesta ${formatoSoles(jugada.costo)}` : "no cuesta dinero"}.`
+    ? ` La salida más barata: ${minusculaInicial(jugada.titulo)}; ${costoEnPalabras(jugada)}.`
     : analisis.jugadas.length > 0 ? " Ninguna jugada alcanza sola: hay que combinar dos." : "";
   const fondo = crecimientoDelHueco(deficit) ? ` ${crecimientoDelHueco(deficit)}` : "";
   return {
@@ -144,8 +149,7 @@ function normalizar(texto: string): string {
 }
 
 function explicarJugada(jugada: Jugada): string {
-  const efecto = jugada.resuelve ? "Con eso ya no quedas en rojo." : "Sola no alcanza para salir del rojo.";
-  return `${jugada.detalle} Costo: ${jugada.costoDetalle}. ${efecto}`;
+  return `${jugada.detalle} Costo: ${jugada.costoDetalle.replace(/\.$/, "")}. ${efectoEnPalabras(jugada.efecto)}`;
 }
 
 function responderGasto(texto: string, perfil: Perfil, analisis: Analisis): string | undefined {
