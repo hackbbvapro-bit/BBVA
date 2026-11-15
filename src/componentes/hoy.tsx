@@ -89,7 +89,26 @@ export function Hoy({
         ) : undefined}
       />
 
-      <ResumenCifras cifras={kpis.slice(0, 3)} deficit={Boolean(d)} cuentas={cuentas} proximoVencimiento={proximoVencimiento} tarjetas={perfil.deudas.filter(d => d.tipo === "tarjeta").map(d => ({ id: d.id, nombre: d.nombre, saldo: d.saldo }))} alGestionar={ir ? () => ir("dinero") : undefined} alGestionarTarjetas={ir ? () => ir("deudas") : undefined} />
+      <ResumenCifras cifras={kpis.slice(0, 3)} deficit={Boolean(d)} cuentas={cuentas} proximoVencimiento={proximoVencimiento} tarjetas={perfil.deudas.filter(d => d.tipo === "tarjeta").map(d => ({ id: d.id, nombre: d.nombre, saldo: d.saldo }))} alGestionar={ir ? () => ir("dinero") : undefined} alGestionarTarjetas={ir ? () => ir("deudas") : undefined}
+        alerta={d ? <>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, color: "#c21f2e", fontSize: 12, fontWeight: 600 }}>
+            <span aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 7, background: "white" }}><span style={{ display: "flex", transform: "scale(.7)" }}><Icono nombre="campana" /></span></span>
+            <span>Te faltarán {unido(formatoSoles(d.faltante))}</span>
+          </div>
+          <div style={{ marginTop: 5, fontSize: 10, lineHeight: 1.4, color: "#5b6670" }}>
+            {d.causas.map((c, i) => (
+              <p key={i} style={{ display: "flex", justifyContent: "space-between", gap: 5 }}>
+                <span>{c.descripcion.replace(/^pago\s+/i, "")}</span>
+                <span className="tabular-nums">{unido(formatoSoles(Math.abs(c.monto)))}</span>
+              </p>
+            ))}
+          </div>
+          {analisis.jugadas.length > 0 && <button type="button" style={{ marginTop: "auto", paddingTop: 5, alignSelf: "flex-end", color: "#001391", fontSize: 10, lineHeight: 1.3, fontWeight: 600, cursor: "pointer" }} onClick={() => desplazar(document.getElementById("como-evitarlo"))}>Ver qué cambia <span aria-hidden="true">›</span></button>}
+        </> : <>
+          <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#0b7a40" }}><span aria-hidden="true">✓</span> Todo está perfecto</p>
+          <p style={{ marginTop: 5, fontSize: 10, lineHeight: 1.3, color: "#5b6670" }}>Tu saldo cubriría los pagos previstos en los próximos 30 días.</p>
+        </>}
+      />
 
       {/* Proyección (2/3) + lo que sale esta semana (1/3). */}
       <div className="grid gap-6 lg:grid-cols-3">

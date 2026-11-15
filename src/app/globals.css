@@ -72,12 +72,6 @@ body {
   gap: 10px;
 }
 
-.cifra-tarjeta[data-cuota="true"] {
-  grid-column: 1 / -1;
-  justify-self: center;
-  width: calc((100% - 10px) / 2);
-}
-
 .cifra-tarjeta {
   position: relative;
   --cifra-color: #1464a5;
@@ -264,8 +258,7 @@ body {
 }
 
 @media (min-width: 1024px) {
-  .cifras-mes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  .cifra-tarjeta[data-cuota="true"] { grid-column: auto; width: 100%; }
+  .cifras-mes { gap: 12px; }
   .cifra-tarjeta { padding: 14px; }
   .cifra-valor { font-size: clamp(1rem, 1.8vw, 1.375rem); }
 }
