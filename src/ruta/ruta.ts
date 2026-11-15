@@ -198,6 +198,15 @@ export const TITULOS: Record<IdRuta, string> = {
   hacer_crecer: "Invertir lo que te sobra",
 };
 
+/** Qué logra cada ruta, en una línea y sin cifras: el subtítulo propio de cada opción en «Mi ruta». */
+export const QUE_LOGRA: Record<IdRuta, string> = {
+  estar_en_verde: "Tapar el hueco de tu saldo antes que cualquier otra cosa.",
+  ahorrar: "Separar un ahorro que puedas sostener y armar tu colchón.",
+  salir_deudas: "Ordenar tus deudas y pagarlas con el menor costo.",
+  construir_historial: "Prepararte con calma para pedir algo grande.",
+  hacer_crecer: "Hacer rendir lo que te sobra cuando el mes cierre en positivo.",
+};
+
 const alternativa = (id: EntradaCatalogo["id"], porQue: string): Alternativa => ({ entrada: CATALOGO.find(e => e.id === id)!, porQue });
 const minuscula = (texto: string) => texto.charAt(0).toLowerCase() + texto.slice(1);
 const plural = (n: number, uno: string, varios: string) => (n === 1 ? uno : `${n} ${varios}`);
@@ -257,6 +266,10 @@ export function idsOfrecidos(perfil: Perfil, analisis: Analisis, hechos: Hechos)
     ids.splice(ids.indexOf(quitar as IdRuta), 1);
   }
   return ids;
+}
+/** Opciones que se muestran en «Mi ruta»: con el mes en negativo no se ofrece «Invertir lo que te sobra» (salvo que ya esté elegida). */
+export function opcionesVisibles(opciones: Ruta[], elegida?: IdRuta): Ruta[] {
+  return opciones.filter(o => !(o.id === "hacer_crecer" && o.flujo.libre < 0 && o.id !== elegida));
 }
 export function recomendada(perfil: Perfil, analisis: Analisis, hechos: Hechos): IdRuta {
   if (analisis.proyeccion.deficit || hechos.diasAtrasoMax > 0) return "estar_en_verde";
