@@ -708,7 +708,16 @@ export function Chat({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="aparecer whitespace-pre-wrap break-words rounded-2xl rounded-tl-md bg-white px-4 py-3 text-[15px] leading-relaxed text-tinta ring-1 ring-linea md:px-5 md:text-base">
-                    {m.texto || <span className="text-gris">Pensando…</span>}
+                    {m.texto || (
+                      <span className="inline-flex items-center gap-2 text-gris" role="status">
+                        Pensando
+                        <span aria-hidden="true" className="inline-flex gap-1">
+                          <span className="punto-pensando size-1.5 rounded-full bg-gris" />
+                          <span className="punto-pensando size-1.5 rounded-full bg-gris [animation-delay:0.15s]" />
+                          <span className="punto-pensando size-1.5 rounded-full bg-gris [animation-delay:0.3s]" />
+                        </span>
+                      </span>
+                    )}
                   </p>
                   {m.texto && i === mensajes.length - 1 && i > 0 && <button type="button" disabled={ocupado}
                     className="mt-1 inline-flex min-h-11 items-center px-2 text-xs font-semibold text-electrico disabled:opacity-40"
