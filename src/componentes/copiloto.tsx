@@ -5,7 +5,7 @@ import { avisosDelCentro, pendientesSinLeer, type Destino } from "@/avisos/centr
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
 import { fijarSalidas } from "@/cliente/salidas";
 import { borrarSituacion, guardarSituacion, leerSituacion } from "@/cliente/situacion";
-import { avanceDe, hechosDe, saludoDeRuta, trazarRuta, type IdPaso } from "@/ruta/ruta";
+import { avanceDe, hechosDe, opcionesDeRuta, recomendada, saludoDeRuta, trazarRuta, type IdPaso, type IdRuta } from "@/ruta/ruta";
 import { guardarAvances, leerAvances } from "@/cliente/memoria";
 import { MiRuta } from "@/componentes/tu-ruta";
 import { planDelMes } from "@/ruta/presupuesto";
@@ -206,8 +206,18 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
   // o en un caso propio si la persona lo aceptó (un archivo exige además declarar que es inventado).
   // Avisos remotos: solo en el ejemplo.
   fijarSalidas(externo, demo);
-  const hechos = useMemo(() => hechosDe(datos, situacion.tuvoCredito), [datos, situacion.tuvoCredito]);
+  const hechos = useMemo(
+    () => ({
+      ...hechosDe(datos, situacion.tuvoCredito),
+      ...(situacion.meta && { meta: situacion.meta }),
+      ...(situacion.rutaElegida && { rutaElegida: situacion.rutaElegida }),
+    }),
+    [datos, situacion.tuvoCredito, situacion.meta, situacion.rutaElegida],
+  );
   const ruta = useMemo(() => trazarRuta(perfil, analisis, hechos), [perfil, analisis, hechos]);
+  // Las 3-4 rutas que puede elegir y la que le recomienda el código según su saldo.
+  const opcionesRuta = useMemo(() => opcionesDeRuta(perfil, analisis, hechos), [perfil, analisis, hechos]);
+  const rutaRecomendada = useMemo(() => recomendada(perfil, analisis, hechos), [perfil, analisis, hechos]);
   // Pasos de la ruta que la persona marcó como hechos: se guardan en este equipo, por caso.
   const [avances, setAvances] = useState<IdPaso[]>(() => leerAvances(perfil.id));
   const avance = useMemo(() => avanceDe(ruta, avances), [ruta, avances]);
@@ -230,6 +240,11 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
     const hecho = deshacer;
     if (!hecho) throw new Error("sin_deshacer");
     return () => cambiar(hecho);
+  }
+  function elegirRuta(id: IdRuta) {
+    const nueva = { ...situacion, rutaElegida: id };
+    if (persistente) guardarSituacion(nueva);
+    setSituacion(nueva);
   }
   function cambiarExterno(activo: boolean) {
     const nueva = { ...situacion, externo: activo };
@@ -428,7 +443,8 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             pasos={pasos}
           />
         )}
-        {pestana === "ruta" && <MiRuta ruta={ruta} avance={avance} alMarcar={marcar} alConversar={() => navegar("asistente")} plan={plan} />}
+        {pestana === "ruta" && <MiRuta ruta={ruta} avance={avance} alMarcar={marcar} alConversar={() => navegar("asistente")} plan={plan}
+          opciones={opcionesRuta} recomendada={rutaRecomendada} alElegir={elegirRuta} />}
         {pestana === "dinero" && <MiDinero analisis={analisis} />}
         {pestana === "deudas" && (
           <Deudas

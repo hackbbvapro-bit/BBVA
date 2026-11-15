@@ -46,6 +46,14 @@ describe("situación guardada en el navegador", () => {
     expect(leerSituacion()).toEqual({ tuvoCredito: true, sinDeudas: false, externo: true });
   });
 
+  it("recuerda la meta del cuestionario y la ruta elegida después; un id desconocido se ignora", () => {
+    usar(almacen());
+    guardarSituacion({ tuvoCredito: false, sinDeudas: true, externo: true, meta: "ahorrar", rutaElegida: "hacer_crecer" });
+    expect(leerSituacion()).toEqual({ tuvoCredito: false, sinDeudas: true, externo: true, meta: "ahorrar", rutaElegida: "hacer_crecer" });
+    usar(almacen({ "copiloto-situacion": '{"tuvoCredito":true,"sinDeudas":false,"externo":true,"meta":"hackear","rutaElegida":7}' }));
+    expect(leerSituacion()).toEqual({ tuvoCredito: true, sinDeudas: false, externo: true });
+  });
+
   it("borrar deja todo cerrado otra vez", () => {
     const a = almacen();
     usar(a);

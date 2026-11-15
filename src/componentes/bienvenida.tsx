@@ -96,7 +96,7 @@ export function Bienvenida({ alListo }: { alListo: (modo: Modo, extra?: { recien
       borrarHistorial(ID_PROPIO);
       borrarAvances(ID_PROPIO);
       guardarModo("propio");
-      guardarSituacion({ tuvoCredito: tuvoCreditoSegun(r), sinDeudas: !r.deuda, externo });
+      guardarSituacion({ tuvoCredito: tuvoCreditoSegun(r), sinDeudas: !r.deuda, externo, meta: r.meta });
       alListo("propio", { reciente: true });
     } catch (e) {
       setError(mensajeDeError(e));
