@@ -56,7 +56,12 @@ export function datosDeEjemplo(): Datos {
       id: ejemplo.id, nombre: ejemplo.nombre, tipo: ejemplo.tipo, descripcion: ejemplo.descripcion,
       ingresoAprox, diasCobro: [], hoy: ejemplo.hoy,
     },
-    cuentas: [{ id: "cuenta-principal", nombre: "Cuenta principal", saldo: ejemplo.saldoActual }],
+    // Dónde está su dinero hoy (sintético; en orden alfabético, como las devuelve la base): suma exactamente el saldo del caso.
+    cuentas: [
+      { id: "cuenta-billetera", nombre: "Billetera digital (cobros de sesiones)", saldo: 20_000 },
+      { id: "cuenta-principal", nombre: "Cuenta de ahorros (banco)", saldo: ejemplo.saldoActual - 30_000 },
+      { id: "cuenta-efectivo", nombre: "Efectivo en casa", saldo: 10_000 },
+    ],
     ingresosFijos: fijos.filter(r => r.monto > 0).map(aFijo),
     gastosFijos: fijos.filter(r => r.monto < 0).map(aFijo),
     movimientos: ejemplo.movimientos.filter(m => !fijosIds.has(m.id)),

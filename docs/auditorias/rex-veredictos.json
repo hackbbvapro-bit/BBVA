@@ -1,0 +1,299 @@
+[
+ {
+  "id": "C-001",
+  "verdict": "confirmed",
+  "severity": "baja",
+  "evidence": [
+   {
+    "file": "src/servidor/sesion.ts",
+    "line": 24,
+    "description": "valorValido: solo regex 64 hex"
+   },
+   {
+    "file": "src/servidor/http.ts",
+    "line": 45,
+    "description": "mismoOrigen comprobable solo en navegadores"
+   },
+   {
+    "file": "src/app/api/agente/route.ts",
+    "line": 78,
+    "description": "topeGlobal 300/h compartido: un IP lo consume"
+   }
+  ],
+  "strongest_control_checked": "Identificación de visitante por cabecera de plataforma + topes (limite.ts, route.ts:14-16); no existe auth real, es deliberado (sesion.ts:2)",
+  "reason": "Cookie solo se valida por formato (sesion.ts:9,24) y el Origin lo falsifica cualquier script; pero la IP viene de x-vercel-forwarded-for (http.ts:30, la fija Vercel, no falsificable), con 20/min por IP y 300/h global por instancia. Impacto real: un solo script agota el tope global en ~15 min y deja sin IA al jurado (el cliente cae al motor con las mismas cifras); gasto acotado a 300 llamadas/h/instancia. Rex dice media; la rebajo a baja por tope duro y fallback."
+ },
+ {
+  "id": "C-002",
+  "verdict": "needs_validation",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/servidor/limite.ts",
+    "line": 3,
+    "description": "cuenta por instancia"
+   }
+  ],
+  "strongest_control_checked": "Buscado en repo configuración de tope de gasto: ninguna",
+  "reason": "Los topes son por instancia (limite.ts:3); el techo real depende de nº de instancias y de límites de gasto en consolas de Anthropic/Fish, no visibles en el código.",
+  "missing_fact": "Límite de gasto mensual configurado en Anthropic y Fish, y concurrencia típica de Vercel",
+  "validation_plan": "Revisar consolas de ambos proveedores (solo lectura) y fijar un tope de gasto bajo antes del 14-15 nov."
+ },
+ {
+  "id": "C-003",
+  "verdict": "confirmed",
+  "severity": "baja",
+  "evidence": [
+   {
+    "file": "src/app/api/voz/route.ts",
+    "line": 15,
+    "description": "texto libre"
+   },
+   {
+    "file": "src/app/api/voz/route.ts",
+    "line": 33,
+    "description": "voz del servidor"
+   }
+  ],
+  "strongest_control_checked": "haySesion + límites (route.ts:20-28): presentes pero evadibles solo en cuanto a identidad",
+  "reason": "Tras el mismo bypass de sesión, /api/voz sintetiza cualquier texto de 800 car. con la voz del equipo; tope 30/min/IP y 400/h global. Es abuso de funcionalidad con costo acotado; riesgo reputacional mínimo (voz de un demo)."
+ },
+ {
+  "id": "C-004",
+  "verdict": "confirmed",
+  "severity": "informativa",
+  "evidence": [
+   {
+    "file": "src/agente/prompt.ts",
+    "line": 39,
+    "description": "regla solo en prompt"
+   },
+   {
+    "file": "src/agente/conversar.ts",
+    "line": 125,
+    "description": "texto emitido sin cotejo"
+   }
+  ],
+  "strongest_control_checked": "Búsqueda de validadores de salida en src: ninguno",
+  "reason": "Verificado: no hay validador de cifras (grep verificarCifras/cotej sin resultados); conversar.ts:125 emite el texto del modelo tal cual. No hay frontera cruzada ni atacante: es un riesgo de producto/calidad que viola la regla 2 del proyecto si el modelo alucina. Rex dice baja; para seguridad es informativa, pero relevante para la demo."
+ },
+ {
+  "id": "C-005",
+  "verdict": "confirmed",
+  "severity": "baja",
+  "evidence": [
+   {
+    "file": "git:equipo/main",
+    "line": 0,
+    "description": "autores con correo personal; repo público (gh repo view)"
+   }
+  ],
+  "strongest_control_checked": "No hay control posible tras publicar; solo noreply a futuro",
+  "reason": "Verificado con git log: 30 commits con correo hotmail y 1 gmail en equipo/main; repo hackbbvapro-bit/BBVA es PUBLIC. Contradice regla 1. Corrección real exige reescribir historia (no se recomienda ahora); mitigar con noreply para commits futuros."
+ },
+ {
+  "id": "C-006",
+  "verdict": "confirmed",
+  "severity": "baja",
+  "evidence": [
+   {
+    "file": "src/app/api/salir/route.ts",
+    "line": 9,
+    "description": "solo cookie"
+   },
+   {
+    "file": "src/cliente/memoria.ts",
+    "line": 59,
+    "description": "localStorage persistente"
+   }
+  ],
+  "strongest_control_checked": "Búsqueda de limpieza en menu-usuario.tsx: form post sin script",
+  "reason": "salir/route.ts:9 solo borra la cookie; memoria.ts guarda historial en localStorage y no se limpia al salir. Requiere acceso físico a un navegador compartido y datos sintéticos. No verifiqué IndexedDB en ejecución."
+ },
+ {
+  "id": "C-007",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "next.config.ts",
+    "line": 3,
+    "description": "Sin sumidero XSS (grep dangerouslySetInnerHTML/innerHTML/eval = 0 en src); falta de CSP es hardening."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "Sin sumidero XSS (grep dangerouslySetInnerHTML/innerHTML/eval = 0 en src); falta de CSP es hardening."
+ },
+ {
+  "id": "C-008",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/proxy.ts",
+    "line": 12,
+    "description": "Cookie sin datos asociados en servidor; no hay recurso protegido; la consecuencia real es C-001."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "Cookie sin datos asociados en servidor; no hay recurso protegido; la consecuencia real es C-001."
+ },
+ {
+  "id": "C-009",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/servidor/http.ts",
+    "line": 45,
+    "description": "mismoOrigen (http.ts:45) + SameSite=Lax; el navegador no falsifica Origin."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "mismoOrigen (http.ts:45) + SameSite=Lax; el navegador no falsifica Origin."
+ },
+ {
+  "id": "C-010",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/servidor/push.ts",
+    "line": 15,
+    "description": "Lista blanca de push (push.ts:8-22 rechaza http, puertos, credenciales, hosts ajenos); texto fijado por el servidor (avisos/route.ts:37-40); límite 6/min; requiere suscripción ajena. Sin SSRF ni spam efectivo."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "Lista blanca de push (push.ts:8-22 rechaza http, puertos, credenciales, hosts ajenos); texto fijado por el servidor (avisos/route.ts:37-40); límite 6/min; requiere suscripción ajena. Sin SSRF ni spam efectivo."
+ },
+ {
+  "id": "C-011",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/agente/prompt.ts",
+    "line": 9,
+    "description": "Misma persona inyecta y recibe; sin secretos ni herramientas con red/ficheros; auto-impacto."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "Misma persona inyecta y recibe; sin secretos ni herramientas con red/ficheros; auto-impacto."
+ },
+ {
+  "id": "C-012",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/cliente/memoria.ts",
+    "line": 36,
+    "description": "0 sumideros HTML crudos en src; React escapa."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "0 sumideros HTML crudos en src; React escapa."
+ },
+ {
+  "id": "C-013",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/datos/pglite.ts",
+    "line": 121,
+    "description": "Tabla viene de constantes; BD local del propio navegador."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "Tabla viene de constantes; BD local del propio navegador."
+ },
+ {
+  "id": "C-014",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "package.json",
+    "line": 30,
+    "description": "Solo dependencia de desarrollo; npm audit --omit=dev = 0 según Rex (no re-ejecutado)."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "Solo dependencia de desarrollo; npm audit --omit=dev = 0 según Rex (no re-ejecutado)."
+ },
+ {
+  "id": "C-015",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": ".gitignore",
+    "line": 1,
+    "description": "Sin secretos en historial según el barrido de Rex (no re-ejecutado por mí; .env* no leído por regla); .gitignore cubre .env*."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "Sin secretos en historial según el barrido de Rex (no re-ejecutado por mí; .env* no leído por regla); .gitignore cubre .env*."
+ },
+ {
+  "id": "C-016",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/app/api/documento/route.ts",
+    "line": 54,
+    "description": "Lista blanca MIME, firma, 3 MB, apagada por defecto, límite y tope global (documento/route.ts:51-80)."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "Lista blanca MIME, firma, 3 MB, apagada por defecto, límite y tope global (documento/route.ts:51-80)."
+ },
+ {
+  "id": "C-017",
+  "verdict": "needs_validation",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/componentes/como-funciona.tsx",
+    "line": 67,
+    "description": "aviso informal"
+   }
+  ],
+  "strongest_control_checked": "n/a",
+  "reason": "Interpretación jurídica (Ley 29733) fuera del código.",
+  "missing_fact": "Si el tratamiento de voz real cae en el ámbito de la ley y quién es el responsable",
+  "validation_plan": "Consulta legal (omega); mientras tanto añadir responsable y canal de contacto al aviso."
+ },
+ {
+  "id": "C-018",
+  "verdict": "rejected",
+  "severity": null,
+  "evidence": [
+   {
+    "file": "src/app/api/agente/route.ts",
+    "line": 66,
+    "description": "El consentimiento es una declaración del mismo principal sobre sus propios datos; sin cruce de frontera."
+   }
+  ],
+  "strongest_control_checked": "Control/ausencia de sumidero verificado en el fichero citado",
+  "reason": "El consentimiento es una declaración del mismo principal sobre sus propios datos; sin cruce de frontera."
+ },
+ {
+  "id": "C-019",
+  "verdict": "needs_validation",
+  "severity": null,
+  "evidence": [
+   {
+    "file": ".github",
+    "line": 0,
+    "description": "no existe"
+   }
+  ],
+  "strongest_control_checked": "gh repo view",
+  "reason": "Ajustes del repo (protección de rama, Dependabot) no observables sin admin; gh confirma repo público y sin carpeta .github.",
+  "missing_fact": "Ajustes reales de branch protection/secret scanning",
+  "validation_plan": "Un admin revisa Settings > Branches/Security."
+ }
+]

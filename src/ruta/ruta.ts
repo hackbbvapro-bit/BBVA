@@ -48,7 +48,7 @@ export interface FlujoMensual {
   libre: Centimos;
 }
 
-const alMes = (r: Recurrente): Centimos => (r.frecuencia === "mensual" ? r.monto : redondear((r.monto * 52) / 12));
+export const alMes = (r: Recurrente): Centimos => (r.frecuencia === "mensual" ? r.monto : redondear((r.monto * 52) / 12));
 
 /** De dónde sale cada lado del mes típico: lo fijo detectado y lo variable estimado. Todo en céntimos enteros, ≥ 0. */
 export interface DesgloseMensual {

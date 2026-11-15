@@ -1,8 +1,9 @@
 "use client";
 
 import { Encabezado, Icono, botonPrincipal, tarjeta, unido } from "@/componentes/ui";
-import type { ReactNode } from "react";
+import { formatoSoles } from "@/motor";
 import { contadorDeAvance, type Avance, type IdPaso, type Ruta } from "@/ruta/ruta";
+import { productosDeLaRuta, type Partida, type PlanDelMes, type ProductoDeRuta } from "@/ruta/presupuesto";
 
 /**
  * «Mi ruta»: por dónde empezar según la situación de la persona y cómo va. Todo el texto y las cifras salen
@@ -22,25 +23,44 @@ function Barra({ avance }: { avance: Avance }) {
       aria-valuetext={contadorDeAvance(avance)}
       className="h-2 w-full overflow-hidden rounded-full bg-niebla"
     >
-      <div className="h-full rounded-full bg-electrico transition-[width] duration-300 ease-out" style={{ width: `${pct}%` }} />
+      <div
+        className="h-full rounded-full bg-electrico transition-[width] duration-300 ease-out"
+        style={{ width: `${pct}%` }}
+      />
     </div>
   );
 }
 
 /** Tarjeta corta del Inicio: la ruta, cuánto lleva y el paso que sigue. El detalle vive en «Mi ruta». */
-export function SiguientePaso({ ruta, avance, alAbrir }: { ruta: Ruta; avance: Avance; alAbrir: () => void }) {
+export function SiguientePaso({
+  ruta,
+  avance,
+  alAbrir,
+}: {
+  ruta: Ruta;
+  avance: Avance;
+  alAbrir: () => void;
+}) {
   return (
-    <section className="aparecer rounded-2xl border border-linea bg-white px-4 py-3.5 md:px-5 md:py-4" aria-labelledby="siguiente-paso">
+    <section
+      className="aparecer rounded-2xl border border-linea bg-white px-4 py-3.5 md:px-5 md:py-4"
+      aria-labelledby="siguiente-paso"
+    >
       <div className="flex items-center justify-between gap-3">
         <p className="min-w-0 text-xs font-semibold uppercase tracking-wide text-electrico">
-          Tu ruta <span className="font-medium normal-case tracking-normal text-gris tabular-nums">· {contadorDeAvance(avance)}</span>
+          Tu ruta{" "}
+          <span className="font-medium normal-case tracking-normal text-gris tabular-nums">
+            · {contadorDeAvance(avance)}
+          </span>
         </p>
         <button
           className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-electrico transition-colors duration-150 hover:bg-agua-suave [&_svg]:size-4"
           onClick={alAbrir}
         >
           Ver mi ruta
-          <span aria-hidden="true" className="-rotate-90"><Icono nombre="abajo" /></span>
+          <span aria-hidden="true" className="-rotate-90">
+            <Icono nombre="abajo" />
+          </span>
         </button>
       </div>
       <h2 id="siguiente-paso" className="mt-0.5 text-base font-semibold leading-snug text-noche text-balance">
@@ -63,102 +83,265 @@ export function SiguientePaso({ ruta, avance, alAbrir }: { ruta: Ruta; avance: A
   );
 }
 
-/** Fila plegable para lo que se consulta de vez en cuando (motivos, alternativas): no ocupa pantalla hasta que se abre. */
-function Plegable({ titulo, cantidad, children }: { titulo: string; cantidad?: number; children: ReactNode }) {
+/** Una cifra del mes en la cabecera de la ruta. */
+function Dato({
+  etiqueta,
+  valor,
+  nota,
+  tono = "text-noche",
+}: {
+  etiqueta: string;
+  valor: string;
+  nota: string;
+  tono?: string;
+}) {
   return (
-    <details className="group border-t border-linea first:border-t-0">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-2 text-[15px] font-semibold text-noche [&::-webkit-details-marker]:hidden">
-        <span>
-          {titulo}
-          {cantidad !== undefined && <span className="ml-1.5 font-medium text-gris tabular-nums">({cantidad})</span>}
-        </span>
-        <span aria-hidden="true" className="text-gris transition-transform duration-150 group-open:rotate-180 [&_svg]:size-4">
-          <Icono nombre="abajo" />
-        </span>
-      </summary>
-      <div className="pb-3">{children}</div>
-    </details>
+    <div className="min-w-0 rounded-xl bg-niebla px-3 py-2.5 md:px-4 md:py-3">
+      <p className="text-xs font-medium text-gris">{etiqueta}</p>
+      <p className={`mt-0.5 text-lg font-semibold tabular-nums md:text-xl ${tono}`}>{unido(valor)}</p>
+      <p className="mt-0.5 text-[11px] leading-snug text-gris">{nota}</p>
+    </div>
   );
 }
 
-/** Página «Mi ruta»: la ruta y sus pasos en una sola tarjeta; motivos y alternativas plegados; el aviso al pie. */
+const TONO_PARTIDA: Record<Partida["id"], string> = {
+  suscripciones: "bg-agua-fuerte",
+  "solo-minimos": "bg-ambar",
+  "aun-falta": "bg-coral",
+  hueco: "bg-ambar",
+  colchon: "bg-electrico",
+  deuda: "bg-coral",
+  "uso-credito": "bg-agua-fuerte",
+  "plazo-largo": "bg-verde",
+};
+
+/** «Tu presupuesto este mes»: qué hacer con lo libre o de dónde sacar lo que falta. Cifras de planDelMes. */
+function Presupuesto({ plan }: { plan: PlanDelMes }) {
+  const total = plan.alcanza ? plan.libre : 0;
+  return (
+    <section className={tarjeta} aria-labelledby="presupuesto">
+      <p className="text-xs font-semibold uppercase tracking-wide text-electrico">Tu presupuesto este mes</p>
+      <h2
+        id="presupuesto"
+        className={`mt-1 text-lg font-semibold tabular-nums leading-snug md:text-xl ${plan.alcanza ? "text-noche" : "text-coral-fuerte"}`}
+      >
+        {unido(plan.titulo)}
+      </h2>
+      <p className="mt-1 text-sm leading-relaxed text-gris">
+        {plan.alcanza
+          ? "Así se reparte, según tu ruta:"
+          : plan.partidas.length > 0
+            ? "De dónde puedes sacar plata cada mes:"
+            : ""}
+      </p>
+      {total > 0 && plan.partidas.length > 1 && (
+        <div className="mt-3 flex h-2.5 w-full overflow-hidden rounded-full bg-niebla" aria-hidden="true">
+          {plan.partidas.map(p => (
+            <span
+              key={p.id}
+              className={TONO_PARTIDA[p.id]}
+              style={{ width: `${(p.monto / total) * 100}%` }}
+            />
+          ))}
+        </div>
+      )}
+      {plan.partidas.length > 0 && (
+        <ul className="mt-3 space-y-3">
+          {plan.partidas.map(p => (
+            <li key={p.id} className="flex gap-3">
+              <span
+                aria-hidden="true"
+                className={`mt-1.5 size-2.5 shrink-0 rounded-full ${TONO_PARTIDA[p.id]}`}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="min-w-0 text-sm font-semibold text-noche md:text-[15px]">{unido(p.titulo)}</p>
+                  <p
+                    className={`shrink-0 text-sm font-semibold tabular-nums md:text-[15px] ${p.id === "aun-falta" ? "text-coral-fuerte" : "text-noche"}`}
+                  >
+                    {unido(formatoSoles(p.monto))}
+                  </p>
+                </div>
+                <p className="mt-0.5 text-[13px] leading-snug text-gris">{unido(p.detalle)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-3 rounded-xl bg-niebla px-3 py-2 text-[13px] leading-relaxed text-tinta">
+        {unido(plan.nota)}
+      </p>
+    </section>
+  );
+}
+
+/** Tarjeta de un tipo de producto: por qué encaja, cuándo y qué preguntar antes de contratar. */
+function Producto({ p }: { p: ProductoDeRuta }) {
+  const ahora = p.cuando === "ahora";
+  return (
+    <li className="flex flex-col rounded-2xl border border-linea bg-white p-4 md:p-5">
+      <span
+        className={`self-start rounded-full px-2.5 py-0.5 text-xs font-semibold ${ahora ? "bg-agua-suave text-agua-fuerte" : "bg-niebla text-gris"}`}
+      >
+        {ahora ? "Para ahora" : "Más adelante"}
+      </span>
+      <h3 className="mt-2 text-base font-semibold leading-snug text-noche">{p.entrada.titulo}</h3>
+      <p className="mt-1 text-sm leading-relaxed text-tinta">{unido(p.porQue)}</p>
+      <p className="mt-1.5 text-xs leading-relaxed text-gris">
+        <span className="font-semibold">Para quién: </span>
+        {unido(p.entrada.paraQuien)}
+      </p>
+      <p className="mt-0.5 text-xs leading-relaxed text-gris">
+        <span className="font-semibold">Ojo: </span>
+        {unido(p.entrada.condicion)}
+      </p>
+      <div className="mt-3 border-t border-linea pt-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-gris">Qué preguntar en tu banco</p>
+        <ul className="mt-1.5 space-y-1">
+          {p.preguntas.map(q => (
+            <li key={q} className="flex gap-2 text-[13px] leading-snug text-tinta">
+              <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-electrico" />
+              <span>{q}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </li>
+  );
+}
+
+/**
+ * Página «Mi ruta» a todo el ancho: cabecera con la ruta y las cifras del mes; pasos a la izquierda y el
+ * presupuesto y los motivos a la derecha; abajo, los tipos de producto con lo que conviene preguntar.
+ */
 export function MiRuta({
   ruta,
   avance,
   alMarcar,
   alConversar,
+  plan,
 }: {
   ruta: Ruta;
   avance: Avance;
   alMarcar: (id: IdPaso, hecho: boolean) => void;
   alConversar?: () => void;
+  plan?: PlanDelMes;
 }) {
   const siguiente = avance.pasos.findIndex(p => !p.hecho);
+  const { flujo } = ruta;
+  const productos = productosDeLaRuta(ruta);
   return (
-    <div className="max-w-3xl space-y-3 md:space-y-5">
-      <Encabezado titulo="Mi ruta" bajada="Marca lo que ya hiciste y el asistente sigue desde ahí." />
+    <div className="space-y-3 md:space-y-5">
+      <Encabezado
+        titulo="Mi ruta"
+        bajada="Tu plan según tu presupuesto: qué hacer primero, con qué plata y qué productos te sirven."
+      />
 
-      <section className={tarjeta} aria-labelledby="tu-ruta">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-electrico">Tu ruta</p>
-          <p className="text-xs font-semibold text-gris tabular-nums">{contadorDeAvance(avance)}</p>
+      <section
+        className={`${tarjeta} grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-8`}
+        aria-labelledby="tu-ruta"
+      >
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-electrico">Tu ruta</p>
+            <p className="text-xs font-semibold text-gris tabular-nums">{contadorDeAvance(avance)}</p>
+          </div>
+          <h2
+            id="tu-ruta"
+            className="mt-1 text-xl font-semibold leading-snug text-noche text-balance md:text-2xl"
+          >
+            {ruta.titulo}
+          </h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-tinta md:text-[15px]">{unido(ruta.resumen)}</p>
+          <div className="mt-3">
+            <Barra avance={avance} />
+          </div>
         </div>
-        <h2 id="tu-ruta" className="mt-1 text-lg font-semibold leading-snug text-noche text-balance md:text-xl">
-          {ruta.titulo}
-        </h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-tinta md:text-[15px]">{unido(ruta.resumen)}</p>
-        <div className="mt-3">
-          <Barra avance={avance} />
+        <div className="grid grid-cols-1 gap-2 self-center sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+          <Dato
+            etiqueta="Te entra al mes"
+            valor={formatoSoles(flujo.ingresos)}
+            nota="Sueldo y otros ingresos"
+          />
+          <Dato
+            etiqueta="Te sale al mes"
+            valor={formatoSoles(flujo.gastos + flujo.cuotas)}
+            nota={`Gastos ${formatoSoles(flujo.gastos)} + cuotas ${formatoSoles(flujo.cuotas)}`}
+          />
+          <Dato
+            etiqueta={flujo.libre < 0 ? "Te falta al mes" : "Te queda al mes"}
+            valor={formatoSoles(Math.abs(flujo.libre))}
+            nota={flujo.libre < 0 ? "Sale más de lo que entra" : "Lo que puedes mover"}
+            tono={flujo.libre < 0 ? "text-coral-fuerte" : "text-verde-fuerte"}
+          />
         </div>
-
-        <h3 id="tus-pasos" className="mt-5 text-xs font-semibold uppercase tracking-wide text-gris">
-          Tus pasos, en orden
-        </h3>
-        <p className="mt-0.5 text-xs text-gris">Toca un paso cuando lo hayas hecho.</p>
-        <ol className="mt-2 space-y-1" aria-labelledby="tus-pasos">
-          {avance.pasos.map((p, i) => {
-            const toca = i === siguiente;
-            return (
-              <li key={p.id}>
-                <label
-                  className={`flex min-h-12 cursor-pointer items-start gap-3 rounded-xl px-2.5 py-2.5 transition-colors duration-150 ${toca ? "bg-agua-suave/70" : "hover:bg-niebla"}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={p.hecho}
-                    onChange={e => alMarcar(p.id, e.target.checked)}
-                    aria-label={`Paso ${i + 1}: ${p.texto}`}
-                    className="peer sr-only"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={`mt-px flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold transition-colors duration-150 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-electrico [&_svg]:size-3.5 ${p.hecho ? "border-electrico bg-electrico text-white" : toca ? "border-electrico bg-white text-electrico" : "border-linea bg-white text-gris"}`}
-                  >
-                    {p.hecho ? <Icono nombre="check" /> : i + 1}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    {toca && <span className="mb-0.5 block text-[11px] font-semibold uppercase tracking-wide text-electrico">Siguiente</span>}
-                    <span className={`block text-sm leading-relaxed md:text-[15px] ${p.hecho ? "text-gris line-through" : "text-tinta"}`}>{unido(p.texto)}</span>
-                    {p.hecho && <span className="mt-0.5 block text-[11px] font-medium text-gris">Hecho · toca para desmarcar</span>}
-                  </span>
-                </label>
-              </li>
-            );
-          })}
-        </ol>
-        {alConversar && (
-          <button className={`${botonPrincipal} mt-3 w-full sm:w-auto`} onClick={alConversar}>
-            <Icono nombre="asistente" />
-            Conversar con el asistente
-          </button>
-        )}
       </section>
 
-      {(ruta.motivos.length > 0 || ruta.alternativas.length > 0) && (
-        <section className="rounded-2xl border border-linea bg-white px-4 md:rounded-[22px] md:px-6" aria-label="Más sobre tu ruta">
+      <div className="grid gap-3 md:gap-5 lg:grid-cols-3">
+        <div className="space-y-3 md:space-y-5 lg:col-span-2">
+          <section className={tarjeta} aria-labelledby="tus-pasos">
+            <h2 id="tus-pasos" className="text-base font-semibold text-noche md:text-lg">
+              Tus pasos, en orden
+            </h2>
+            <p className="mt-0.5 text-sm text-gris">
+              Toca un paso cuando lo hayas hecho; el asistente sigue desde ahí.
+            </p>
+            <ol className="mt-3 space-y-1" aria-labelledby="tus-pasos">
+              {avance.pasos.map((p, i) => {
+                const toca = i === siguiente;
+                return (
+                  <li key={p.id}>
+                    <label
+                      className={`flex min-h-12 cursor-pointer items-start gap-3 rounded-xl px-3 py-3 transition-colors duration-150 ${toca ? "bg-agua-suave/70" : "hover:bg-niebla"}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={p.hecho}
+                        onChange={e => alMarcar(p.id, e.target.checked)}
+                        aria-label={`Paso ${i + 1}: ${p.texto}`}
+                        className="peer sr-only"
+                      />
+                      <span
+                        aria-hidden="true"
+                        className={`mt-px flex size-7 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors duration-150 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-electrico [&_svg]:size-4 ${p.hecho ? "border-electrico bg-electrico text-white" : toca ? "border-electrico bg-white text-electrico" : "border-linea bg-white text-gris"}`}
+                      >
+                        {p.hecho ? <Icono nombre="check" /> : i + 1}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        {toca && (
+                          <span className="mb-0.5 block text-[11px] font-semibold uppercase tracking-wide text-electrico">
+                            Siguiente
+                          </span>
+                        )}
+                        <span
+                          className={`block text-sm leading-relaxed md:text-[15px] ${p.hecho ? "text-gris line-through" : "text-tinta"}`}
+                        >
+                          {unido(p.texto)}
+                        </span>
+                        {p.hecho && (
+                          <span className="mt-0.5 block text-[11px] font-medium text-gris">
+                            Hecho · toca para desmarcar
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ol>
+            {alConversar && (
+              <button className={`${botonPrincipal} mt-4 w-full sm:w-auto`} onClick={alConversar}>
+                <Icono nombre="asistente" />
+                Conversar con el asistente
+              </button>
+            )}
+          </section>
           {ruta.motivos.length > 0 && (
-            <Plegable titulo="Por qué te toca esta ruta">
-              <ul className="space-y-1.5 text-sm leading-relaxed text-tinta">
+            <section className={tarjeta} aria-labelledby="motivos">
+              <h2 id="motivos" className="text-base font-semibold text-noche">
+                Por qué te toca esta ruta
+              </h2>
+              <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-tinta">
                 {ruta.motivos.map(m => (
                   <li key={m} className="flex gap-2">
                     <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-electrico" />
@@ -166,21 +349,28 @@ export function MiRuta({
                   </li>
                 ))}
               </ul>
-            </Plegable>
+            </section>
           )}
-          {ruta.alternativas.length > 0 && (
-            <Plegable titulo="Alternativas para comparar" cantidad={ruta.alternativas.length}>
-              <ul className="space-y-3">
-                {ruta.alternativas.map(({ entrada, porQue }) => (
-                  <li key={entrada.id} className="rounded-xl bg-niebla px-3 py-2.5">
-                    <h4 className="text-sm font-semibold text-noche">{entrada.titulo}</h4>
-                    <p className="mt-0.5 text-[13px] leading-relaxed text-tinta">{unido(porQue)}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-gris">{unido(entrada.condicion)}</p>
-                  </li>
-                ))}
-              </ul>
-            </Plegable>
-          )}
+        </div>
+
+        <div className="space-y-3 md:space-y-5">{plan && <Presupuesto plan={plan} />}</div>
+      </div>
+
+      {productos.length > 0 && (
+        <section aria-labelledby="productos">
+          <div className="px-1">
+            <h2 id="productos" className="text-base font-semibold text-noche md:text-lg">
+              Productos para tu ruta
+            </h2>
+            <p className="mt-0.5 text-sm text-gris">
+              Tipos de producto que encajan con tu situación. Antes de contratar, compara con estas preguntas.
+            </p>
+          </div>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2 md:gap-5 lg:grid-cols-3">
+            {productos.map(p => (
+              <Producto key={p.entrada.id} p={p} />
+            ))}
+          </ul>
         </section>
       )}
 
