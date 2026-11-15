@@ -291,6 +291,29 @@ describe("una pregunta nunca anota nada", () => {
     expect(interpretarRegistro("Me acaban de pagar 1.000 soles. ¿Cómo quedo?", HOY)).toMatchObject({ tipo: "accion", accion: { tipo: "saldo", monto: 100_000 } });
     expect(interpretarRegistro("gasté 80 soles en el mercado, cómo voy?", HOY)).toMatchObject({ tipo: "accion", accion: { tipo: "saldo", monto: -8_000 } });
   });
+  it("el verbo de una pregunta sin cifra no se junta con la cifra de otra frase", () => {
+    // Caso real de la demo: «ganar» era de la pregunta y los 1000 eran de endeudarse; salía «Si te llegaran S/ 1,000».
+    const caso = "Voy a ganar la hackathon? para irme a barranco bar y endeudarme con 1000 soles";
+    expect(soloAfirmaciones(caso)).toBe("para irme a barranco bar y endeudarme con 1000 soles");
+    expect(interpretarRegistro(caso, HOY)).toBeNull();
+    expect(responderRegistro([{ rol: "usuario", texto: caso }], { perfil: aPerfil(datosDeEjemplo()), cobros: [] })).toBeNull();
+  });
+});
+
+describe("endeudarse nunca es un ingreso", () => {
+  it("la intención de endeudarse no se anota como plata que llega", () => {
+    for (const frase of [
+      "voy a endeudarme con 1000 soles para el bar",
+      "me voy a endeudar 500 soles y me van a dar la plata el viernes",
+      "voy a ganar 300 pero pienso endeudarme con 1000",
+      "me van a prestar 800 soles el sábado",
+    ]) {
+      const l = interpretarRegistro(frase, HOY);
+      expect(l?.tipo === "accion" && l.accion.tipo === "cobro", frase).toBe(false);
+      expect(l?.tipo === "falta_fecha", frase).toBe(false);
+      expect(l?.tipo === "accion" && l.accion.tipo === "saldo" && l.accion.monto > 0, frase).toBe(false);
+    }
+  });
 });
 
 describe("lo que parece un monto y no lo es", () => {

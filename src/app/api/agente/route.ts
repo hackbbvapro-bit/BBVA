@@ -65,11 +65,12 @@ export async function POST(req: Request): Promise<Response> {
   // Defensa en profundidad: un caso propio solo llega al proveedor de IA si la persona lo aceptó de forma expresa.
   if (perfil.id === ID_PROPIO && datos.data.consentimiento !== true) return errorJson("falta_consentimiento", 403);
   if (!ultimaPregunta(datos.data.mensajes)) return errorJson("peticion_invalida", 400);
+  const hechos = datos.data.hechos ?? SIN_HECHOS;
   let analisis;
   let ruta;
   try {
     analisis = analizar(perfil);
-    ruta = trazarRuta(perfil, analisis, datos.data.hechos ?? SIN_HECHOS);
+    ruta = trazarRuta(perfil, analisis, hechos);
   } catch {
     return errorJson("peticion_invalida", 400);
   }
@@ -80,7 +81,7 @@ export async function POST(req: Request): Promise<Response> {
   const senal = AbortSignal.any([req.signal, corte.signal]);
   const cobros = (datos.data.cobros ?? []).filter(c => !c.cobrado);
   const avance = avanceDe(ruta, datos.data.avances);
-  const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal, ruta, cobros, avance });
+  const eventos = responder({ perfil, analisis, mensajes: datos.data.mensajes, senal, ruta, cobros, avance, hechos });
   return new Response(comoFlujo(eventos, () => corte.abort()), {
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",

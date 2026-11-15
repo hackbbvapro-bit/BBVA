@@ -7,7 +7,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { responderSinIA } from "../explica/explica";
 import type { Analisis, Perfil } from "../motor";
-import type { Avance, Ruta } from "../ruta/ruta";
+import type { Avance, Hechos, Ruta } from "../ruta/ruta";
 import { claveAnthropic } from "../servidor/entorno";
 import { registrarFallo } from "../servidor/registro";
 import type { CobroPendiente } from "../motor/cobros";
@@ -42,6 +42,8 @@ export interface EntradaAgente {
   cobros?: readonly CobroPendiente[];
   /** Pasos de la ruta que la persona marcó como hechos, cruzados con la ruta del servidor. */
   avance?: Avance;
+  /** Historial crediticio declarado: afina las señales con que el catálogo de BBVA cruza cada producto. */
+  hechos?: Hechos;
 }
 
 const MAXIMO_DE_VUELTAS = 6;
@@ -88,6 +90,7 @@ async function* conIA(clave: string, entrada: EntradaAgente, cerebro: Cerebro): 
       tools: crearHerramientas(entrada.perfil, entrada.analisis, entrada.ruta, {
         cobros: entrada.cobros,
         avance: entrada.avance,
+        hechos: entrada.hechos,
         alAccion: (accion, texto) => anotadas.push({ accion, texto }),
       }),
       messages: limpiarMensajes(entrada.mensajes).map(m => ({
