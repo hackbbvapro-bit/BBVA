@@ -8,6 +8,7 @@ import { GLOSARIO, NOTA_MINIMO, PARA_SALIR, SI_NO_PAGAS, SI_PAGAS_EL_MINIMO } fr
 import { conCobros, type CobroPendiente } from "../motor/cobros";
 import type { Analisis, Centimos, EventoProyectado, Perfil, PlanDeudas } from "../motor";
 import { contadorDeAvance, fraseLibre, MESES_DE_COLCHON, type Avance, type Ruta } from "../ruta/ruta";
+import { PREGUNTAS } from "../ruta/presupuesto";
 
 const MAXIMO_SOLES = 1_000_000;
 
@@ -214,6 +215,7 @@ export function datosRuta(ruta: Ruta, avance?: Avance) {
       para_quien: a.entrada.paraQuien,
       condicion: a.entrada.condicion,
       por_que_aparece: a.porQue,
+      que_preguntar_en_su_banco: PREGUNTAS[a.entrada.id],
     })),
     flujo_mensual: {
       entra: formatoSoles(flujo.ingresos),

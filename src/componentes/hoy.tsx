@@ -5,6 +5,12 @@ import {
   formatoLargo,
   formatoCorto,
   proyectar,
+  diasDelHorizonte,
+  diasEnRojo,
+  particion,
+  tramos,
+  HORIZONTES,
+  type Horizonte,
   type Perfil,
   type Analisis,
   type Jugada,
@@ -56,7 +62,16 @@ export function Hoy({
 }) {
   const [jugada, seleccionar] = useState<Jugada>();
   const grafico = useRef<HTMLElement>(null);
-  const despues = useMemo(() => (jugada ? proyectar(perfil, { ajustes: jugada.ajustes }) : undefined), [perfil, jugada]);
+  const [horizonte, setHorizonte] = useState<Horizonte>("mes");
+  const diasH = diasDelHorizonte(perfil.hoy, horizonte);
+  // «1 mes» es la misma proyección de 30 días que usa toda la app; los demás horizontes se recalculan con el motor.
+  const base = useMemo(() => (horizonte === "mes" ? analisis.proyeccion : proyectar(perfil, { dias: diasH })), [perfil, analisis, horizonte, diasH]);
+  const despues30 = useMemo(() => (jugada ? proyectar(perfil, { ajustes: jugada.ajustes }) : undefined), [perfil, jugada]);
+  const despues = useMemo(
+    () => (jugada ? (horizonte === "mes" ? despues30 : proyectar(perfil, { ajustes: jugada.ajustes, dias: diasH })) : undefined),
+    [perfil, jugada, horizonte, diasH, despues30],
+  );
+  const tituloH = HORIZONTES.find(h => h.id === horizonte)!.titulo;
   const principal = avisos(perfil, analisis)[0];
   const alternarVoz = () => (sonando ? detener() : leer(resumenHablado(perfil, analisis)));
   const barata = mejorJugada(analisis);
@@ -151,7 +166,7 @@ export function Hoy({
               else desplazar(document.getElementById("como-evitarlo"), "start");
             }}
           >
-            {barata ? "Ver qué cambia" : "Ver cómo evitarlo"}
+            {barata ? "Ver qué cambia" : "Ver qué puedo hacer"}
             <span aria-hidden="true" className="-rotate-90">
               <Icono nombre="abajo" />
             </span>
@@ -178,8 +193,8 @@ export function Hoy({
         <section ref={grafico} className="aparecer scroll-mt-24 rounded-2xl border border-linea bg-white p-4 md:p-6 lg:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-base font-semibold tracking-tight text-noche md:text-lg">Tus próximos 30 días</h2>
-              <p className="mt-0.5 text-xs text-gris md:text-sm">{jugada ? "Así cambia con la jugada que elegiste" : "Así se movería tu saldo"}</p>
+              <h2 className="text-base font-semibold tracking-tight text-noche md:text-lg">{tituloH}</h2>
+              <p className="mt-0.5 text-xs text-gris md:text-sm">{jugada ? "Así cambia con la opción que estás probando" : "Así se movería tu saldo"}</p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1.5 pt-1 text-xs font-semibold" aria-label="Leyenda">
               <span className="flex items-center gap-1.5 text-gris">
@@ -189,23 +204,37 @@ export function Hoy({
               {jugada && (
                 <span className="aparecer flex items-center gap-1.5 text-electrico">
                   <span aria-hidden="true" className="h-1 w-4 rounded-full bg-electrico" />
-                  Con esta jugada
+                  Con esta opción
                 </span>
               )}
             </div>
           </div>
+          <div role="group" aria-label="Cuánto mirar hacia adelante" className="mt-3 flex gap-1 overflow-x-auto rounded-xl bg-niebla p-1">
+            {HORIZONTES.map(h => (
+              <button
+                key={h.id}
+                aria-pressed={horizonte === h.id}
+                onClick={() => setHorizonte(h.id)}
+                className={`min-h-9 flex-1 whitespace-nowrap rounded-lg px-3 text-sm font-semibold transition-colors duration-150 ${horizonte === h.id ? "bg-white text-noche shadow-sm ring-1 ring-linea" : "text-gris hover:text-noche"}`}
+              >
+                {h.etiqueta}
+              </button>
+            ))}
+          </div>
           {/* Dos proporciones: angosta en celular, ancha en escritorio (el SVG escala con su viewBox). */}
           <div className="lg:hidden">
-            <GraficoSiTePagan base={analisis.proyeccion} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} fondo="white" />
+            <GraficoSiTePagan base={base} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} fondo="white" />
           </div>
           <div className="hidden lg:block">
-            <GraficoSiTePagan base={analisis.proyeccion} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} ancho={640} fondo="white" />
+            <GraficoSiTePagan base={base} despues={despues} cobros={cobros} descripcion={`${principal.titulo}. ${principal.cuerpo}`} ancho={640} fondo="white" />
           </div>
-          <p className="mt-2 text-[11px] leading-snug text-gris md:text-xs">
-            Proyección referencial basada en los movimientos registrados. Tus ingresos y gastos pueden variar.
+          <TablaHorizonte p={base} hoy={perfil.hoy} horizonte={horizonte} />
+          <p className="mt-3 text-[11px] leading-snug text-gris md:text-xs">
+            Proyección referencial basada en los movimientos registrados: supone que todo sigue igual (ingresos con el estimado prudente,
+            los mismos gastos y las mismas cuotas, aunque alguna deuda se termine antes). Mientras más lejos, más incierta.
           </p>
-          {jugada && despues && (
-            <Comparacion key={jugada.id} jugada={jugada} antes={analisis.proyeccion} despues={despues} reiniciar={() => seleccionar(undefined)} />
+          {jugada && despues30 && (
+            <Comparacion key={jugada.id} jugada={jugada} antes={analisis.proyeccion} despues={despues30} reiniciar={() => seleccionar(undefined)} />
           )}
         </section>
         <Pagos analisis={analisis} />
@@ -215,9 +244,9 @@ export function Hoy({
         <section id="como-evitarlo" aria-labelledby="titulo-evitar" className="scroll-mt-24 space-y-3 md:space-y-4">
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-agua-fuerte">Opciones calculadas</p>
-              <h2 id="titulo-evitar" className="mt-0.5 text-lg font-semibold tracking-[-0.015em] text-noche md:text-xl">Cómo evitarlo</h2>
-              <p className="mt-0.5 text-sm text-gris md:text-[15px]">Cada opción con su costo en soles. Simula una y mira cómo queda tu mes.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-agua-fuerte">Para no quedarte sin plata</p>
+              <h2 id="titulo-evitar" className="mt-0.5 text-lg font-semibold tracking-[-0.015em] text-noche md:text-xl">Qué puedes hacer</h2>
+              <p className="mt-0.5 text-sm text-gris md:text-[15px]">Cada opción te dice qué hacer, cuánta plata te deja libre y cuánto te cuesta. Toca «Probar» y mira cómo quedaría tu saldo.</p>
             </div>
             <span className="hidden shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-gris ring-1 ring-linea tabular-nums sm:inline">
               {analisis.jugadas.length} {analisis.jugadas.length === 1 ? "opción" : "opciones"}
@@ -241,6 +270,54 @@ export function Hoy({
         </section>
       )}
       <Pie demo={demo} externo={externo} />
+    </div>
+  );
+}
+
+/* ---------- La proyección partida en días, semanas o meses ---------- */
+function TablaHorizonte({ p, hoy, horizonte }: { p: Proyeccion; hoy: string; horizonte: Horizonte }) {
+  const por = particion(horizonte);
+  const filas = tramos(p, hoy, por);
+  const rojo = diasEnRojo(p);
+  const encabezado = { dia: "Día a día", semana: "Semana a semana", mes: "Mes a mes" }[por];
+  const rango = (a: string, b: string) => (a === b ? formatoCorto(a) : `${formatoCorto(a)} – ${formatoCorto(b)}`);
+  return (
+    <div className="mt-4">
+      <p className="text-sm leading-relaxed text-noche md:text-[15px]">
+        Al final terminarías con{" "}
+        <span className={`font-semibold tabular-nums ${p.saldoFinal < 0 ? "text-coral-fuerte" : "text-noche"}`}>{unido(formatoSoles(p.saldoFinal))}</span>. Tu punto más bajo:{" "}
+        <span className={`font-semibold tabular-nums ${p.saldoMinimo < 0 ? "text-coral-fuerte" : "text-noche"}`}>{unido(formatoSoles(p.saldoMinimo))}</span> el {formatoLargo(p.fechaSaldoMinimo)}.{" "}
+        {rojo > 0 ? <span className="font-semibold text-coral-fuerte">{rojo} {rojo === 1 ? "día" : "días"} en rojo.</span> : <span className="font-semibold text-verde-fuerte">Ningún día en rojo.</span>}
+      </p>
+      <div className="mt-3 overflow-hidden rounded-xl border border-linea">
+        <table className="w-full text-sm">
+          <caption className="sr-only">{encabezado}: lo que entra, lo que sale y cómo queda tu saldo</caption>
+          <thead className="bg-niebla text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">
+            <tr>
+              <th scope="col" className="px-3 py-2 text-left">{encabezado}</th>
+              <th scope="col" className="hidden px-3 py-2 text-right sm:table-cell">Entra</th>
+              <th scope="col" className="hidden px-3 py-2 text-right sm:table-cell">Sale</th>
+              <th scope="col" className="px-3 py-2 text-right">Más bajo</th>
+              <th scope="col" className="px-3 py-2 text-right">Al final</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-linea">
+            {filas.map(f => (
+              <tr key={f.desde} className={f.saldoMinimo < 0 ? "bg-coral-suave/40" : undefined}>
+                <th scope="row" className="px-3 py-2 text-left font-normal">
+                  <span className="block font-semibold text-noche">{f.etiqueta}</span>
+                  {por !== "dia" && <span className="block text-xs text-gris">{rango(f.desde, f.hasta)}</span>}
+                  {f.diasEnRojo > 0 && <span className="block text-xs font-semibold text-coral-fuerte">{f.diasEnRojo} {f.diasEnRojo === 1 ? "día" : "días"} en rojo</span>}
+                </th>
+                <td className="hidden px-3 py-2 text-right tabular-nums text-verde-fuerte sm:table-cell">{unido(formatoSoles(f.entra))}</td>
+                <td className="hidden px-3 py-2 text-right tabular-nums text-noche sm:table-cell">{unido(formatoSoles(-f.sale))}</td>
+                <td className={`px-3 py-2 text-right tabular-nums ${f.saldoMinimo < 0 ? "font-semibold text-coral-fuerte" : "text-noche"}`}>{unido(formatoSoles(f.saldoMinimo))}</td>
+                <td className={`px-3 py-2 text-right font-semibold tabular-nums ${f.saldoFinal < 0 ? "text-coral-fuerte" : "text-noche"}`}>{unido(formatoSoles(f.saldoFinal))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -330,10 +407,10 @@ function Comparacion({ jugada, antes, despues, reiniciar }: { jugada: Jugada; an
 
 /** Qué le hace la jugada al día en rojo. Sacar un pago de la ventana no es «resolver». */
 const INSIGNIA_EFECTO: Record<Jugada["efecto"], string> = {
-  elimina: "Resuelve el problema",
-  reduce: "Lo reduce, sola no alcanza",
-  posterga: "Solo lo aplaza",
-  no_mejora: "Sola no alcanza",
+  elimina: "Con esto ya no quedas en rojo",
+  reduce: "Ayuda, pero sola no basta",
+  posterga: "Solo mueve el problema de fecha",
+  no_mejora: "Sola no basta",
 };
 
 function TarjetaJugada({
@@ -364,7 +441,7 @@ function TarjetaJugada({
               className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${j.efecto === "elimina" && j.costo === 0 ? "bg-verde-suave text-verde-fuerte" : "bg-ambar-suave text-ambar-fuerte"}`}
             >
               <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-              {j.efecto === "elimina" && j.costo > 0 ? "Evita el rojo, pero cuesta" : INSIGNIA_EFECTO[j.efecto]}
+              {j.efecto === "elimina" && j.costo > 0 ? "Te saca del rojo, pero cuesta" : INSIGNIA_EFECTO[j.efecto]}
             </span>
           </div>
         </div>
@@ -372,11 +449,11 @@ function TarjetaJugada({
         <p className="mt-1 text-[13px] leading-relaxed text-gris md:text-sm">{unido(j.detalle)}</p>
         <dl className="mt-4 grid grid-cols-2 divide-x divide-linea rounded-xl border border-linea">
           <div className="min-w-0 px-3 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-verde-fuerte">Te libera</dt>
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-verde-fuerte">Plata que te deja libre</dt>
             <dd className="mt-1 text-lg font-semibold leading-tight tracking-[-0.01em] text-noche tabular-nums">{unido(formatoSoles(j.libera))}</dd>
           </div>
           <div className="min-w-0 px-3 py-2.5">
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">Te cuesta</dt>
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">Lo que te cuesta</dt>
             <dd className={`mt-1 text-lg font-semibold leading-tight tracking-[-0.01em] tabular-nums ${j.costo === 0 && j.certezaCosto === "conocido" ? "text-verde-fuerte" : "text-noche"}`}>
               {unido(costoCorto(j))}
             </dd>
@@ -389,7 +466,7 @@ function TarjetaJugada({
         <div className="mt-auto pt-4">
           <button aria-pressed={activa} onClick={elegir} className={`${activa ? botonSecundario : botonPrincipal} w-full`}>
             <Icono nombre={activa ? "cerrar" : "tendencia"} />
-            {activa ? "Quitar de la proyección" : "Simular en mi proyección"}
+            {activa ? "Quitar la prueba" : "Probar en mi saldo"}
           </button>
         </div>
       </div>

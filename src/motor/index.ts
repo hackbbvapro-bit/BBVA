@@ -22,3 +22,4 @@ export function analizar(perfil: Perfil): Analisis {
     gastoVariable: estimarGastoVariable(perfil.movimientos, perfil.deudas, perfil.hoy),
     proyeccion, jugadas: proponerJugadas(perfil, proyeccion), deudas: compararEstrategias(perfil.deudas) };
 }
+export * from './horizonte';

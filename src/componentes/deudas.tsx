@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatoSoles, formatoTasa, type Perfil, type Analisis, type PlanDeudas } from "@/motor";
-import { tarjeta, unido, Encabezado, Icono, botonPrincipal, botonSecundario, desplazar } from "@/componentes/ui";
+import { tarjeta, unido, Cifras, Encabezado, Icono, botonPrincipal, botonSecundario, desplazar, type Cifra } from "@/componentes/ui";
 import { EducacionMinimo } from "@/componentes/educacion-minimo";
 import { Adjuntar } from "@/componentes/documento";
 import { useDatos } from "@/componentes/datos";
@@ -171,7 +171,7 @@ export function Deudas({
           : pestana === "debo"
           ? debo.n === 0
             ? "No tienes deudas abiertas."
-            : <>Debes en total <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(debo.total))}</span> en {debo.n} {debo.n === 1 ? "deuda" : "deudas"}.</>
+            : <>De la más cara a la más barata. El <span className="font-semibold text-noche">interés al año</span> es la TCEA: lo que te cuesta deber. Toca una deuda para editarla.</>
           : meDeben.n === 0
             ? "Nadie te debe por ahora."
             : <>Te deben <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(meDeben.total))}</span> en {meDeben.n} {meDeben.n === 1 ? "cobro" : "cobros"}.</>}
@@ -183,6 +183,18 @@ export function Deudas({
   );
 
   const orden = prioridadDePagos(datos, analisis);
+
+  // Cuatro cifras arriba para entender la situación de un vistazo; todas salen del motor o de sumas de céntimos.
+  const kpis: Cifra[] = debo.n === 0 ? [] : [
+    { icono: "deudas", etiqueta: "Debes en total", valor: soles(debo.total), nota: `En ${debo.n} ${debo.n === 1 ? "deuda" : "deudas"}`, tono: "coral" },
+    ...(comparacion
+      ? [
+          { icono: "calendario", etiqueta: "Pagas al mes", valor: soles(comparacion.presupuestoMensual), nota: `El mínimo sería ${soles(sumaMinimos)}`, tono: "azul" } as Cifra,
+          { icono: "rumbo", etiqueta: "Quedas libre en", valor: comparacion.avalancha.noTermina ? "No termina" : `${comparacion.avalancha.meses} meses`, nota: "Pagando lo de siempre y primero la más cara", tono: "verde" } as Cifra,
+          { icono: "tendencia", etiqueta: "Intereses que pagarás", valor: soles(comparacion.avalancha.interesTotal), nota: comparacion.minimos.noTermina ? "Con solo mínimos no terminarías" : comparacion.ahorroVsMinimos > 0 ? `Con solo mínimos: ${soles(comparacion.minimos.interesTotal)}` : "Hasta terminar de pagar", tono: "ambar" } as Cifra,
+        ]
+      : []),
+  ];
 
   // Dos columnas independientes en escritorio (sin filas compartidas, para que no queden huecos);
   // en celular y iPad vertical, un solo flujo: plan, lista con «Agregar», orden de pago y «¿Y si solo pago el mínimo?».
@@ -222,21 +234,23 @@ export function Deudas({
           />
         </div>
       )}
-      <div className="flex flex-col xl:grid xl:grid-cols-12 xl:items-start xl:gap-x-8">
-        <div className="contents xl:col-span-7 xl:col-start-1 xl:block">
-          <div className="order-2 mb-3 md:mb-6">{lista}</div>
-          {comparacion && pestana !== "sbs" && (
-            <div className="order-3 mb-3 md:mb-6 xl:mb-0">
-              <OrdenDePago r={orden} jugada={mejorJugada(analisis)?.titulo} />
-            </div>
-          )}
+      {kpis.length > 0 && (
+        <div className="mb-4 md:mb-6">
+          <Cifras etiqueta="Tus deudas en cifras" items={kpis} />
         </div>
-        <div className="contents xl:col-span-5 xl:col-start-8 xl:block">
-          <div className="order-1 mb-3 md:mb-6">{resumen}</div>
-          <div className="order-4 mb-3 md:mb-6 xl:mb-0">
+      )}
+      <div className="mb-4 md:mb-6">{lista}</div>
+      <div className="grid items-start gap-4 md:gap-6 xl:grid-cols-2">
+        <div className="space-y-4 md:space-y-6">
+          {comparacion && pestana !== "sbs" && <OrdenDePago r={orden} jugada={mejorJugada(analisis)?.titulo} />}
+          {!comparacion && resumen}
+        </div>
+        {comparacion && (
+          <div className="space-y-4 md:space-y-6">
+            {resumen}
             <EducacionMinimo deudas={perfil.deudas} />
           </div>
-        </div>
+        )}
       </div>
       <p role="status" className="sr-only">
         {aviso}

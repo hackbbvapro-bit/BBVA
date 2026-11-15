@@ -12,6 +12,8 @@ export interface Fila {
   etiqueta?: { texto: string; tono: "urgente" | "atencion" | "bien" | "neutro" | "azul" };
   /** La fila se ve apagada (deuda pagada, cobro cobrado). */
   apagada?: boolean;
+  /** En modo tabla: una celda por cada columna de `columnas` (mismo orden). */
+  celdas?: string[];
 }
 
 const TONOS_ETIQUETA = {
@@ -32,6 +34,45 @@ function Abierto({ children }: { children: ReactNode }) {
   return <div ref={ref}>{children}</div>;
 }
 
+/** Rejilla de la tabla en escritorio: nombre ancho, una columna por dato, el monto y el lápiz. */
+const columnasDe = (n: number) => `minmax(0,1.7fr) repeat(${n}, minmax(0,1fr)) minmax(7.5rem,auto) 1.5rem`;
+
+/** Una fila en modo tabla: columnas alineadas en escritorio; en celular, nombre y monto arriba y los datos en una rejilla debajo. */
+function FilaTabla({ f, prefijo, columnas, abrir }: { f: Fila; prefijo: string; columnas: string[]; abrir: () => void }) {
+  return (
+    <button
+      id={`${prefijo}-${f.id}`}
+      onClick={abrir}
+      aria-label={`Editar ${f.principal}, ${f.monto}`}
+      style={{ ["--cols" as string]: columnasDe(columnas.length) }}
+      className={`-mx-2 grid w-[calc(100%+1rem)] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 rounded-xl px-2 py-3.5 text-left transition-colors hover:bg-niebla md:[grid-template-columns:var(--cols)] ${f.apagada ? "opacity-60" : ""}`}
+    >
+      <span className="min-w-0">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="font-semibold text-noche">{f.principal}</span>
+          {f.etiqueta && (
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TONOS_ETIQUETA[f.etiqueta.tono]}`}>{f.etiqueta.texto}</span>
+          )}
+        </span>
+        {f.secundario && <span className="mt-0.5 block text-[13px] text-gris">{f.secundario}</span>}
+      </span>
+      {(f.celdas ?? []).map((c, i) => (
+        <span key={columnas[i]} className="hidden text-right text-[15px] text-noche tabular-nums md:block">{unido(c)}</span>
+      ))}
+      <span className="text-right text-base font-semibold text-noche tabular-nums md:text-[17px]">{unido(f.monto)}</span>
+      <span className="hidden text-gris md:block"><Icono nombre="lapiz" /></span>
+      <span className="col-span-2 grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-lg bg-niebla/70 px-3 py-2 sm:grid-cols-4 md:hidden">
+        {(f.celdas ?? []).map((c, i) => (
+          <span key={columnas[i]} className="min-w-0">
+            <span className="block text-[11px] font-semibold uppercase tracking-wide text-gris">{columnas[i]}</span>
+            <span className="block text-sm text-noche tabular-nums">{unido(c)}</span>
+          </span>
+        ))}
+      </span>
+    </button>
+  );
+}
+
 /** Lista con filetes; tocar una fila abre su formulario en el mismo lugar, y el botón del pie agrega una nueva. */
 export function ListaEditable({
   titulo,
@@ -44,6 +85,7 @@ export function ListaEditable({
   avisar,
   ocultarAgregar,
   abrirNuevo,
+  tabla,
 }: {
   titulo?: string;
   items: Fila[];
@@ -57,6 +99,8 @@ export function ListaEditable({
   ocultarAgregar?: boolean;
   /** Cada vez que este número sube, se abre el formulario de «agregar» (botón externo de la página). */
   abrirNuevo?: number;
+  /** Modo tabla: títulos de las columnas entre el nombre y el monto, y del nombre y el monto mismos. */
+  tabla?: { principal: string; columnas: string[]; monto: string };
 }) {
   const [abierto, setAbierto] = useState<string | null>(abrirNuevo ? "nuevo" : null);
   const [volverA, setVolverA] = useState<string | null>(null);
@@ -81,6 +125,18 @@ export function ListaEditable({
     <div>
       {titulo && <h2 className="text-lg font-semibold text-noche">{titulo}</h2>}
       {items.length === 0 && abierto !== "nuevo" && <p className="mt-3 leading-relaxed text-gris">{vacio}</p>}
+      {tabla && items.length > 0 && (
+        <div
+          aria-hidden="true"
+          style={{ ["--cols" as string]: columnasDe(tabla.columnas.length) }}
+          className="hidden gap-x-4 border-b border-linea-fuerte pb-2 text-xs font-semibold uppercase tracking-wide text-gris md:grid md:[grid-template-columns:var(--cols)]"
+        >
+          <span>{tabla.principal}</span>
+          {tabla.columnas.map(c => <span key={c} className="text-right">{c}</span>)}
+          <span className="text-right">{tabla.monto}</span>
+          <span />
+        </div>
+      )}
       <ul className={titulo ? "mt-3" : ""}>
         {items.map(f => (
           <li key={f.id} className="border-t border-linea first:border-t-0">
@@ -88,6 +144,8 @@ export function ListaEditable({
               <Abierto>
                 <div className="py-4">{formulario(f.id, cerrar)}</div>
               </Abierto>
+            ) : tabla ? (
+              <FilaTabla f={f} prefijo={prefijo} columnas={tabla.columnas} abrir={() => setAbierto(f.id)} />
             ) : (
               <button
                 id={`${prefijo}-${f.id}`}

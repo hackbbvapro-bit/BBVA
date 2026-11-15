@@ -1,6 +1,8 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "copiloto", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--", "--port", "3210"], "port": 3210 }
+    { "name": "copiloto", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--", "--port", "3210"], "port": 3210 },
+    { "name": "referencia-costa-rica", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "/Users/macbookpro/Proyectos/02-Clientes/PROYECTO COSTA RICA/app-almacen", "run", "dev", "--", "--port", "3917"], "port": 3917 },
+    { "name": "copiloto-pro", "runtimeExecutable": "npm", "runtimeArgs": ["--prefix", "/Users/macbookpro/Proyectos/06-Agentes-IA/atlas/missions/copiloto-pro/workspace", "run", "dev", "--", "--port", "3211"], "port": 3211 }
   ]
 }
