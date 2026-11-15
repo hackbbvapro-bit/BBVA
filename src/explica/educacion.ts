@@ -29,13 +29,13 @@ export const SI_NO_PAGAS = [
  * siguiente, así que no sirve para el pago de este mes. Por eso el copiloto no lo propone como jugada.
  */
 export const CAMBIAR_FECHA_DE_PAGO =
-  "Cambiar la fecha de pago de una tarjeta depende de tu entidad y, donde se puede, rige desde el ciclo siguiente: no sirve para el pago de este mes. Si este mes no te alcanza, paga al menos el mínimo a tiempo o llama a la entidad ANTES de la fecha para pedir una reprogramación.";
+  "Cambiar la fecha de pago de una tarjeta depende de BBVA y, donde se puede, rige desde el ciclo siguiente: no sirve para el pago de este mes. Si este mes no te alcanza, paga al menos el mínimo a tiempo o consúltalo en BBVA (web oficial o agencia) ANTES de la fecha para pedir una reprogramación.";
 
 /** Cómo salir, en orden. */
 export const PARA_SALIR = [
   "Paga más que el mínimo en cuanto puedas, empezando por la deuda de TCEA más alta.",
   "No hagas compras nuevas con esa tarjeta mientras la pagas.",
-  "Si ni el mínimo te alcanza, llama a la entidad ANTES de la fecha de pago y pide una reprogramación.",
+  "Si ni el mínimo te alcanza, consúltalo en BBVA (web oficial o agencia) ANTES de la fecha de pago y pide una reprogramación.",
 ] as const;
 
 export interface Termino {
@@ -50,7 +50,7 @@ export const GLOSARIO: readonly Termino[] = [
   { termino: "TCEA", que_es: "Tasa de costo efectivo anual: lo que te cuesta la deuda en un año, con intereses y cargos incluidos. Sirve para comparar: la más alta es la más cara." },
   { termino: "Disposición de efectivo", que_es: "Sacar plata de la tarjeta. Suele tener una tasa más alta que las compras y cobra intereses desde el primer día." },
   { termino: "Reprogramar", que_es: "Pedir a la entidad nuevas fechas o cuotas. La entidad decide si acepta, y alargar el plazo puede subir el interés total." },
-  { termino: "Compra de deuda", que_es: "Que otra entidad pague tu deuda y le debas a ella. Solo conviene si su TCEA es más baja y no te cobran más en cargos." },
+  { termino: "Compra de deuda", que_es: "Que BBVA pague tu deuda y le debas a BBVA. Solo conviene si su TCEA es más baja y no te cobran más en cargos." },
 ] as const;
 
 /** Advertencia de cómo se calculan las cifras del mínimo. */

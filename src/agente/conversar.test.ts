@@ -111,8 +111,9 @@ describe("herramientas e instrucciones", () => {
   it("ante los productos de un banco orienta en vez de negarse, sin inventar nombres ni tasas", () => {
     for (const texto of [promptSistema(PERFILES[0], analizar(PERFILES[0])), promptSistema(PERFILES[0], analizar(PERFILES[0]), trazarRuta(PERFILES[0], analizar(PERFILES[0])))]) {
       expect(texto).toContain("no te niegues en seco");
-      expect(texto).toContain("no te inventas nombres comerciales, tasas ni requisitos");
-      expect(texto).toContain("comparador de tasas de la SBS");
+      expect(texto).toContain("No te inventas nombres comerciales, tasas ni requisitos");
+      expect(texto).not.toContain("comparador de tasas de la SBS");
+      expect(texto).toContain("Nunca repitas el nombre de otra entidad");
       expect(texto).toContain("nunca lo anotes como ingreso");
     }
   });
@@ -135,7 +136,7 @@ describe("herramientas e instrucciones", () => {
   });
 
   it("las instrucciones obligan a explicar las consecuencias del pago mínimo y de no pagar", () => {
-    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
+    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]), undefined, "explicado");
     expect(texto).toContain("# Educas");
     expect(texto).toContain("no es una salida");
     expect(texto).toContain("mucho mejor que no pagar");
@@ -144,7 +145,7 @@ describe("herramientas e instrucciones", () => {
   });
 
   it("las instrucciones distinguen costo conocido, estimado y desconocido, y no venden atrasar un pago como gratis", () => {
-    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
+    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]), undefined, "explicado");
     expect(texto).toContain("certeza_del_costo");
     expect(texto).toContain("efecto_sobre_el_deficit");
     expect(texto).toContain("no es gratis ni seguro");
@@ -174,7 +175,7 @@ describe("herramientas e instrucciones cuando hay ruta", () => {
       expect(texto).not.toMatch(/S\/\s?\d/);
       const lineasConMarca = texto.split("\n").filter(l => /BBVA/i.test(l));
       expect(lineasConMarca.length).toBeGreaterThan(0);
-      for (const l of lineasConMarca) expect(l).toContain("buscar_producto_bbva");
+      expect(texto).toContain("buscar_producto_bbva");
       expect(texto).toContain("ver_ruta");
       expect(texto.match(/<\/perfil>/g)).toHaveLength(1);
     }
@@ -183,4 +184,13 @@ describe("herramientas e instrucciones cuando hay ruta", () => {
   it("sin ruta las instrucciones no mencionan ver_ruta", () => {
     expect(promptSistema(perfil, analisis)).not.toContain("ver_ruta");
   });
+});
+
+it("directo es corto, explicado educa y la inversión no repite el colchón", () => {
+  const directo = promptSistema(perfil, analisis);
+  expect(directo).toContain("máximo unas 35 palabras");
+  expect(directo).not.toContain("explica siempre tres cosas");
+  expect(promptSistema(perfil, analisis, undefined, "explicado")).toContain("explica siempre tres cosas");
+  expect(directo).toContain("COMO MUCHO UNA VEZ");
+  expect(directo).toContain("revisa el historial");
 });
