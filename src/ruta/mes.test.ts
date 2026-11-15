@@ -50,3 +50,25 @@ describe("detalleDelMes (caso de Andrea)", () => {
     expect(detalle.cuotas.total).toBe(102_000);
   });
 });
+
+describe("detalleDelMes con cuota declarada sin saldo (cuestionario corto)", () => {
+  it("la cuota va en Cuotas, no en Gastos, y las tres partes suman lo que sale", async () => {
+    const { aRespuestas, proximoPaso, responder } = await import("./guion");
+    const { armarCaso } = await import("./entrada");
+    const respuestas = { nombre: "Lucho", trabajo: "dependiente", cobro: "fin_de_mes", diaPago: "31", ingreso: "2500", saldo: "600", gastos: "1000", deudas: "al_dia", cuotaDeuda: "300", meta: "ahorrar" } as const;
+    let borrador = {};
+    for (let paso = proximoPaso(borrador); paso !== null; paso = proximoPaso(borrador)) {
+      borrador = responder(borrador, paso, respuestas[paso as keyof typeof respuestas]).borrador;
+    }
+    const perfil = aPerfil(armarCaso(aRespuestas(borrador, "2026-11-14")));
+    const analisis = analizar(perfil);
+    const detalle = detalleDelMes(perfil, analisis);
+    expect(detalle.sale.fijos.map(l => l.nombre)).not.toContain("Cuotas de deudas por detallar");
+    expect(detalle.sale.subtotalFijos + detalle.sale.subtotalDiaADia).toBe(detalle.sale.total);
+    expect(detalle.sale.total).toBe(100_000);
+    expect(detalle.cuotas.total).toBe(30_000);
+    expect(sumar(detalle.cuotas.lineas.map(l => l.monto))).toBe(30_000);
+    expect(detalle.libre).toBe(detalle.entra.total - detalle.sale.total - detalle.cuotas.total);
+    expect(resumenDelMes(perfil, analisis).notaSale ?? "").not.toContain("1,300");
+  });
+});

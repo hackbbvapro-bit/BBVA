@@ -1,7 +1,7 @@
 import { formatoSoles, semanalAMes, sumar } from "../motor/dinero";
 import { variables } from "../motor/recurrentes";
 import type { Analisis, Categoria, Centimos, Perfil, Recurrente } from "../motor/tipos";
-import { desgloseMensual, flujoMensual } from "./ruta";
+import { CUOTAS_POR_DETALLAR, cuotasPorDetallar, desgloseMensual, flujoMensual } from "./ruta";
 
 /** Nombre de cada categoría en lenguaje de la calle. */
 export const NOMBRE_CATEGORIA: Record<Categoria, string> = {
@@ -74,7 +74,8 @@ function principales(descripciones: string[], cuantas = 3): string {
 export function detalleDelMes(perfil: Perfil, analisis: Analisis): DetalleDelMes {
   const d = desgloseMensual(analisis);
   const f = flujoMensual(perfil, analisis);
-  const fijos = analisis.recurrentes.filter(r => r.categoria !== "deuda");
+  const fijos = analisis.recurrentes.filter(r => r.categoria !== "deuda" && r.descripcion !== CUOTAS_POR_DETALLAR);
+  const porDetallar = cuotasPorDetallar(analisis);
   const linea = (r: Recurrente): LineaDelMes => ({ nombre: r.descripcion, detalle: cuando(r), monto: Math.abs(alMes(r)) });
   const porMonto = (a: LineaDelMes, b: LineaDelMes) => b.monto - a.monto;
 
@@ -107,14 +108,16 @@ export function detalleDelMes(perfil: Perfil, analisis: Analisis): DetalleDelMes
     const cuota = Math.max(deuda.pagoHabitual, deuda.pagoMinimo);
     const extra = cuota > deuda.pagoMinimo ? ` · mínimo ${formatoSoles(deuda.pagoMinimo)}` : "";
     return { nombre: deuda.nombre, detalle: `Vence el día ${deuda.diaPago}${extra}`, monto: cuota };
-  }).sort(porMonto);
+  });
+  if (porDetallar > 0) cuotas.push({ nombre: "Cuotas de tus deudas", detalle: "Lo que pagas al mes; el detalle de cada deuda lo puedes agregar después", monto: porDetallar });
+  cuotas.sort(porMonto);
 
   return {
     entra: { fijos: fijos.filter(r => r.monto > 0).map(linea).sort(porMonto), variables: variablesEntra, total: f.ingresos },
     sale: {
       fijos: fijos.filter(r => r.monto < 0).map(linea).sort(porMonto),
       diaADia,
-      subtotalFijos: d.gastosFijos,
+      subtotalFijos: d.gastosFijos - porDetallar,
       subtotalDiaADia: d.gastoVariable,
       total: f.gastos,
     },

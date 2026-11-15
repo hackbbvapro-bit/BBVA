@@ -76,10 +76,18 @@ export function desgloseMensual(analisis: Analisis): DesgloseMensual {
 }
 
 /** Mes típico de la persona: lo fijo detectado más lo variable estimado. Todo en céntimos enteros. */
+/** Nombre del fijo que guarda la cuota declarada sin saldo (cuestionario corto): es una cuota, no un gasto. */
+export const CUOTAS_POR_DETALLAR = "Cuotas de deudas por detallar";
+
+/** Lo que la persona declaró pagar en cuotas sin detallar la deuda, al mes. */
+export function cuotasPorDetallar(analisis: Analisis): Centimos {
+  return sumar(analisis.recurrentes.filter(r => r.descripcion === CUOTAS_POR_DETALLAR).map(r => -alMes(r)));
+}
+
 export function flujoMensual(perfil: Perfil, analisis: Analisis): FlujoMensual {
   const d = desgloseMensual(analisis);
   const ingresos = d.ingresosFijos + d.ingresoVariable;
-  const cuotasPendientes = sumar(analisis.recurrentes.filter(r => r.descripcion === "Cuotas de deudas por detallar").map(r => -alMes(r)));
+  const cuotasPendientes = cuotasPorDetallar(analisis);
   const gastos = d.gastosFijos + d.gastoVariable - cuotasPendientes;
   const cuotas = cuotasPendientes + sumar(perfil.deudas.map(d => Math.max(d.pagoHabitual, d.pagoMinimo)));
   return { ingresos, gastos, cuotas, libre: ingresos - gastos - cuotas };
@@ -101,7 +109,7 @@ export function resumenDelMes(perfil: Perfil, analisis: Analisis) {
           ? "Tus ingresos fijos"
           : "Agrega tus ingresos";
   const notaSale =
-    f.gastos === 0 ? "Sin gastos registrados" : `Fijos ${formatoSoles(d.gastosFijos)} + día a día ${formatoSoles(d.gastoVariable)}, sin cuotas de deudas`;
+    f.gastos === 0 ? "Sin gastos registrados" : `Fijos ${formatoSoles(d.gastosFijos - cuotasPorDetallar(analisis))} + día a día ${formatoSoles(d.gastoVariable)}, sin cuotas de deudas`;
   return { entra: f.ingresos, sale: f.gastos, notaEntra, notaSale };
 }
 
