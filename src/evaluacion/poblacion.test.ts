@@ -148,7 +148,7 @@ describe('población sintética', () => {
       expect(a.proyeccion.dias).toHaveLength(DIAS_FUTURO);
       expect(Number.isSafeInteger(a.proyeccion.saldoMinimo)).toBe(true);
     }
-  });
+  }, 30_000); // 300 clientes: en una laptop lenta pasa de los 5 s del límite por defecto
 });
 
 describe('aPaso', () => {

@@ -1,0 +1,6 @@
+customer_id,deuda_id,nombre,tipo,saldo,tcea_pct,pago_minimo,pago_habitual,dia_pago
+cli-0008,cli-0008-prestamo,Préstamo Estudios,prestamo,4035.00,19.00,269.00,269.00,27
+cli-0004,cli-0004-tarjeta,Tarjeta Compras,tarjeta,2130.00,109.00,107.00,244.00,25
+cli-0020,cli-0020-prestamo,Préstamo Estudios,prestamo,3375.00,31.00,225.00,225.00,19
+cli-0002,cli-0002-prestamo,Préstamo Estudios,prestamo,14763.00,37.00,703.00,703.00,25
+cli-0016,cli-0016-tarjeta,Tarjeta Compras,tarjeta,3580.00,112.00,179.00,397.00,14

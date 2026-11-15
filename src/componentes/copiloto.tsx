@@ -4,7 +4,7 @@ import { analizar, type Perfil } from "@/motor";
 import { avisosDelCentro, pendientesSinLeer, type Destino } from "@/avisos/centro";
 import { hablar, callar, desbloquearAudio } from "@/cliente/voz";
 import { fijarSalidas } from "@/cliente/salidas";
-import { guardarSituacion, leerSituacion } from "@/cliente/situacion";
+import { borrarSituacion, guardarSituacion, leerSituacion } from "@/cliente/situacion";
 import { avanceDe, hechosDe, saludoDeRuta, trazarRuta, type IdPaso } from "@/ruta/ruta";
 import { guardarAvances, leerAvances } from "@/cliente/memoria";
 import { MiRuta } from "@/componentes/tu-ruta";
@@ -18,12 +18,15 @@ import { ProveedorDatos, useDatos } from "@/componentes/datos";
 import { MenuUsuario } from "@/componentes/menu-usuario";
 import { Perfil as VistaPerfil } from "@/componentes/perfil";
 import { ComoFunciona } from "@/componentes/como-funciona";
+import { Dataset } from "@/componentes/dataset";
+import { Evaluacion } from "@/componentes/evaluacion";
 import { Bienvenida, guardarModo, leerModo, type Modo } from "@/componentes/bienvenida";
 import { ID_PROPIO } from "@/datos/semilla";
+import type { Datos } from "@/datos/tipos";
 import { anotarEnRepo, type Deshacer } from "@/datos/anotar";
 import type { Accion } from "@/agente/registro";
 
-type Pestana = "hoy" | "ruta" | "dinero" | "deudas" | "asistente" | "perfil" | "como";
+type Pestana = "hoy" | "ruta" | "dinero" | "deudas" | "asistente" | "perfil" | "como" | "datos" | "evaluacion";
 type Enlace = [Pestana, string, NombreIcono];
 
 /** Menú lateral agrupado (escritorio y iPad). */
@@ -47,6 +50,8 @@ const GRUPOS: { titulo: string; items: Enlace[] }[] = [
     items: [
       ["asistente", "Asistente", "asistente"],
       ["como", "Cómo funciona", "ayuda"],
+      ["datos", "Datos de prueba", "tabla"],
+      ["evaluacion", "Evaluación", "tendencia"],
     ],
   },
 ];
@@ -107,15 +112,15 @@ function Contenido() {
   );
 }
 
-/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo (Andrea) o el caso que armó la persona, y si algo sale del equipo. */
-function TarjetaModo({ demo, externo, cambiar }: { demo: boolean; externo: boolean; cambiar: () => void }) {
+/** Al pie del menú lateral: deja claro si se ve el caso de ejemplo o el caso que armó la persona, y si algo sale del equipo. */
+function TarjetaModo({ demo, externo, nombre, cambiar }: { demo: boolean; externo: boolean; nombre: string; cambiar: () => void }) {
   return (
     <div className="rounded-xl border border-linea bg-papel p-3">
       <p className="flex items-center gap-2 text-[13px] font-semibold text-noche">
         <span aria-hidden="true" className={`size-2 rounded-full ${demo ? "bg-ambar" : "bg-verde"}`} />
-        {demo ? "Caso de Andrea (ejemplo)" : "Tu caso (simulación)"}
+        {demo ? `Caso de ${nombre} (ejemplo)` : "Tu caso (simulación)"}
       </p>
-      <p className="mt-1 text-xs leading-snug text-gris">{demo ? "Andrea es una persona inventada." : externo ? "IA y voz activadas: tu caso se envía para responderte." : "Sin IA ni voz: nada sale de este equipo."}</p>
+      <p className="mt-1 text-xs leading-snug text-gris">{demo ? `${nombre} es una persona inventada.` : externo ? "IA y voz activadas: tu caso se envía para responderte." : "Sin IA ni voz: nada sale de este equipo."}</p>
       <button onClick={cambiar} className="mt-1 min-h-9 text-[13px] font-semibold text-electrico hover:text-marino">
         {demo ? "Empezar con mi situación" : "Volver al inicio"}
       </button>
@@ -259,6 +264,16 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
     if (saludoInicial.current) leer(saludoInicial.current);
     // Solo al montar: `leer` cambia en cada render y no debe repetir el saludo.
   }, []);
+  /** Carga un cliente de «Datos de prueba» como caso de ejemplo y vuelve a Inicio. */
+  async function probarCliente(nuevos: Datos) {
+    if (!demo && !window.confirm("Se va a reemplazar el caso que armaste, guardado en este equipo, por este cliente de prueba. ¿Continuar?")) return;
+    detener();
+    await cambiar(repo => repo.cargar(nuevos));
+    borrarSituacion();
+    setSituacion(leerSituacion());
+    guardarModo("demo");
+    navegar("hoy");
+  }
   function navegar(p: Pestana) {
     detener();
     setDeudasInicial("debo");
@@ -358,8 +373,8 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             ))}
           </nav>
           <div className="mt-auto grid gap-3 pt-6">
-            <TarjetaModo demo={demo} externo={externo} cambiar={cambiarModo} />
-            <MenuUsuario nombre={perfil.nombre} variante="lateral" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} demo={demo} />
+            <TarjetaModo demo={demo} externo={externo} nombre={perfil.nombre} cambiar={cambiarModo} />
+            <MenuUsuario nombre={perfil.nombre} variante="lateral" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} alDatos={() => navegar("datos")} alEvaluacion={() => navegar("evaluacion")} demo={demo} />
           </div>
         </div>
       </aside>
@@ -386,7 +401,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
                 </span>
               )}
             </button>
-            <MenuUsuario nombre={perfil.nombre} variante="cabecera" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} alCambiarModo={cambiarModo} demo={demo} />
+            <MenuUsuario nombre={perfil.nombre} variante="cabecera" alPerfil={() => navegar("perfil")} alComoFunciona={() => navegar("como")} alCambiarModo={cambiarModo} alDatos={() => navegar("datos")} alEvaluacion={() => navegar("evaluacion")} demo={demo} />
           </div>
         </div>
       </header>
@@ -431,6 +446,8 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             <ComoFunciona />
           </div>
         )}
+        {pestana === "datos" && <Dataset alProbar={probarCliente} viendo={perfil.id} />}
+        {pestana === "evaluacion" && <Evaluacion />}
         {pestana === "asistente" && (
           <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} avance={avance} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} cobros={datos.cobros} alAnotar={anotar} guardar={persistente} />
         )}
