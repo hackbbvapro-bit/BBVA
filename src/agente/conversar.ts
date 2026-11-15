@@ -103,6 +103,7 @@ async function* conIA(clave: string, entrada: EntradaAgente, cerebro: Cerebro): 
         cobros: entrada.cobros,
         avance: entrada.avance,
         hechos: entrada.hechos,
+        ultimoDelAsistente: limpiarMensajes(entrada.mensajes).findLast(m => m.rol === "asistente")?.texto,
         alAccion: (accion, texto) => anotadas.push({ accion, texto }),
       }),
       messages: limpiarMensajes(entrada.mensajes).map(m => ({

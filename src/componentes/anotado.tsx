@@ -1,13 +1,14 @@
 "use client";
 /** Tarjeta bajo la respuesta del asistente: qué anotó en el panel, y el botón para deshacerlo. */
 import { describir, type Accion } from "@/agente/registro";
+import type { Recibo } from "@/datos/anotar";
 import { Icono } from "@/componentes/ui";
 
 export type Nota =
   | { estado: "guardando"; accion: Accion }
-  | { estado: "listo"; accion: Accion; deshacer: () => Promise<void> }
-  | { estado: "deshaciendo"; accion: Accion }
-  | { estado: "deshecho"; accion: Accion }
+  | { estado: "listo"; accion: Accion; recibo: Recibo }
+  | { estado: "deshaciendo"; accion: Accion; recibo: Recibo }
+  | { estado: "deshecho"; accion: Accion; recibo: Recibo }
   | { estado: "error"; accion: Accion; mensaje: string };
 
 const mayuscula = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
