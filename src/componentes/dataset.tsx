@@ -380,8 +380,9 @@ export function Dataset({
             <input className={campo} type="search" value={texto} placeholder="Mercado, alquiler…" onChange={e => filtrar(setTexto)(e.target.value)} />
           </label>
         </div>
-        <p className="mt-3 text-sm tabular-nums text-gris" role="status">
-          {filas.length} movimientos · entradas {unido(formatoSoles(entra))} · salidas {unido(formatoSoles(sale))}
+        <p className="mt-3 text-sm text-gris" role="status">
+          {filas.length} movimientos · entradas <span className="tabular-nums">{unido(formatoSoles(entra))}</span> · salidas{" "}
+          <span className="tabular-nums">{unido(formatoSoles(sale))}</span>
         </p>
         <div className="mt-2 overflow-x-auto">
           <table className="w-full text-sm">

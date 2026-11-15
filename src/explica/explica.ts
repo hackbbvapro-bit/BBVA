@@ -73,7 +73,7 @@ function avisoDeficit(analisis: Analisis): Aviso | undefined {
   const fondo = crecimientoDelHueco(deficit) ? ` ${crecimientoDelHueco(deficit)}` : "";
   return {
     id: "deficit", nivel: "urgente", fecha: deficit.fecha,
-    titulo: `${enDias(deficit.diasRestantes)} te faltarán ${formatoSoles(deficit.faltante)}`,
+    titulo: `${enDias(deficit.diasRestantes)} te faltarían ${formatoSoles(deficit.faltante)}`,
     // Sin un pago fijo cerca del día en rojo, la causa es el día a día: se dice así en vez de dejar un hueco.
     cuerpo: causas
       ? `El ${formatoLargo(deficit.fecha)} ${verbo} ${causas} y la cuenta queda en rojo.${fondo}${salida}`
@@ -217,7 +217,7 @@ export function responderSinIA(pregunta: string, perfil: Perfil, analisis: Anali
     if (!deuda) return "No tienes deudas registradas.";
     const deficit = analisis.proyeccion.deficit;
     const ojo = deficit
-      ? ` Ojo: el ${formatoLargo(deficit.fecha)} te faltarán ${formatoSoles(deficit.faltante)}. Hasta cubrir eso, paga solo los mínimos y no adelantes pagos.`
+      ? ` Ojo: el ${formatoLargo(deficit.fecha)} te faltarían ${formatoSoles(deficit.faltante)}. Hasta cubrir eso, paga solo los mínimos y no adelantes pagos.`
       : "";
     return `${deuda.titulo}. ${deuda.cuerpo}${ojo}`;
   }

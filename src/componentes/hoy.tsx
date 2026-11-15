@@ -293,9 +293,10 @@ function Comparacion({ jugada, antes, despues, reiniciar }: { jugada: Jugada; an
   // Verde solo si evita el rojo sin costo; si cuesta, ámbar como su insignia.
   const bien = c.conclusion === "evitado" && jugada.costo === 0;
   const celdas = [
-    ["Antes", c.antes.etiqueta, c.antes.monto, c.antes.saldo < 0 ? "text-coral-fuerte" : "text-noche"],
-    ["Después", c.despues.etiqueta, c.despues.monto, c.despues.saldo < 0 ? "text-ambar-fuerte" : "text-verde-fuerte"],
-    ["Cambio", c.cambio > 0 ? "Mejora" : c.cambio < 0 ? "Empeora" : "Igual", c.cambioTexto, c.cambio < 0 ? "text-coral-fuerte" : "text-electrico"],
+    // El día más bajo puede caer en fechas distintas antes y después: cada lado dice la suya.
+    ["Antes", c.antes.etiqueta, c.antes.monto, c.antes.saldo < 0 ? "text-coral-fuerte" : "text-noche", `el ${formatoCorto(c.antes.fecha)}`],
+    ["Después", c.despues.etiqueta, c.despues.monto, c.despues.saldo < 0 ? "text-ambar-fuerte" : "text-verde-fuerte", `el ${formatoCorto(c.despues.fecha)}`],
+    ["Cambio", c.cambio > 0 ? "Mejora" : c.cambio < 0 ? "Empeora" : "Igual", c.cambioTexto, c.cambio < 0 ? "text-coral-fuerte" : "text-electrico", "en tu día más bajo"],
   ] as const;
   return (
     <section ref={caja} aria-label="Antes y después" aria-live="polite" className={`aparecer mt-3 scroll-mb-24 rounded-xl p-3 md:mt-4 md:p-4 ${bien ? "bg-verde-suave/70" : "bg-ambar-suave/70"}`}>
@@ -309,11 +310,12 @@ function Comparacion({ jugada, antes, despues, reiniciar }: { jugada: Jugada; an
         </div>
       </div>
       <dl className="mt-2.5 grid grid-cols-3 divide-x divide-linea rounded-lg bg-white">
-        {celdas.map(([titulo, etiqueta, monto, tono]) => (
+        {celdas.map(([titulo, etiqueta, monto, tono, fecha]) => (
           <div key={titulo} className="min-w-0 px-2 py-2 md:px-3">
             <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-gris">{titulo}</dt>
             <dd className="text-[11px] leading-tight text-gris md:text-xs">{etiqueta}</dd>
             <dd className={`mt-0.5 text-[15px] font-semibold leading-tight tabular-nums md:text-base ${tono}`}>{unido(monto)}</dd>
+            <dd className="text-[11px] leading-tight text-gris md:text-xs">{fecha}</dd>
           </div>
         ))}
       </dl>
