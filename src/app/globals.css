@@ -187,15 +187,16 @@ body {
 .cifra-selector[aria-expanded="true"] .cifra-icono { background: #d5eaff; }
 .cifra-selector:focus-visible { outline: 2px solid var(--color-electrico); outline-offset: 2px; }
 
-.cifra-pie { display: flex; align-items: center; gap: 4px; margin-top: 5px; }
+/* Si «Acumulado general» y «Administrar» no caben juntos, el botón baja de línea en vez de partir la palabra. */
+.cifra-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin-top: 5px; }
 
 .cifra-cuenta {
   min-width: 0;
-  flex: 1;
+  flex: 1 1 max-content;
   color: var(--color-agua-fuerte);
   font-size: 12px;
   line-height: 1.35;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   white-space: normal;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -208,6 +209,7 @@ body {
   align-items: center;
   min-height: 44px;
   margin-block: -14px;
+  margin-inline-start: -4px;
   padding-inline: 4px;
   flex-shrink: 0;
   color: #008fca;
