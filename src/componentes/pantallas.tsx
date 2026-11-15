@@ -27,16 +27,15 @@ function Cargando() {
   );
 }
 
-const opciones = { loading: Cargando };
 
-export const MiRuta = dynamic(() => cargarRuta().then(m => m.MiRuta), opciones);
-export const Deudas = dynamic(() => cargarDeudas().then(m => m.Deudas), opciones);
-export const MiDinero = dynamic(() => cargarDinero().then(m => m.MiDinero), opciones);
-export const Chat = dynamic(() => cargarChat().then(m => m.Chat), opciones);
-export const VistaPerfil = dynamic(() => cargarPerfil().then(m => m.Perfil), opciones);
-export const ComoFunciona = dynamic(() => cargarComo().then(m => m.ComoFunciona), opciones);
-export const Dataset = dynamic(() => cargarDataset().then(m => m.Dataset), opciones);
-export const Evaluacion = dynamic(() => cargarEvaluacion().then(m => m.Evaluacion), opciones);
+export const MiRuta = dynamic(() => cargarRuta().then(m => m.MiRuta), { loading: Cargando });
+export const Deudas = dynamic(() => cargarDeudas().then(m => m.Deudas), { loading: Cargando });
+export const MiDinero = dynamic(() => cargarDinero().then(m => m.MiDinero), { loading: Cargando });
+export const Chat = dynamic(() => cargarChat().then(m => m.Chat), { loading: Cargando });
+export const VistaPerfil = dynamic(() => cargarPerfil().then(m => m.Perfil), { loading: Cargando });
+export const ComoFunciona = dynamic(() => cargarComo().then(m => m.ComoFunciona), { loading: Cargando });
+export const Dataset = dynamic(() => cargarDataset().then(m => m.Dataset), { loading: Cargando });
+export const Evaluacion = dynamic(() => cargarEvaluacion().then(m => m.Evaluacion), { loading: Cargando });
 
 /** Las más usadas primero; las de consulta (datos de prueba, evaluación) al final. */
 const ORDEN = [cargarChat, cargarRuta, cargarDeudas, cargarDinero, cargarPerfil, cargarComo, cargarDataset, cargarEvaluacion];
