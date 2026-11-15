@@ -2,7 +2,15 @@ import { exigirCentimos, porcentaje, redondear, sumar } from './dinero';
 import { diasEntre, ocurrenciasCada, ocurrenciasMensuales, rangoDias, sumarDias } from './fechas';
 import { detectarRecurrentes, estimarGastoVariable, estimarIngresoVariable } from './recurrentes';
 import type { Ajuste, Deficit, DiaProyectado, EfectoDeficit, EventoProyectado, Perfil, Proyeccion } from './tipos';
-export interface OpcionesProyeccion { dias?: number; ajustes?: Ajuste[] }
+export interface OpcionesProyeccion {
+  dias?: number;
+  ajustes?: Ajuste[];
+  /**
+   * Qué semana de ingresos variables se proyecta: la prudente (percentil 25, la que usa la app y el aviso)
+   * o la típica (mediana, solo para el escenario «esperado»). Por defecto, la prudente.
+   */
+  ingreso?: 'prudente' | 'tipico';
+}
 
 function eventosBase(perfil: Perfil, desde: string, hasta: string): EventoProyectado[] {
   return detectarRecurrentes(perfil.movimientos.filter(m => m.fecha <= perfil.hoy), perfil.deudas).flatMap(r => {
@@ -44,7 +52,8 @@ export function proyectar(perfil: Perfil, opciones: OpcionesProyeccion = {}): Pr
   // Un pago movido más allá del horizonte no desaparece: se sigue debiendo, solo que no cae en estos días.
   const eventos = ajustados.filter(e => e.fecha <= hasta);
   const fueraDeVentana = ajustados.filter(e => e.fecha > hasta);
-  const ingreso = Math.floor(estimarIngresoVariable(perfil.movimientos, perfil.deudas, perfil.hoy).semanalPrudente / 7);
+  const variable = estimarIngresoVariable(perfil.movimientos, perfil.deudas, perfil.hoy);
+  const ingreso = Math.floor((opciones.ingreso === 'tipico' ? variable.semanalTipico : variable.semanalPrudente) / 7);
   const gasto = estimarGastoVariable(perfil.movimientos, perfil.deudas, perfil.hoy);
   let saldo = exigirCentimos(perfil.saldoActual);
   const dias = rangoDias(desde, cantidad).map(fecha => {

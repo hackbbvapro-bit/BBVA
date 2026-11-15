@@ -3049,98 +3049,98 @@
     "avisadosSinJugada": 0,
     "tasaDeficit": {
       "sinCopiloto": 0.21,
-      "primeraJugada": 0.184,
-      "todasLasJugadas": 0.166
+      "primeraJugada": 0.201,
+      "todasLasJugadas": 0.193
     },
     "faltanteMedio": {
       "sinCopiloto": 15731,
-      "primeraJugada": 12751,
-      "todasLasJugadas": 10560
+      "primeraJugada": 14729,
+      "todasLasJugadas": 13813
     },
     "avisosAcertados": {
       "n": 178,
       "primeraJugada": {
         "n": 178,
-        "aplicada": 1,
-        "evitados": 0.1461,
-        "reduccionMediana": 0.2162,
+        "aplicada": 0.9775,
+        "evitados": 0.0506,
+        "reduccionMediana": 0.0637,
         "faltanteMedioAntes": 79282,
-        "faltanteMedioDespues": 62544
+        "faltanteMedioDespues": 73655
       },
       "todasLasJugadas": {
         "n": 178,
-        "aplicada": 1,
-        "evitados": 0.2472,
-        "reduccionMediana": 0.468,
+        "aplicada": 0.9831,
+        "evitados": 0.0955,
+        "reduccionMediana": 0.15,
         "faltanteMedioAntes": 79282,
-        "faltanteMedioDespues": 50230
+        "faltanteMedioDespues": 68511
       },
-      "costoMedio": 8,
+      "costoMedio": 11,
       "cuandoPrometeResolver": {
-        "n": 36,
-        "evitados": 0.2778
+        "n": 10,
+        "evitados": 0.1
       },
       "cuandoNoPromete": {
-        "n": 142,
-        "evitados": 0.1127
+        "n": 168,
+        "evitados": 0.0476
       },
       "porTipoDeJugada": {
         "pagar_minimo": {
-          "n": 0,
-          "aplicada": null,
-          "evitados": null,
-          "reduccionMediana": null,
-          "faltanteMedioAntes": null,
-          "faltanteMedioDespues": null
-        },
-        "mover_pago": {
-          "n": 54,
+          "n": 2,
           "aplicada": 1,
-          "evitados": 0.0556,
-          "reduccionMediana": 0.0215,
-          "faltanteMedioAntes": 97997,
-          "faltanteMedioDespues": 94124
+          "evitados": 0.5,
+          "reduccionMediana": 0.8433,
+          "faltanteMedioAntes": 8870,
+          "faltanteMedioDespues": 2045
+        },
+        "pausar_suscripciones": {
+          "n": 100,
+          "aplicada": 1,
+          "evitados": 0.05,
+          "reduccionMediana": 0.0381,
+          "faltanteMedioAntes": 83751,
+          "faltanteMedioDespues": 79787
         },
         "recortar_gasto": {
-          "n": 124,
-          "aplicada": 1,
-          "evitados": 0.1855,
-          "reduccionMediana": 0.4063,
-          "faltanteMedioAntes": 71132,
-          "faltanteMedioDespues": 48792
+          "n": 76,
+          "aplicada": 0.9474,
+          "evitados": 0.0395,
+          "reduccionMediana": 0.0985,
+          "faltanteMedioAntes": 75255,
+          "faltanteMedioDespues": 67472
         }
       },
       "porTipoDePerfil": {
         "dependiente": {
           "n": 56,
-          "aplicada": 1,
-          "evitados": 0.1607,
-          "reduccionMediana": 0.1665,
+          "aplicada": 0.9821,
+          "evitados": 0.0536,
+          "reduccionMediana": 0.0386,
           "faltanteMedioAntes": 85741,
-          "faltanteMedioDespues": 72227
+          "faltanteMedioDespues": 81692
         },
         "independiente": {
           "n": 79,
-          "aplicada": 1,
-          "evitados": 0.0759,
-          "reduccionMediana": 0.1719,
+          "aplicada": 0.962,
+          "evitados": 0.038,
+          "reduccionMediana": 0.0637,
           "faltanteMedioAntes": 84856,
-          "faltanteMedioDespues": 66695
+          "faltanteMedioDespues": 78037
         },
         "mixto": {
           "n": 43,
           "aplicada": 1,
-          "evitados": 0.2558,
-          "reduccionMediana": 0.5383,
+          "evitados": 0.0698,
+          "reduccionMediana": 0.1302,
           "faltanteMedioAntes": 60630,
-          "faltanteMedioDespues": 42309
+          "faltanteMedioDespues": 55140
         }
       }
     },
     "falsasAlarmas": {
       "n": 153,
-      "conCosto": 0.0065,
-      "costoMedio": 2,
+      "conCosto": 0.0261,
+      "costoMedio": 26,
       "deficitCreado": 0
     },
     "sinAviso": {
