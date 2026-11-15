@@ -22,6 +22,7 @@ export function entradaPrioridad(datos: Datos, analisis: Analisis): EntradaPrior
   return {
     hoy: datos.perfil.hoy,
     disponible: disponibleParaDeudas(analisis),
+    rojoEl: analisis.proyeccion.deficit?.fecha ?? null,
     deudas: datos.deudas
       .filter(d => !d.pagada && d.saldo > 0)
       .map(d => ({

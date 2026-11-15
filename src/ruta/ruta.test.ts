@@ -124,7 +124,7 @@ describe("trazarRuta: a quién le toca cada ruta", () => {
     expect(ruta.resumen).toBe(`Lo primero es que no te falte plata el ${formatoLargo(deficit.fecha)}.`);
     expect(ruta.motivos[0]).toContain(formatoSoles(deficit.faltante));
     expect(ruta.pasos[0]).toMatch(/^Tapa el hueco del /);
-    expect(ruta.pasos).toContain("Mientras haya un día en negativo, paga solo el mínimo de cada deuda y no adelantes pagos.");
+    expect(ruta.pasos).toContain(`Hasta que pase el ${formatoLargo(deficit.fecha)}, no adelantes pagos ni sumes extra a ninguna deuda, y nunca pagues menos del mínimo.`);
     expect(ruta.alternativas.map(a => a.entrada.id)).toEqual(["reprogramar"]);
   });
 
@@ -144,7 +144,7 @@ describe("trazarRuta: a quién le toca cada ruta", () => {
     expect(ruta.resumen).toMatch(/^Vas al día/);
     expect(ruta.motivos).toContain(`Debes ${formatoSoles(soles(3000))} en una deuda.`);
     expect(ruta.pasos[0]).toBe(`Pon lo que te sobra (${formatoSoles(soles(550))} al mes) en adelantar Mi tarjeta: cada sol que adelantas deja de generar intereses.`);
-    expect(ruta.pasos.at(-1)).toBe(`Cuando el mes cierre en positivo, empieza un colchón: un mes de tus gastos son ${formatoSoles(soles(1950))}.`);
+    expect(ruta.pasos.at(-1)).toBe(`Cuando el mes cierre en positivo, empieza un colchón: un mes de tus gastos, contando las cuotas de tus deudas, son ${formatoSoles(soles(1950))}.`);
     expect(ruta.alternativas).toEqual([]);
   });
 

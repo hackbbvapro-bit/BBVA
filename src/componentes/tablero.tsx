@@ -1,15 +1,20 @@
 import { formatoLargo, formatoSoles, sumar, type Analisis, type Perfil } from "@/motor";
-import { enLista, mejorJugada } from "@/explica/explica";
+import { CAUSA_DIA_A_DIA, crecimientoDelHueco, enLista, mejorJugada } from "@/explica/explica";
 
-/** Lo que el motor dice del déficit, ya en palabras. Sin déficit, el aviso principal manda. */
-export function pulso(analisis: Analisis) {
+/**
+ * La franja de alerta de Inicio, en palabras. El monto es el del primer día en rojo; si después el hueco crece,
+ * lo dice (nunca lo subestima). El verbo concuerda con las causas y no promete «estás a tiempo».
+ */
+export function alertaPrincipal(analisis: Analisis) {
   const d = analisis.proyeccion.deficit;
   if (!d) return undefined;
+  const causas = enLista(d.causas.map(c => c.descripcion.toLowerCase()));
+  const queSale = d.causas.length === 0 ? `Para ese día ${CAUSA_DIA_A_DIA}.` : d.causas.length > 1 ? `Ese día se juntan ${causas}.` : `Ese día sale ${causas}.`;
+  const plazo = d.diasRestantes <= 0 ? "Es hoy: actúa ya." : d.diasRestantes === 1 ? "Queda 1 día para evitarlo." : `Quedan ${d.diasRestantes} días para evitarlo.`;
   return {
     fecha: formatoLargo(d.fecha),
     monto: formatoSoles(d.faltante),
-    causa: enLista(d.causas.map(c => c.descripcion.toLowerCase())),
-    dias: d.diasRestantes,
+    detalle: [queSale, crecimientoDelHueco(d), plazo].filter(Boolean).join(" "),
   };
 }
 

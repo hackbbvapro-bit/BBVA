@@ -21,7 +21,9 @@ import type { Centimos, FechaISO } from "./tipos";
  * 2. Si no alcanza para todos los mínimos, los que no caben van a «negociar»
  *    (monto 0): reprogramar con la entidad ANTES de caer en atraso.
  * 3. Si alcanza para todos, lo que sobra va por avalancha (mayor TCEA primero),
- *    sin pasar del saldo de cada deuda.
+ *    sin pasar del saldo de cada deuda. EXCEPCIÓN: si la proyección ya tiene un día
+ *    en rojo (`rojoEl`), no se suma extra a ninguna deuda: ese margen se guarda para
+ *    tapar el hueco (misma regla que Mi ruta y el asistente).
  */
 
 /** Días hasta el vencimiento para considerar un pago «ya». */
@@ -46,6 +48,8 @@ export interface EntradaPrioridad {
   /** Ya calculado por quien llama: saldo + ingresos seguros − gastos esenciales. */
   disponible: Centimos;
   deudas: DeudaPrioridad[];
+  /** Primer día en que el saldo proyectado queda en negativo, si lo hay. Con valor, no hay avalancha. */
+  rojoEl?: FechaISO | null;
 }
 
 export type GrupoPago = "pagar-ya" | "pagar-este-mes" | "negociar";
@@ -72,6 +76,8 @@ export interface ResultadoPrioridad {
   /** Suma de los pagos mínimos que no se alcanzan a cubrir. */
   faltante: Centimos;
   alcanzaParaTodo: boolean;
+  /** Copia de `EntradaPrioridad.rojoEl`: si tiene valor, el sobrante se guardó a propósito. */
+  rojoEl: FechaISO | null;
 }
 
 /** Próxima fecha de pago desde hoy (hoy cuenta). Fin de mes sin deriva: día 31 en febrero -> 28/29. */
@@ -198,8 +204,9 @@ export function priorizarPagos(e: EntradaPrioridad): ResultadoPrioridad {
     }
   }
 
-  // Avalancha con lo que sobra, solo si todos los mínimos quedaron cubiertos.
-  if (!hayNegociar) {
+  // Avalancha con lo que sobra, solo si todos los mínimos quedaron cubiertos y no viene un día en rojo.
+  const rojoEl = e.rojoEl ?? null;
+  if (!hayNegociar && rojoEl === null) {
     for (const f of [...filas].sort(compararAvalancha)) {
       if (restante <= 0) break;
       const extra = Math.min(restante, f.d.saldo - f.monto);
@@ -232,5 +239,6 @@ export function priorizarPagos(e: EntradaPrioridad): ResultadoPrioridad {
     sobrante: disponible - comprometido,
     faltante,
     alcanzaParaTodo: !hayNegociar,
+    rojoEl,
   };
 }
