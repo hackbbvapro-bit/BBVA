@@ -73,7 +73,19 @@ body {
 .cifras-mes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: "saldo deuda" "estado fijos";
+  align-items: stretch;
   gap: 10px;
+}
+.cifras-mes > [data-area="saldo"] { grid-area: saldo; }
+.cifras-mes > [data-area="deuda"] { grid-area: deuda; }
+.cifras-mes > [data-area="fijos"] { grid-area: fijos; }
+.cifras-mes > [data-area="estado"] { grid-area: estado; }
+@media (min-width: 1280px) {
+  .cifras-mes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas: "saldo deuda fijos estado";
+  }
 }
 
 .cifra-tarjeta {
@@ -87,6 +99,8 @@ body {
   border-radius: 17px;
   background: white;
   box-shadow: 0 2px 5px #07214603;
+  display: flex;
+  flex-direction: column;
 }
 
 .cifra-tarjeta:first-child {
@@ -141,7 +155,20 @@ body {
   overflow: visible;
 }
 
-.cifra-dato { margin-top: 8px; }
+.cifra-dato { margin-top: 8px; flex: 1; display: flex; flex-direction: column; }
+.cifra-pie-fondo { margin-top: auto; padding-top: 8px; }
+.cifra-lineas { display: grid; gap: 3px; margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--color-linea); font-size: 11px; line-height: 1.35; color: var(--color-gris); }
+.cifra-lineas li { display: flex; justify-content: space-between; gap: 8px; min-width: 0; }
+.cifra-lineas li > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cifra-lineas li > span:last-child { flex-shrink: 0; color: var(--color-noche); font-weight: 500; }
+.cifra-mas, .cifra-extra { margin-top: 4px; color: var(--color-gris); font-size: 11px; line-height: 1.35; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.cifra-icono[data-simple] svg { width: 20px; height: 20px; }
+.cifra-tarjeta[data-tono="rojo"] { --cifra-color: #c21f2e; --cifra-suave: #fdebed; --cifra-acento: #e35b67; }
+.cifra-estado[data-tono="rojo"] { border-color: #f4dfe2; background: #fff7f7; }
+.cifra-estado[data-tono="ambar"] { border-color: #f0dca8; background: #fffaf0; }
+.cifra-estado[data-tono="verde"] { border-color: #ccebd8; background: #f3fbf6; }
+.cifra-estado[data-tono="rojo"] .cifra-valor,
+.cifra-estado[data-tono="ambar"] .cifra-valor { color: var(--cifra-color); }
 
 .cifra-selector {
   display: inline-flex;
@@ -417,3 +444,4 @@ body {
 @media (prefers-reduced-motion: no-preference) {
   html:has(.portada) { scroll-behavior: smooth; }
 }
+

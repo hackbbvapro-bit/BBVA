@@ -13,6 +13,7 @@ export * from './deudas';
 export * from './simular';
 export * from './cobros';
 export * from './minimo';
+export * from './gastos-fijos';
 
 export function analizar(perfil: Perfil): Analisis {
   const proyeccion = proyectar(perfil);

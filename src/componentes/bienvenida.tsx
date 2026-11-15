@@ -128,7 +128,7 @@ export function Bienvenida({ alListo, empezar }: {
         </div>
         <div className="grid flex-1 items-center gap-5 py-6 md:gap-8 md:py-10 lg:grid-cols-[1fr_1fr] lg:gap-12">
           <section
-            aria-label="Qué hace el copiloto"
+            aria-label="Qué hace Finance Pro"
             className="aparecer hidden overflow-hidden lg:block rounded-3xl border border-linea bg-white shadow-[0_1px_2px_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_19_145/0.22)]"
           >
             <MiniProyeccion />

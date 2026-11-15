@@ -24,8 +24,8 @@ import { GraficoSiTePagan } from "@/componentes/si-te-pagan";
 import { Icono, botonPrincipal, botonSecundario, desplazar, unido, type NombreIcono } from "@/componentes/ui";
 import { ResumenCifras } from "@/componentes/resumen-cifras";
 import type { Cuenta } from "@/datos/tipos";
-import { cifras } from "@/componentes/tablero";
-import { fechaConDia, flujoMensual, fraseLlegasPero, fraseRitmo } from "@/ruta/ruta";
+import { cifras, estadoSaldo } from "@/componentes/tablero";
+import { flujoMensual } from "@/ruta/ruta";
 import { proximoVencimiento as calcularProximoVencimiento } from "@/motor/prioridad";
 
 /** A dónde puede mandar el Inicio (lo resuelve el armazón). */
@@ -77,8 +77,6 @@ export function Hoy({
   const kpis = cifras(perfil, analisis);
   const d = analisis.proyeccion.deficit;
   const flujo = flujoMensual(perfil, analisis);
-  const ritmo = fraseRitmo(flujo);
-  const llegasPero = fraseLlegasPero(flujo);
   const proximoVencimiento = calcularProximoVencimiento(perfil.hoy, perfil.deudas.map(deuda => deuda.diaPago));
 
   return (
@@ -118,28 +116,16 @@ export function Hoy({
         )}
       </header>
 
-      <ResumenCifras cifras={kpis.slice(0, 3).map(k => [k.etiqueta, k.valor] as [string, string])} deficit={Boolean(d)} ambar={!d && Boolean(llegasPero)} cuentas={cuentas} proximoVencimiento={proximoVencimiento} tarjetas={perfil.deudas.map(d => ({ id: d.id, nombre: d.nombre, saldo: d.saldo }))} alGestionar={ir ? () => ir("dinero") : undefined} alGestionarTarjetas={ir ? () => ir("deudas") : undefined}
-        alerta={d ? <>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, color: "#c21f2e", fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>
-            <span aria-hidden="true" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, flexShrink: 0, borderRadius: 7, background: "white" }}><span style={{ display: "flex", transform: "scale(.7)" }}><Icono nombre="campana" /></span></span>
-            <span>El {fechaConDia(d.fecha)} te faltarán {unido(formatoSoles(d.faltante))}</span>
-          </div>
-          <div style={{ marginTop: 5, fontSize: 12, lineHeight: 1.4, color: "#5b6670" }}>
-            {d.causas.map((c, i) => (
-              <p key={i} style={{ display: "flex", justifyContent: "space-between", gap: 5 }}>
-                <span>{c.descripcion.replace(/^pago\s+/i, "")}</span>
-                <span className="tabular-nums">{unido(formatoSoles(Math.abs(c.monto)))}</span>
-              </p>
-            ))}
-          </div>
-          {ritmo && <p style={{ marginTop: 5, fontSize: 12, lineHeight: 1.35, color: "#5b6670" }}>{ritmo}.</p>}
-          {analisis.jugadas.length > 0 && <button type="button" className="inline-flex min-h-11 items-center self-end" style={{ marginTop: "auto", marginBottom: -12, color: "#001391", fontSize: 12, lineHeight: 1.3, fontWeight: 600, cursor: "pointer" }} onClick={() => desplazar(document.getElementById("como-evitarlo"))}>Ver qué cambia <span aria-hidden="true">›</span></button>}
-        </> : ritmo ? <>
-          <p data-testid="tarjeta-ritmo" style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 13, lineHeight: 1.3, fontWeight: 600, color: "#8a5a00" }}><span aria-hidden="true">!</span> {llegasPero}</p>
-        </> : <>
-          <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "#0b7a40" }}><span aria-hidden="true">✓</span> Todo está perfecto</p>
-          <p style={{ marginTop: 5, fontSize: 12, lineHeight: 1.3, color: "#5b6670" }}>Tu saldo cubriría los pagos previstos en los próximos 30 días.</p>
-        </>}
+      <ResumenCifras
+        cifras={kpis.slice(0, 3).map(k => [k.etiqueta, k.valor] as [string, string])}
+        cuentas={cuentas}
+        proximoVencimiento={proximoVencimiento}
+        tarjetas={perfil.deudas.map(deuda => ({ id: deuda.id, nombre: deuda.nombre, saldo: deuda.saldo }))}
+        alGestionar={ir ? () => ir("dinero") : undefined}
+        alGestionarTarjetas={ir ? () => ir("deudas") : undefined}
+        detalle={{ nota: kpis[2].nota, lineas: kpis[2].lineas ?? [] }}
+        estado={estadoSaldo(analisis, flujo)}
+        alAccionEstado={() => desplazar(document.getElementById("como-evitarlo"))}
       />
 
       {/* Proyección (2/3) + lo que sale esta semana (1/3). */}
