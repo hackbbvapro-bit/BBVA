@@ -17,7 +17,7 @@ function caso(r: Respuestas) {
   const datos = armarCaso(r);
   const perfil = aPerfil(datos);
   const analisis = analizar(perfil);
-  const ruta = trazarRuta(perfil, analisis, hechosDe(datos, tuvoCreditoSegun(r)));
+  const ruta = trazarRuta(perfil, analisis, { ...hechosDe(datos, tuvoCreditoSegun(r)), meta: r.meta ?? "ahorrar" });
   return { perfil, analisis, ruta, plan: planDelMes(perfil, analisis, ruta) };
 }
 
@@ -30,17 +30,17 @@ describe("planDelMes: Andrea (le falta plata cada mes)", () => {
 
   it("dice cuánto falta, con la misma cifra de su ruta", () => {
     expect(plan.libre).toBe(ruta.flujo.libre);
-    expect(plan.libre).toBe(-56450);
+    expect(plan.libre).toBe(-56470);
     expect(plan.alcanza).toBe(false);
-    expect(plan.titulo).toBe("Cada mes te faltan S/ 564.50");
+    expect(plan.titulo).toBe("Cada mes gastas S/ 564.70 más de lo que te entra");
   });
 
   it("propone palancas calculadas con sus datos: suscripciones y pagar solo el mínimo de las tarjetas", () => {
     expect(plan.partidas.map(p => [p.id, p.monto])).toEqual([["suscripciones", 16180], ["solo-minimos", 51000]]);
     expect(plan.partidas[0].detalle).toMatch(/Streaming/);
     expect(plan.partidas[1].detalle).toMatch(/más intereses/);
-    // 161.80 + 510.00 − 564.50 = 107.30
-    expect(plan.nota).toBe("Con estas palancas juntas cierras el hueco y te quedarían S/ 107.30 al mes.");
+    // 161.80 + 510.00 − 564.70 = 107.10
+    expect(plan.nota).toBe("Con estas palancas juntas cierras el hueco y te quedarían S/ 107.10 al mes.");
   });
 
   it("todos los montos son céntimos enteros y positivos", () => {
@@ -50,8 +50,8 @@ describe("planDelMes: Andrea (le falta plata cada mes)", () => {
 
 describe("planDelMes: cuando sobra, lo libre se reparte sin perder un céntimo", () => {
   it("al día con deuda: todo lo libre a la deuda más cara", () => {
-    const { plan, ruta } = caso(con({ saldo: soles(1500), deuda: tarjeta(3000, 250) }));
-    expect(ruta.id).toBe("estar_en_verde");
+    const { plan, ruta } = caso(con({ meta: "salir_deudas", saldo: soles(1500), deuda: tarjeta(3000, 250) }));
+    expect(ruta.id).toBe("salir_deudas");
     expect(plan.alcanza).toBe(true);
     expect(plan.partidas).toHaveLength(1);
     expect(plan.partidas[0].id).toBe("deuda");
@@ -59,33 +59,33 @@ describe("planDelMes: cuando sobra, lo libre se reparte sin perder un céntimo",
   });
 
   it("construir historial: tope de uso = la mitad de lo libre (redondeada abajo) y el resto al colchón", () => {
-    const { plan, ruta } = caso(base);
+    const { plan, ruta } = caso(con({ meta: "construir_historial" }));
     expect(ruta.id).toBe("construir_historial");
     expect(plan.partidas.map(p => [p.id, p.monto])).toEqual([["uso-credito", soles(400)], ["colchon", soles(400)]]);
-    const impar = caso(con({ ingresoMensual: soles(2500) + 1 }));
+    const impar = caso(con({ meta: "construir_historial", ingresoMensual: soles(2500) + 1 }));
     expect(sumar(impar.plan.partidas.map(p => p.monto))).toBe(impar.plan.libre);
     expect(impar.plan.partidas[0].monto).toBeLessThanOrEqual(impar.plan.partidas[1].monto);
   });
 
   it("hacer crecer con colchón incompleto: todo al colchón y dice en cuántos meses llega", () => {
-    const { plan, ruta } = caso(con({ tuvoCredito: true }));
+    const { plan, ruta } = caso(con({ meta: "hacer_crecer", tuvoCredito: true }));
     expect(ruta.id).toBe("hacer_crecer");
     expect(plan.partidas.map(p => [p.id, p.monto])).toEqual([["colchon", soles(800)]]);
     expect(plan.partidas[0].detalle).toMatch(/6 meses/);
   });
 
   it("hacer crecer con lo que falta del colchón menor que lo libre: colchón y el resto a plazo largo", () => {
-    const { plan } = caso(con({ tuvoCredito: true, saldo: soles(5000) }));
+    const { plan } = caso(con({ meta: "hacer_crecer", tuvoCredito: true, saldo: soles(5000) }));
     expect(plan.partidas.map(p => [p.id, p.monto])).toEqual([["colchon", soles(100)], ["plazo-largo", soles(700)]]);
   });
 
   it("hacer crecer con colchón completo: todo a plazo largo", () => {
-    const { plan } = caso(con({ tuvoCredito: true, saldo: soles(9000) }));
+    const { plan } = caso(con({ meta: "hacer_crecer", tuvoCredito: true, saldo: soles(9000) }));
     expect(plan.partidas.map(p => [p.id, p.monto])).toEqual([["plazo-largo", soles(800)]]);
   });
 
   it("con un día en rojo y algo libre: primero guardar para ese día, sin extra a las deudas", () => {
-    const { plan, analisis } = caso(con({ saldo: soles(20), deuda: tarjeta(3000, 250), cobro: "semanal" }));
+    const { plan, analisis } = caso(con({ meta: "salir_deudas", saldo: soles(20), deuda: tarjeta(3000, 250), cobro: "semanal" }));
     const d = analisis.proyeccion.deficit;
     expect(d).toBeTruthy(); expect(plan.libre).toBeGreaterThan(0); if (!d) return;
     expect(plan.partidas[0].id).toBe("hueco");
@@ -93,7 +93,7 @@ describe("planDelMes: cuando sobra, lo libre se reparte sin perder un céntimo",
     expect(plan.partidas.some(p => p.id === "deuda")).toBe(false);
   });
 
-  for (const r of [base, con({ tuvoCredito: true }), con({ tuvoCredito: true, saldo: soles(5000) }), con({ saldo: soles(1500), deuda: tarjeta(3000, 250) })]) {
+  for (const r of [base, con({ meta: "hacer_crecer", tuvoCredito: true }), con({ meta: "hacer_crecer", tuvoCredito: true, saldo: soles(5000) }), con({ meta: "salir_deudas", saldo: soles(1500), deuda: tarjeta(3000, 250) })]) {
     it(`suma exacta (${r.tuvoCredito ? "con" : "sin"} crédito, saldo ${r.saldo})`, () => {
       const { plan } = caso(r);
       expect(sumar(plan.partidas.map(p => p.monto))).toBe(plan.libre);
@@ -119,9 +119,9 @@ describe("productosDeLaRuta", () => {
   });
 
   it("el fondo mutuo nunca aparece «ahora» si el colchón no está completo", () => {
-    const { ruta } = caso(con({ tuvoCredito: true }));
+    const { ruta } = caso(con({ meta: "hacer_crecer", tuvoCredito: true }));
     expect(productosDeLaRuta(ruta).find(x => x.entrada.id === "fondo-mutuo")?.cuando).toBe("despues");
-    const completo = caso(con({ tuvoCredito: true, saldo: soles(9000) })).ruta;
+    const completo = caso(con({ meta: "hacer_crecer", tuvoCredito: true, saldo: soles(9000) })).ruta;
     expect(productosDeLaRuta(completo).filter(x => x.entrada.id === "fondo-mutuo")).toEqual([expect.objectContaining({ cuando: "ahora" })]);
   });
 
@@ -132,5 +132,16 @@ describe("productosDeLaRuta", () => {
         expect(q).not.toMatch(/\d|%|S\/|BBVA|Interbank|BCP|Scotiabank/i);
       }
     }
+  });
+});
+
+describe("planDelMes: sin deudas no se habla de reprogramar una deuda", () => {
+  it("con gastos mayores que ingresos y sin deudas, «lo que aún faltaría» no menciona deudas", () => {
+    const { perfil, plan } = caso(con({ ingresoMensual: soles(1000), fijosMensual: soles(900), diaADiaMensual: soles(600) }));
+    expect(perfil.deudas).toHaveLength(0);
+    expect(plan.alcanza).toBe(false);
+    const aunFalta = plan.partidas.find(p => p.id === "aun-falta");
+    expect(aunFalta).toBeDefined();
+    expect(aunFalta!.detalle).not.toMatch(/deuda|reprogramar/i);
   });
 });

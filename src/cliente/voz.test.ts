@@ -59,13 +59,13 @@ describe("partirParaVoz", () => {
     expect(partirParaVoz(corto)).toEqual([corto]);
   });
 
-  it("una respuesta normal se parte en un arranque corto y el resto, en un fin de frase y sin perder texto", async () => {
+  it("una respuesta normal se parte por frases sin perder texto", async () => {
     const { partirParaVoz } = await cargar();
     const texto = paraVoz(RESPUESTA);
     const partes = partirParaVoz(texto);
-    expect(partes).toHaveLength(2);
+    expect(partes.length).toBeGreaterThanOrEqual(2);
     expect(partes.join(" ")).toBe(texto);
-    expect(partes[0].length).toBeGreaterThanOrEqual(140);
+    expect(partes[0].length).toBeGreaterThanOrEqual(60);
     expect(partes[0].length).toBeLessThan(texto.length / 2);
     expect(partes[0]).toMatch(/[.!?…]$/);
   });
@@ -86,18 +86,18 @@ describe("partirParaVoz", () => {
 });
 
 describe("hablar", () => {
-  it("pide las dos partes a la vez, suena primero el arranque y avisa solo al terminar la última", async () => {
+  it("precarga un trozo, suena en orden y avisa solo al terminar el último", async () => {
     const { hablar, partirParaVoz } = await cargar();
     const partes = partirParaVoz(paraVoz(RESPUESTA));
     const alTerminar = vi.fn();
     expect(await hablar(RESPUESTA, alTerminar)).toBe("fish");
-    expect(pedidos).toEqual(partes);
+    expect(pedidos).toEqual(partes.slice(0, 2));
     expect(sonados).toEqual([`blob:${partes[0]}`]);
     expect(alTerminar).not.toHaveBeenCalled();
     await terminarAudio();
     expect(sonados).toEqual([`blob:${partes[0]}`, `blob:${partes[1]}`]);
     expect(alTerminar).not.toHaveBeenCalled();
-    await terminarAudio();
+    for (let i = 1; i < partes.length; i++) await terminarAudio();
     expect(alTerminar).toHaveBeenCalledTimes(1);
     expect(leidoPorNavegador).toEqual([]);
   });
@@ -109,16 +109,17 @@ describe("hablar", () => {
     const alTerminar = vi.fn();
     expect(await hablar(RESPUESTA, alTerminar)).toBe("fish");
     await terminarAudio();
-    expect(leidoPorNavegador).toEqual([partes[1]]);
+    expect(leidoPorNavegador).toEqual(partes.slice(1));
+    expect(pedidos.filter(t => t === partes[1])).toHaveLength(2);
     expect(alTerminar).toHaveBeenCalledTimes(1);
   });
 
   it("si falla la primera parte, todo el texto lo dice la voz del celular una sola vez", async () => {
-    const { hablar } = await cargar();
+    const { hablar, partirEnFrases } = await cargar();
     servidor = () => false;
     const alTerminar = vi.fn();
     expect(await hablar(RESPUESTA, alTerminar)).toBe("navegador");
-    expect(leidoPorNavegador).toEqual([paraVoz(RESPUESTA)]);
+    expect(leidoPorNavegador).toEqual(partirEnFrases(paraVoz(RESPUESTA)));
     expect(sonados).toEqual([]);
     expect(alTerminar).toHaveBeenCalledTimes(1);
   });
@@ -142,5 +143,133 @@ describe("hablar", () => {
     expect(await hablar(RESPUESTA, alTerminar)).toBe("ninguna");
     expect(pedidos).toEqual([]);
     expect(alTerminar).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("voz en vivo y textos largos", () => {
+  it("conserva más de 800 caracteres, sin superar el límite por petición", async () => {
+    const { partirEnFrases } = await cargar();
+    const texto = "Una frase larga para explicar las opciones BBVA sin perder palabras. ".repeat(30).trim();
+    const partes = partirEnFrases(texto);
+    expect(partes.join(" ")).toBe(texto);
+    expect(partes.every(p => p.length <= 180)).toBe(true);
+    const sinPuntos = "palabra ".repeat(250).trim();
+    expect(partirEnFrases(sinPuntos).join(" ")).toBe(sinPuntos);
+    expect(partirEnFrases(sinPuntos).every(p => p.length <= 800)).toBe(true);
+  });
+  it("espera el fin de la respuesta aunque la primera frase ya haya sonado", async () => {
+    const { hablarEnVivo } = await cargar();
+    const fin = vi.fn();
+    const sesion = hablarEnVivo(fin);
+    sesion.agregar("Una frase todavía incompleta");
+    expect(pedidos).toEqual([]);
+    sesion.agregar(". Otra ");
+    expect(await sesion.inicio).toBe("fish");
+    await terminarAudio();
+    expect(fin).not.toHaveBeenCalled();
+    sesion.agregar("frase completa.");
+    sesion.terminar();
+    await new Promise(r => setTimeout(r, 0));
+    await terminarAudio();
+    expect(fin).toHaveBeenCalledTimes(1);
+  });
+  it("precarga como máximo dos trozos mientras suena el primero", async () => {
+    const { hablar } = await cargar();
+    await hablar(RESPUESTA.repeat(10));
+    expect(pedidos).toHaveLength(2);
+  });
+  it("un fallo intermedio recuperado mantiene Fish", async () => {
+    const { hablar, partirEnFrases } = await cargar();
+    const partes = partirEnFrases(paraVoz(RESPUESTA));
+    let intento = 0;
+    servidor = t => t !== partes[1] || ++intento > 1;
+    await hablar(RESPUESTA);
+    await terminarAudio();
+    expect(intento).toBe(2);
+    expect(leidoPorNavegador).toEqual([]);
+    expect(sonados[1]).toBe(`blob:${partes[1]}`);
+  });
+});
+
+it("callar cancela también una petición pendiente y no deja arrancar su audio", async () => {
+  const { hablar, callar } = await cargar();
+  let responder!: (r: unknown) => void;
+  vi.stubGlobal("fetch", vi.fn(() => new Promise(r => { responder = r; })));
+  const fin = vi.fn();
+  const inicio = hablar("Una sola frase.", fin);
+  callar();
+  responder({ ok: true, blob: async () => ({ size: 10, texto: "Una sola frase." }) });
+  expect(await inicio).toBe("ninguna");
+  await new Promise(r => setTimeout(r, 0));
+  expect(sonados).toEqual([]);
+  expect(fin).not.toHaveBeenCalled();
+});
+
+it("si otra voz corta una sesión en vivo, avisa por alCortar y no por alTerminar", async () => {
+  const { hablarEnVivo, callar } = await cargar();
+  vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
+  const fin = vi.fn();
+  const cortada = vi.fn();
+  const sesion = hablarEnVivo(fin, cortada);
+  sesion.agregar("Hoy te alcanza. ");
+  callar();
+  callar();
+  expect(cortada).toHaveBeenCalledTimes(1);
+  expect(fin).not.toHaveBeenCalled();
+});
+
+it("el navegador lee todo un texto de más de 800 caracteres", async () => {
+  const { hablar } = await cargar();
+  servidor = () => false;
+  const texto = "Puedes consultar las opciones disponibles de BBVA en su web oficial. ".repeat(30).trim();
+  const fin = vi.fn();
+  expect(await hablar(texto, fin)).toBe("navegador");
+  expect(leidoPorNavegador.join(" ")).toBe(texto);
+  expect(fin).toHaveBeenCalledTimes(1);
+});
+
+describe("la voz nunca se queda colgada", () => {
+  it("si el navegador nunca avisa que terminó de leer, el vigilante cierra el turno igual", async () => {
+    vi.useFakeTimers();
+    try {
+      const { hablar, tiempoMaximoLectura } = await cargar();
+      servidor = () => false;
+      // Navegador que lee pero nunca dispara onend (fallo conocido de algunos celulares).
+      (window as unknown as { speechSynthesis: { speak: (f: { text: string }) => void } }).speechSynthesis.speak =
+        f => { leidoPorNavegador.push(f.text); };
+      const alTerminar = vi.fn();
+      const texto = "No, hoy no te alcanza. Mejor espera al viernes.";
+      await hablar(texto, alTerminar);
+      await vi.advanceTimersByTimeAsync(10);
+      expect(leidoPorNavegador).toEqual([texto]);
+      expect(alTerminar).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(tiempoMaximoLectura(texto));
+      expect(alTerminar).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("un 429 de la voz no se reintenta (insistir alarga el silencio)", async () => {
+    const { pedirAudio } = await cargar();
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 429 })));
+    expect(await pedirAudio("hola", new AbortController().signal)).toEqual({ reintentar: false });
+  });
+
+  it("si Fish tarda más que el plazo, se corta y no se reintenta", async () => {
+    vi.useFakeTimers();
+    try {
+      const { pedirAudio, ESPERA_PRIMER_AUDIO_MS } = await cargar();
+      vi.stubGlobal("fetch", vi.fn((_u: string, init: { signal: AbortSignal }) => new Promise((_r, rechazar) => {
+        init.signal.addEventListener("abort", () => rechazar(new DOMException("cortado", "AbortError")));
+      })));
+      const pedido = pedirAudio("hola", new AbortController().signal, ESPERA_PRIMER_AUDIO_MS);
+      await vi.advanceTimersByTimeAsync(ESPERA_PRIMER_AUDIO_MS + 10);
+      expect(await pedido).toEqual({ reintentar: false });
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("un fallo de red normal sí se puede reintentar", async () => {
+    const { pedirAudio } = await cargar();
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("sin red"); }));
+    expect(await pedirAudio("hola", new AbortController().signal)).toEqual({ reintentar: true });
   });
 });

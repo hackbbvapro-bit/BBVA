@@ -93,15 +93,24 @@ function dictar(Constructor: ConstructorDictado, o: OpcionesEscucha): Escucha {
   return { modo: "dictado", detener: () => dictado.stop() };
 }
 
+export const ESPERA_TRANSCRIPCION_MS = 15_000;
+
 async function transcribir(audio: Blob): Promise<string> {
   if (!salidasPermitidas()) throw new Error("salidas_cerradas");
   const formulario = new FormData();
   formulario.append("audio", audio, audio.type.includes("mp4") ? "audio.mp4" : "audio.webm");
-  const respuesta = await fetch("/api/transcribir", { method: "POST", body: formulario });
-  if (!respuesta.ok) throw new Error(`http_${respuesta.status}`);
-  const dato: unknown = await respuesta.json();
-  const texto = (dato as { texto?: unknown }).texto;
-  return typeof texto === "string" ? texto.trim() : "";
+  // Con plazo: si el servidor no contesta, la persona ve «no te entendí» y puede escribir, en vez de esperar sin fin.
+  const plazo = new AbortController();
+  const reloj = setTimeout(() => plazo.abort(), ESPERA_TRANSCRIPCION_MS);
+  try {
+    const respuesta = await fetch("/api/transcribir", { method: "POST", body: formulario, signal: plazo.signal });
+    if (!respuesta.ok) throw new Error(`http_${respuesta.status}`);
+    const dato: unknown = await respuesta.json();
+    const texto = (dato as { texto?: unknown }).texto;
+    return typeof texto === "string" ? texto.trim() : "";
+  } finally {
+    clearTimeout(reloj);
+  }
 }
 
 function grabar(o: OpcionesEscucha): Escucha {

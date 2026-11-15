@@ -81,10 +81,10 @@ describe("P0-1: las pantallas dicen lo mismo", () => {
     const flujo = flujoMensual(perfil, analisis);
     expect(mes.entra).toBe(flujo.ingresos);
     expect(mes.sale).toBe(flujo.gastos);
-    // Andrea no tiene ingresos fijos: todo lo que entra es variable (S/ 823.43 a la semana × 52 / 12).
-    expect(mes).toMatchObject({ entra: 356820, sale: 311270, notaEntra: "Ingreso variable estimado, a la baja para no ilusionarte" });
+    // Andrea no tiene ingresos fijos: todo lo que entra es variable (S/ 823.43 a la semana × 52 / 12 ≈ 3,568.19; estimado al sol: S/ 3,568).
+    expect(mes).toMatchObject({ entra: 356800, sale: 311270, notaEntra: "Ingreso variable estimado, a la baja para no ilusionarte" });
     const d = desgloseMensual(analisis);
-    expect(d.ingresosFijos + d.ingresoVariable).toBe(356820);
+    expect(d.ingresosFijos + d.ingresoVariable).toBe(356800);
     expect(d.gastosFijos + d.gastoVariable).toBe(311270);
     expect(mes.notaSale).toBe(`Fijos ${formatoSoles(d.gastosFijos)} + día a día ${formatoSoles(d.gastoVariable)}, sin cuotas de deudas`);
   });

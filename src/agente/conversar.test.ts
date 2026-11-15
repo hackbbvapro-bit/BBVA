@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { PERFILES } from "../datos/perfiles";
 import { responderSinIA } from "../explica/explica";
 import { analizar } from "../motor";
-import { limpiarMensajes, responder, ultimaPregunta, type EventoAgente } from "./conversar";
+import { limpiarMensajes, responder, sinFraseCortada, ultimaPregunta, type EventoAgente } from "./conversar";
+import { preguntaSinIA } from "./estilo";
 import { crearHerramientas } from "./herramientas";
 import { SIN_HECHOS, trazarRuta } from "../ruta/ruta";
 import { comoDato, promptSistema } from "./prompt";
@@ -27,6 +28,14 @@ describe("mensajes de la conversación", () => {
     expect(ultimaPregunta([{ rol: "usuario", texto: "¿Me alcanza?" }])).toBe("¿Me alcanza?");
     expect(ultimaPregunta([{ rol: "usuario", texto: "Hola" }, { rol: "asistente", texto: "Dime" }])).toBeUndefined();
     expect(ultimaPregunta([])).toBeUndefined();
+  });
+
+  it("sin IA, «Explícame más» amplía la pregunta anterior en modo Explicado; lo demás respeta el estilo", () => {
+    const charla = [{ rol: "usuario" as const, texto: "¿Por dónde empiezo?" }, { rol: "asistente" as const, texto: "Empieza por esto…" }];
+    expect(preguntaSinIA([...charla, { rol: "usuario", texto: "Explícame más sobre eso" }], "directo")).toEqual({ pregunta: "¿Por dónde empiezo?", estilo: "explicado" });
+    expect(preguntaSinIA([{ rol: "usuario", texto: "explicame mas" }], "directo")).toEqual({ pregunta: "explicame mas", estilo: "explicado" });
+    expect(preguntaSinIA([{ rol: "usuario", texto: "¿Me alcanza?" }], "directo")).toEqual({ pregunta: "¿Me alcanza?", estilo: "directo" });
+    expect(preguntaSinIA([{ rol: "usuario", texto: "¿Qué es más barato?" }], "directo").estilo).toBe("directo");
   });
 });
 
@@ -111,8 +120,9 @@ describe("herramientas e instrucciones", () => {
   it("ante los productos de un banco orienta en vez de negarse, sin inventar nombres ni tasas", () => {
     for (const texto of [promptSistema(PERFILES[0], analizar(PERFILES[0])), promptSistema(PERFILES[0], analizar(PERFILES[0]), trazarRuta(PERFILES[0], analizar(PERFILES[0])))]) {
       expect(texto).toContain("no te niegues en seco");
-      expect(texto).toContain("no te inventas nombres comerciales, tasas ni requisitos");
-      expect(texto).toContain("comparador de tasas de la SBS");
+      expect(texto).toContain("No te inventas nombres comerciales, tasas ni requisitos");
+      expect(texto).not.toContain("comparador de tasas de la SBS");
+      expect(texto).toContain("Nunca repitas el nombre de otra entidad");
       expect(texto).toContain("nunca lo anotes como ingreso");
     }
   });
@@ -135,7 +145,7 @@ describe("herramientas e instrucciones", () => {
   });
 
   it("las instrucciones obligan a explicar las consecuencias del pago mínimo y de no pagar", () => {
-    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
+    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]), undefined, "explicado");
     expect(texto).toContain("# Educas");
     expect(texto).toContain("no es una salida");
     expect(texto).toContain("mucho mejor que no pagar");
@@ -144,7 +154,7 @@ describe("herramientas e instrucciones", () => {
   });
 
   it("las instrucciones distinguen costo conocido, estimado y desconocido, y no venden atrasar un pago como gratis", () => {
-    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
+    const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]), undefined, "explicado");
     expect(texto).toContain("certeza_del_costo");
     expect(texto).toContain("efecto_sobre_el_deficit");
     expect(texto).toContain("no es gratis ni seguro");
@@ -174,7 +184,7 @@ describe("herramientas e instrucciones cuando hay ruta", () => {
       expect(texto).not.toMatch(/S\/\s?\d/);
       const lineasConMarca = texto.split("\n").filter(l => /BBVA/i.test(l));
       expect(lineasConMarca.length).toBeGreaterThan(0);
-      for (const l of lineasConMarca) expect(l).toContain("buscar_producto_bbva");
+      expect(texto).toContain("buscar_producto_bbva");
       expect(texto).toContain("ver_ruta");
       expect(texto.match(/<\/perfil>/g)).toHaveLength(1);
     }
@@ -182,5 +192,38 @@ describe("herramientas e instrucciones cuando hay ruta", () => {
 
   it("sin ruta las instrucciones no mencionan ver_ruta", () => {
     expect(promptSistema(perfil, analisis)).not.toContain("ver_ruta");
+  });
+});
+
+it("directo es corto, explicado educa y la inversión no repite el colchón", () => {
+  const directo = promptSistema(perfil, analisis);
+  expect(directo).toContain("máximo unas 35 palabras");
+  expect(directo).not.toContain("explica siempre tres cosas");
+  expect(promptSistema(perfil, analisis, undefined, "explicado")).toContain("explica siempre tres cosas");
+  expect(directo).toContain("COMO MUCHO UNA VEZ");
+  expect(directo).toContain("revisa el historial");
+});
+
+describe("respuestas que el modelo no alcanzó a terminar", () => {
+  it("quita la frase cortada y conserva las completas", () => {
+    expect(sinFraseCortada("Te faltan S/ 119.07 el lunes. Lo más barato es pausar tus suscrip")).toBe("Te faltan S/ 119.07 el lunes.");
+  });
+  it("no toca un texto que termina bien ni pierde la última frase", () => {
+    expect(sinFraseCortada("Hola. Adiós.")).toBe("Hola. Adiós.");
+    expect(sinFraseCortada("¿Te alcanza? Sí.")).toBe("¿Te alcanza? Sí.");
+  });
+  it("si no hay ninguna frase completa, deja el texto tal cual (mejor algo que nada)", () => {
+    expect(sinFraseCortada("Lo más barato es pausar")).toBe("Lo más barato es pausar");
+  });
+});
+
+describe("«Explícame más» dos veces seguidas", () => {
+  it("amplía la última pregunta de verdad", () => {
+    const charla = [
+      { rol: "usuario", texto: "¿Por dónde empiezo?" }, { rol: "asistente", texto: "Por la tarjeta." },
+      { rol: "usuario", texto: "Explícame más" }, { rol: "asistente", texto: "Porque cobra más interés." },
+      { rol: "usuario", texto: "Dime más" },
+    ];
+    expect(preguntaSinIA(charla, "directo")).toEqual({ pregunta: "¿Por dónde empiezo?", estilo: "explicado" });
   });
 });

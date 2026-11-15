@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { errorJson, leerJson, mismoOrigen, visitante } from "./http";
+import { errorJson, leerJson, leerTextoAcotado, mismoOrigen, visitante } from "./http";
 
 function peticion(cabeceras: Record<string, string>, cuerpo?: string): Request {
   return new Request("https://demo.test/api/x", { method: "POST", headers: cabeceras, body: cuerpo });
@@ -55,5 +55,38 @@ describe("errores", () => {
     expect(respuesta.status).toBe(503);
     expect(await respuesta.json()).toEqual({ error: "voz_no_disponible" });
     expect(respuesta.headers.get("cache-control")).toBe("no-store");
+  });
+});
+
+describe("leerTextoAcotado", () => {
+  /** Cuerpo en trozos y sin content-length: lo que manda un cliente que miente o usa transferencia por partes. */
+  function enTrozos(trozos: string[]) {
+    let leidos = 0;
+    let cancelado = false;
+    const cuerpo = new ReadableStream<Uint8Array>({
+      pull(control) {
+        if (leidos >= trozos.length) { control.close(); return; }
+        control.enqueue(new TextEncoder().encode(trozos[leidos++]));
+      },
+      cancel() { cancelado = true; },
+    });
+    const req = new Request("https://demo.test/api/x", { method: "POST", body: cuerpo, duplex: "half" } as RequestInit);
+    return { req, leidos: () => leidos, cancelado: () => cancelado };
+  }
+
+  it("corta en cuanto pasa el tope, sin leer el resto", async () => {
+    const flujo = enTrozos(["a".repeat(60), "b".repeat(60), "c".repeat(60), "d".repeat(60)]);
+    expect(await leerTextoAcotado(flujo.req, 100)).toBeUndefined();
+    expect(flujo.leidos()).toBeLessThan(4);
+    expect(flujo.cancelado()).toBe(true);
+  });
+
+  it("cuenta bytes, no letras (las tildes pesan dos bytes)", async () => {
+    expect(await leerTextoAcotado(peticion({}, "á".repeat(60)), 100)).toBeUndefined();
+    expect(await leerTextoAcotado(peticion({}, "á".repeat(50)), 100)).toBe("á".repeat(50));
+  });
+
+  it("une bien un cuerpo que llega en trozos", async () => {
+    expect(await leerTextoAcotado(enTrozos(['{"a":', '"hola"}']).req, 100)).toBe('{"a":"hola"}');
   });
 });

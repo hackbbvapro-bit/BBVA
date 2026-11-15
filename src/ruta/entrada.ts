@@ -4,9 +4,10 @@
  * Las fechas son aproximadas a propósito (la entrada pregunta «cuándo te entra la plata», no el día exacto);
  * después se corrigen en Mi dinero y en Deudas.
  */
-import { formatoSoles, type Centimos, type FechaISO, type Movimiento } from "../motor";
+import { formatoSoles, semanalAMes, type Centimos, type FechaISO, type Movimiento } from "../motor";
 import { sumarDias } from "../motor/fechas";
 import { datosVacios } from "../datos/semilla";
+import { CUOTAS_POR_DETALLAR } from "./ruta";
 import type { Datos, DeudaGuardada, Fijo, TipoDeudaDebo } from "../datos/tipos";
 
 export type Cobro = "fin_de_mes" | "quincena" | "semanal" | "variable" | "diario";
@@ -14,17 +15,26 @@ export type Cobro = "fin_de_mes" | "quincena" | "semanal" | "variable" | "diario
 export type Trabajo = "dependiente" | "independiente";
 export type Atraso = "al_dia" | "menos_de_un_mes" | "uno_a_dos_meses" | "mas_de_dos_meses";
 
+export type Meta = "ahorrar" | "salir_deudas" | "hacer_crecer" | "construir_historial";
+
+export function mensualDe(monto: Centimos, cobro: Cobro): Centimos {
+  return cobro === "semanal" || cobro === "diario" ? semanalAMes(monto) : cobro === "quincena" ? monto * 2 : monto;
+}
+
 export interface RespuestaDeuda {
-  tipo: TipoDeudaDebo;
+  tipo?: TipoDeudaDebo;
   /** Cuánto debe en total. */
-  saldo: Centimos;
+  saldo?: Centimos;
   /** Cuánto paga al mes. */
   cuota: Centimos;
-  atraso: Atraso;
+  atraso?: Atraso;
 }
 
 export interface Respuestas {
   nombre: string;
+  meta?: Meta;
+  ingresoSemanal?: Centimos;
+  gastosMensual?: Centimos;
   /** Si falta (casos antiguos), se deduce de cómo cobra: cada semana es independiente. */
   trabajo?: Trabajo;
   cobro: Cobro;
@@ -48,19 +58,19 @@ export interface Respuestas {
   estudios?: Centimos;
   saldo: Centimos;
   /** Alquiler y servicios. */
-  fijosMensual: Centimos;
+  fijosMensual?: Centimos;
   /** Comida, pasajes y gastos del día a día. */
-  diaADiaMensual: Centimos;
+  diaADiaMensual?: Centimos;
   deuda: RespuestaDeuda | null;
   /** Si alguna vez tuvo una tarjeta de crédito o un préstamo de una entidad. */
-  tuvoCredito: boolean;
+  tuvoCredito?: boolean;
   hoy: FechaISO;
 }
 
 /** Días aproximados de atraso según la opción elegida. Son el punto medio del tramo, no una medida. */
 export const DIAS_DE_ATRASO: Record<Atraso, number> = { al_dia: 0, menos_de_un_mes: 20, uno_a_dos_meses: 45, mas_de_dos_meses: 90 };
 
-const DIAS_DE_COBRO: Record<Cobro, number[]> = { fin_de_mes: [30], quincena: [15, 30], semanal: [7, 14, 21, 28], variable: [7, 14, 21, 28], diario: [] };
+const DIAS_DE_COBRO: Record<Cobro, number[]> = { fin_de_mes: [30], quincena: [15, 31], semanal: [7, 14, 21, 28], variable: [7, 14, 21, 28], diario: [] };
 const NOMBRES_DE_INGRESO: Record<Cobro, string[]> = {
   fin_de_mes: ["Ingreso del mes"],
   quincena: ["Ingreso de la primera quincena", "Ingreso de la segunda quincena"],
@@ -95,14 +105,14 @@ function deudaGuardada(d: RespuestaDeuda): DeudaGuardada {
   return {
     id: "deuda-entrada",
     entidad: d.tipo === "personal" ? "Una persona" : "Otra entidad",
-    nombre: NOMBRE_DE_DEUDA[d.tipo],
-    tipo: d.tipo,
-    saldo: d.saldo,
+    nombre: NOMBRE_DE_DEUDA[d.tipo ?? "personal"],
+    tipo: d.tipo ?? "personal",
+    saldo: d.saldo ?? 0,
     tceaBp: null,
     pagoMinimo: d.cuota,
     pagoHabitual: d.cuota,
     diaPago: 15,
-    diasAtraso: DIAS_DE_ATRASO[d.atraso],
+    diasAtraso: DIAS_DE_ATRASO[d.atraso ?? "al_dia"],
     pagada: false,
   };
 }
@@ -167,7 +177,7 @@ export function semanalDe(mensual: Centimos): Centimos {
  * todos los días y que a veces baja. Con ella el motor proyecta el ingreso día por día, con la semana floja.
  */
 export function historiaDiaria(r: Respuestas): Movimiento[] {
-  const normal = semanalDe(r.ingresoMensual);
+  const normal = r.ingresoSemanal ?? semanalDe(r.ingresoMensual);
   const flojo = semanalDe(Math.min(r.ingresoFlojo ?? r.ingresoMensual, r.ingresoMensual));
   const movimientos: Movimiento[] = [];
   for (let semana = 0; semana < SEMANAS_DE_HISTORIA; semana++) {
@@ -195,20 +205,27 @@ export function armarCaso(r: Respuestas): Datos {
   // Quien cobra al día no tiene un ingreso fijo con fecha: va como historia diaria y el motor lo estima con prudencia.
   datos.ingresosFijos = r.cobro === "diario" ? [] : fijos("ingreso", NOMBRES_DE_INGRESO[r.cobro], dias, ingresoProyectado(r), "sueldo");
   datos.movimientos = r.cobro === "diario" ? historiaDiaria(r) : [];
+  if (r.cobro === "semanal" && r.ingresoSemanal !== undefined) {
+    const monto = Math.min(r.ingresoSemanal, r.ingresoFlojo === undefined ? r.ingresoSemanal : Math.floor(r.ingresoFlojo * 12 / 52));
+    datos.ingresosFijos = [];
+    datos.movimientos = Array.from({ length: 12 }, (_, i) => ({ id: `ingreso-semanal-${i}`, fecha: sumarDias(r.hoy, -7 * i), monto, descripcion: "Ingreso semanal", categoria: "sueldo" as const, canal: "cuenta" as const })).filter(m => m.monto > 0);
+  }
   datos.gastosFijos = [
-    ...fijos("gasto-alquiler", ["Alquiler y servicios"], [5], r.fijosMensual, "alquiler"),
-    ...fijos("gasto-dia", NOMBRES_DE_GASTO, DIAS_DE_GASTO, r.diaADiaMensual, "comida"),
+    ...fijos("gasto-total", ["Gastos mensuales por detallar"], [5], r.gastosMensual ?? 0, "otros"),
+    ...fijos("cuotas-pendientes", [CUOTAS_POR_DETALLAR], [15], r.deuda && r.deuda.saldo === undefined ? r.deuda.cuota : 0, "otros"),
+    ...fijos("gasto-alquiler", ["Alquiler y servicios"], [5], r.fijosMensual ?? 0, "alquiler"),
+    ...fijos("gasto-dia", NOMBRES_DE_GASTO, DIAS_DE_GASTO, r.diaADiaMensual ?? 0, "comida"),
     ...fijos("gasto-trabajo", ["Gastos del trabajo, primera quincena", "Gastos del trabajo, segunda quincena"], [3, 18], r.gastosTrabajo ?? 0, "otros"),
     ...fijos("gasto-seguro", ["Seguro de salud o pensión"], [10], r.seguro ?? 0, "salud"),
     ...fijos("gasto-familia", ["Apoyo a la familia"], [1], r.apoyoFamilia ?? 0, "familia"),
     ...fijos("gasto-estudios", ["Estudios y cursos"], [10], r.estudios ?? 0, "educacion"),
   ];
   datos.ingresosFijos.push(...fijos("ingreso-extra", ["Ingreso extra"], [20], r.ingresoExtra ?? 0, "ingreso_variable"));
-  datos.deudas = r.deuda && r.deuda.saldo > 0 ? [deudaGuardada(r.deuda)] : [];
+  datos.deudas = r.deuda && (r.deuda.saldo ?? 0) > 0 ? [deudaGuardada(r.deuda)] : [];
   return datos;
 }
 
 /** Si la persona tuvo crédito formal: lo dijo, o tiene hoy una tarjeta o un préstamo. */
 export function tuvoCreditoSegun(r: Respuestas): boolean {
-  return r.tuvoCredito || (r.deuda !== null && r.deuda.tipo !== "personal");
+  return r.tuvoCredito === true || (r.deuda !== null && r.deuda.tipo !== undefined && r.deuda.tipo !== "personal");
 }
