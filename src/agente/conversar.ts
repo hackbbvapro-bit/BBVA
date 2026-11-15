@@ -1,4 +1,4 @@
-import type { Estilo } from "./estilo";
+import { preguntaSinIA, type Estilo } from "./estilo";
 /**
  * Conversación con el agente. Primero mira si la persona cuenta algo para anotar («me acaban de pagar
  * 1.000»): eso lo resuelve el código, sin IA. Si no, y hay clave de IA, el modelo explica usando las
@@ -191,7 +191,7 @@ export async function* responder(entrada: EntradaAgente): AsyncGenerator<EventoA
     yield { tipo: "fin", origen: "motor" };
     return;
   }
-  const pregunta = ultimaPregunta(entrada.mensajes) ?? "";
-  yield { tipo: "texto", texto: responderSinIA(pregunta, entrada.perfil, entrada.analisis, entrada.ruta, entrada.avance) };
+  const { pregunta, estilo } = preguntaSinIA(limpiarMensajes(entrada.mensajes), entrada.estilo ?? "directo");
+  yield { tipo: "texto", texto: responderSinIA(pregunta, entrada.perfil, entrada.analisis, entrada.ruta, entrada.avance, estilo) };
   yield { tipo: "fin", origen: "respaldo" };
 }

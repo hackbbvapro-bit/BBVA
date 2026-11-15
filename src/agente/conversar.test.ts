@@ -3,6 +3,7 @@ import { PERFILES } from "../datos/perfiles";
 import { responderSinIA } from "../explica/explica";
 import { analizar } from "../motor";
 import { limpiarMensajes, responder, ultimaPregunta, type EventoAgente } from "./conversar";
+import { preguntaSinIA } from "./estilo";
 import { crearHerramientas } from "./herramientas";
 import { SIN_HECHOS, trazarRuta } from "../ruta/ruta";
 import { comoDato, promptSistema } from "./prompt";
@@ -27,6 +28,14 @@ describe("mensajes de la conversación", () => {
     expect(ultimaPregunta([{ rol: "usuario", texto: "¿Me alcanza?" }])).toBe("¿Me alcanza?");
     expect(ultimaPregunta([{ rol: "usuario", texto: "Hola" }, { rol: "asistente", texto: "Dime" }])).toBeUndefined();
     expect(ultimaPregunta([])).toBeUndefined();
+  });
+
+  it("sin IA, «Explícame más» amplía la pregunta anterior en modo Explicado; lo demás respeta el estilo", () => {
+    const charla = [{ rol: "usuario" as const, texto: "¿Por dónde empiezo?" }, { rol: "asistente" as const, texto: "Empieza por esto…" }];
+    expect(preguntaSinIA([...charla, { rol: "usuario", texto: "Explícame más sobre eso" }], "directo")).toEqual({ pregunta: "¿Por dónde empiezo?", estilo: "explicado" });
+    expect(preguntaSinIA([{ rol: "usuario", texto: "explicame mas" }], "directo")).toEqual({ pregunta: "explicame mas", estilo: "explicado" });
+    expect(preguntaSinIA([{ rol: "usuario", texto: "¿Me alcanza?" }], "directo")).toEqual({ pregunta: "¿Me alcanza?", estilo: "directo" });
+    expect(preguntaSinIA([{ rol: "usuario", texto: "¿Qué es más barato?" }], "directo").estilo).toBe("directo");
   });
 });
 
