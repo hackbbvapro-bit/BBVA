@@ -104,7 +104,8 @@ describe("herramientas e instrucciones", () => {
 
   it("con un día en negativo, las instrucciones prohíben sugerir pagar de más a una deuda", () => {
     const texto = promptSistema(PERFILES[0], analizar(PERFILES[0]));
-    expect(texto).toContain("no sugieras pagar más que la cuota mínima");
+    expect(texto).toContain("no sumes extra a ninguna deuda ni adelantes pagos, y nunca pagues menos del mínimo");
+    expect(texto).toContain("la_mas_barata_que_resuelve_sola");
   });
 
   it("las instrucciones obligan a explicar las consecuencias del pago mínimo y de no pagar", () => {

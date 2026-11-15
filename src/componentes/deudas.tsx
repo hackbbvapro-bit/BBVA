@@ -8,6 +8,7 @@ import { useDatos } from "@/componentes/datos";
 import { OrdenDePago } from "@/componentes/orden-pago";
 import { ReporteSbs } from "@/componentes/reporte-sbs";
 import { prioridadDePagos } from "@/datos/paraPrioridad";
+import { mejorJugada } from "@/explica/explica";
 import { ListaDebo, ListaMeDeben, totalDebo, totalMeDeben } from "@/componentes/deudas-editar";
 function Carrera({
   nombre,
@@ -226,7 +227,7 @@ export function Deudas({
           <div className="order-2 mb-3 md:mb-6">{lista}</div>
           {comparacion && pestana !== "sbs" && (
             <div className="order-3 mb-3 md:mb-6 xl:mb-0">
-              <OrdenDePago r={orden} />
+              <OrdenDePago r={orden} jugada={mejorJugada(analisis)?.titulo} />
             </div>
           )}
         </div>
