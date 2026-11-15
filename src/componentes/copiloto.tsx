@@ -418,6 +418,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
             perfil={perfil}
             analisis={analisis}
             cobros={datos.cobros}
+            cuentas={datos.cuentas}
             leer={leer}
             detener={detener}
             sonando={sonando}
