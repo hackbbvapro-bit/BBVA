@@ -1,4 +1,4 @@
-import { hayGastoLlamadoComoPagoDe, nombreFijoRepetido } from "./nombres";
+import { deudaRepetida, hayGastoLlamadoComoPagoDe, nombreFijoRepetido } from "./nombres";
 import { datosDeEjemplo } from "./semilla";
 import type { Cobro, Cuenta, Datos, DatosPerfil, DeudaGuardada, DocumentoAnalizado, Fijo, Sentido } from "./tipos";
 import {
@@ -47,6 +47,11 @@ export function validado(base: Repositorio): Repositorio {
       if (!deuda.pagada && deuda.saldo > 0 && hayGastoLlamadoComoPagoDe(datos, deuda.nombre)) {
         throw new ErrorDatos(
           "Ya tienes un gasto fijo que se llama como el pago de esta deuda. Cámbiale el nombre al gasto o a la deuda: si no, el copiloto los contaría como uno solo.",
+        );
+      }
+      if (!deuda.pagada && deuda.saldo > 0 && deudaRepetida(datos, deuda.nombre, deuda.id)) {
+        throw new ErrorDatos(
+          "Ya tienes otra deuda activa con ese nombre. Ponle un nombre distinto (por ejemplo, con la entidad): si no, el copiloto mezclaría sus pagos.",
         );
       }
       return base.guardarDeuda(deuda);
