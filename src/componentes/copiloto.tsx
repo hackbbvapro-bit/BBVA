@@ -7,25 +7,20 @@ import { fijarSalidas } from "@/cliente/salidas";
 import { borrarSituacion, guardarSituacion, leerSituacion } from "@/cliente/situacion";
 import { avanceDe, hechosDe, opcionesDeRuta, recomendada, saludoDeRuta, trazarRuta, type IdPaso, type IdRuta } from "@/ruta/ruta";
 import { guardarAvances, leerAvances } from "@/cliente/memoria";
-import { MiRuta } from "@/componentes/tu-ruta";
 import { planDelMes } from "@/ruta/presupuesto";
 import { Hoy, type IrDesdeInicio } from "@/componentes/hoy";
-import { Deudas, type AbrirDeudas, type PestanaDeudas } from "@/componentes/deudas";
-import { MiDinero } from "@/componentes/mi-dinero";
-import { Chat } from "@/componentes/chat";
+import type { AbrirDeudas, PestanaDeudas } from "@/componentes/deudas";
 import { HojaAvisos } from "@/componentes/avisos";
 import { Icono, Marca, type NombreIcono } from "@/componentes/ui";
 import { ProveedorDatos, useDatos } from "@/componentes/datos";
 import { MenuUsuario } from "@/componentes/menu-usuario";
-import { Perfil as VistaPerfil } from "@/componentes/perfil";
-import { ComoFunciona } from "@/componentes/como-funciona";
-import { Dataset } from "@/componentes/dataset";
-import { Evaluacion } from "@/componentes/evaluacion";
 import { Bienvenida, guardarModo, leerModo, type Modo } from "@/componentes/bienvenida";
 import { ID_PROPIO } from "@/datos/semilla";
 import type { Datos } from "@/datos/tipos";
 import { anotarEnRepo, type Deshacer } from "@/datos/anotar";
 import type { Accion } from "@/agente/registro";
+
+import { Chat, ComoFunciona, Dataset, Deudas, Evaluacion, MiDinero, MiRuta, VistaPerfil, precargarPantallas } from "@/componentes/pantallas";
 
 type Pestana = "hoy" | "ruta" | "dinero" | "deudas" | "asistente" | "perfil" | "como" | "datos" | "evaluacion";
 type Enlace = [Pestana, string, NombreIcono];
@@ -281,6 +276,8 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
     if (saludoInicial.current) leer(saludoInicial.current);
     // Solo al montar: `leer` cambia en cada render y no debe repetir el saludo.
   }, []);
+  // Inicio ya se ve: el resto de pantallas se baja en segundo plano para que cambiar de pestaña sea instantáneo.
+  useEffect(() => precargarPantallas(), []);
   // Al cambiar de pestaña principal o de caso (entrar al ejemplo), la página arranca arriba del todo.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
