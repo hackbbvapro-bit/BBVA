@@ -134,3 +134,14 @@ describe("productosDeLaRuta", () => {
     }
   });
 });
+
+describe("planDelMes: sin deudas no se habla de reprogramar una deuda", () => {
+  it("con gastos mayores que ingresos y sin deudas, «lo que aún faltaría» no menciona deudas", () => {
+    const { perfil, plan } = caso(con({ ingresoMensual: soles(1000), fijosMensual: soles(900), diaADiaMensual: soles(600) }));
+    expect(perfil.deudas).toHaveLength(0);
+    expect(plan.alcanza).toBe(false);
+    const aunFalta = plan.partidas.find(p => p.id === "aun-falta");
+    expect(aunFalta).toBeDefined();
+    expect(aunFalta!.detalle).not.toMatch(/deuda|reprogramar/i);
+  });
+});
