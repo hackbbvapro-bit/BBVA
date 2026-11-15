@@ -1,0 +1,36 @@
+# Comprobaciones automáticas en cada pull request y en cada cambio a main.
+# Solo verifica: no despliega ni toca Vercel (Vercel sigue desplegando main por su cuenta).
+# No usa secretos: las claves de IA son opcionales y la compilación funciona sin ellas.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Tipos (tsc)
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Pruebas
+        run: npm test
+      - name: Compilación
+        run: npm run build
