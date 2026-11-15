@@ -164,6 +164,10 @@ describe("la ruta que ve el agente", () => {
       expect(todo).not.toMatch(/BBVA/i);
       expect(d.aviso).toBe(AVISO_SIMULACION);
       expect(d.pasos).toEqual(ruta.pasos);
+      for (const a of d.alternativas_para_comparar) {
+        expect(a.que_preguntar_en_su_banco.length).toBeGreaterThan(0);
+        for (const q of a.que_preguntar_en_su_banco) expect(q).not.toMatch(/\d|%/);
+      }
       for (const monto of [...Object.values(d.flujo_mensual).slice(0, 4), d.colchon_para_imprevistos.meta, d.colchon_para_imprevistos.falta]) {
         expect(monto).toMatch(/^-?S\/ [\d,]+\.\d{2}$/);
       }

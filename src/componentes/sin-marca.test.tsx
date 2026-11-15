@@ -8,6 +8,7 @@ import { aPerfil } from "@/datos/aPerfil";
 import { datosDeEjemplo } from "@/datos/semilla";
 import { DatosDePrueba } from "@/componentes/datos";
 import { Hoy } from "@/componentes/hoy";
+import { planDelMes } from "@/ruta/presupuesto";
 import { Deudas } from "@/componentes/deudas";
 import { Chat } from "@/componentes/chat";
 import { Bienvenida } from "@/componentes/bienvenida";
@@ -99,7 +100,9 @@ describe("«Mi ruta» y la tarjeta corta de Inicio", () => {
       const analisis = analizar(perfil);
       const ruta = trazarRuta(perfil, analisis, hechosDe(datos, tuvoCreditoSegun(r)));
       const avance = avanceDe(ruta, []);
-      const pagina = pintar(<MiRuta ruta={ruta} avance={avance} alMarcar={nada} alConversar={nada} />, datos);
+      const pagina = pintar(<MiRuta ruta={ruta} avance={avance} alMarcar={nada} alConversar={nada} plan={planDelMes(perfil, analisis, ruta)} />, datos);
+      expect(pagina).toContain("Tu presupuesto este mes");
+      expect(pagina).toContain("Qué preguntar en tu banco");
       expect(pagina).toContain("Conversar con el asistente");
       expect(pagina).toContain(ruta.titulo);
       expect(pagina).toContain(AVISO_SIMULACION);

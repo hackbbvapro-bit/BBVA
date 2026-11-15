@@ -168,16 +168,17 @@ export function ListaDebo({ primeraId, avisar, abrirNuevo }: { primeraId: string
   const cerradas = datos.deudas.filter(d => d.pagada || d.saldo <= 0);
   const fila = (d: DeudaGuardada): Fila => {
     const cerrada = d.pagada || d.saldo <= 0;
-    const partes = [
-      d.entidad,
-      d.tceaBp === null ? "sin TCEA" : `TCEA ${formatoTasa(d.tceaBp)}`,
-      `mínimo ${formatoSoles(d.pagoMinimo)}`,
-      `vence el día ${d.diaPago}`,
-    ];
+    const tipo = TIPOS.find(([t]) => t === d.tipo)?.[1] ?? "";
     return {
       id: d.id,
       principal: d.nombre,
-      secundario: unido(partes.join(" · ")),
+      secundario: [d.entidad, tipo].filter(Boolean).join(" · "),
+      celdas: [
+        d.tceaBp === null ? "Sin dato" : formatoTasa(d.tceaBp).replace(".00 %", " %"),
+        formatoSoles(d.pagoMinimo),
+        formatoSoles(Math.max(d.pagoHabitual, d.pagoMinimo)),
+        `Día ${d.diaPago}`,
+      ],
       monto: formatoSoles(d.saldo),
       apagada: cerrada,
       etiqueta: cerrada
@@ -185,7 +186,7 @@ export function ListaDebo({ primeraId, avisar, abrirNuevo }: { primeraId: string
         : d.diasAtraso > 0
           ? { texto: `Atraso de ${d.diasAtraso} ${d.diasAtraso === 1 ? "día" : "días"}`, tono: d.diasAtraso > 8 ? "urgente" : "atencion" }
           : d.id === primeraId
-            ? { texto: "La más cara", tono: "azul" }
+            ? { texto: "Paga esta primero", tono: "azul" }
             : undefined,
     };
   };
@@ -195,6 +196,7 @@ export function ListaDebo({ primeraId, avisar, abrirNuevo }: { primeraId: string
       vacio="Aún no registraste deudas. Agrega una con lo que debes y el copiloto la suma a tu plan."
       textoAgregar="Agregar una deuda"
       prefijo="deuda"
+      tabla={{ principal: "Deuda", columnas: ["Interés al año", "Mínimo al mes", "Pagas al mes", "Vence"], monto: "Debes" }}
       formulario={(id, cerrar) => <FormularioDeuda id={id} cerrar={cerrar} />}
       avisar={avisar}
       abrirNuevo={abrirNuevo}

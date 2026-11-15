@@ -46,28 +46,28 @@ export function OrdenDePago({ r, jugada }: { r: ResultadoPrioridad; jugada?: str
   return (
     <section className={`${tarjeta} aparecer`} aria-labelledby="orden-pago">
       <h2 id="orden-pago" className="text-base font-semibold text-noche md:text-lg">
-        Qué pagar primero
+        Qué pagar primero este mes
       </h2>
       <p className="mt-1 text-sm leading-relaxed text-gris md:text-base">
-        {r.alcanzaParaTodo && r.rojoEl ? (
+        {r.alcanzaParaTodo ? (
           <>
-            Con <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> disponibles cubres todos los mínimos
-            {r.sobrante > 0 && <> y te quedan <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.sobrante))}</span> de margen</>}. Ojo: si pagas lo de
-            siempre, tu saldo queda en rojo el {formatoLargo(r.rojoEl)}. {REGLA_DEUDAS_EN_ROJO(formatoLargo(r.rojoEl))}
-            {jugada && <> Tapa el hueco con «{jugada}», la salida más barata que ves en Inicio.</>}
-          </>
-        ) : r.alcanzaParaTodo ? (
-          <>
-            Con <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> disponibles este mes cubres todos los mínimos
-            {r.sobrante > 0 ? <> y aún te sobran <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.sobrante))}</span></> : " y el resto va a la deuda más cara"}.
+            Tienes <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> para tus deudas: alcanza para todos los mínimos
+            {r.sobrante > 0 ? <> y sobran <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.sobrante))}</span>.</> : r.rojoEl ? "." : " y el resto va a la deuda más cara."}
           </>
         ) : (
           <>
-            Con <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> disponibles este mes no alcanza para todo: te
-            faltarían <span className="font-semibold text-coral-fuerte tabular-nums">{unido(formatoSoles(r.faltante))}</span> para cubrir los mínimos.
+            Tienes <span className="font-semibold text-noche tabular-nums">{unido(formatoSoles(r.disponible))}</span> para tus deudas y no alcanza: faltan{" "}
+            <span className="font-semibold text-coral-fuerte tabular-nums">{unido(formatoSoles(r.faltante))}</span> para cubrir los mínimos.
           </>
         )}
       </p>
+      {r.alcanzaParaTodo && r.rojoEl && (
+        <div className="mt-3 rounded-xl border border-ambar/40 bg-ambar-suave px-3 py-2.5 text-[13px] leading-relaxed text-noche md:px-4 md:text-sm">
+          <p className="font-semibold text-ambar-fuerte">Ojo: si pagas lo de siempre, tu saldo queda en rojo el {formatoLargo(r.rojoEl)}.</p>
+          <p className="mt-1">{REGLA_DEUDAS_EN_ROJO(formatoLargo(r.rojoEl))}</p>
+          {jugada && <p className="mt-1">Para tapar el hueco: «{jugada}», la salida más barata que ves en Inicio.</p>}
+        </div>
+      )}
       <div className="mt-3 space-y-4 md:mt-5 md:space-y-5">
         {GRUPOS.map(g => {
           const items = r.decisiones.filter(d => d.grupo === g.id);
