@@ -10,6 +10,7 @@ import { z } from "zod";
 import { formatoLargo, formatoSoles, redondear, sumar } from "../motor";
 import type { Analisis, Centimos, Perfil, Recurrente } from "../motor";
 import { CATALOGO, type EntradaCatalogo } from "../recomendaciones/catalogo";
+import { crecimientoDelHueco } from "../explica/hueco";
 import type { Datos } from "../datos/tipos";
 
 /** Texto fijo que acompaña toda orientación. Lo escribe el código, no la IA. */
@@ -48,14 +49,64 @@ export interface FlujoMensual {
 
 const alMes = (r: Recurrente): Centimos => (r.frecuencia === "mensual" ? r.monto : redondear((r.monto * 52) / 12));
 
+/** De dónde sale cada lado del mes típico: lo fijo detectado y lo variable estimado. Todo en céntimos enteros, ≥ 0. */
+export interface DesgloseMensual {
+  ingresosFijos: Centimos;
+  /** Ingreso variable prudente (semanal × 52 / 12). */
+  ingresoVariable: Centimos;
+  /** Gastos fijos, sin cuotas de deuda. */
+  gastosFijos: Centimos;
+  /** Gasto del día a día (diario × 30). */
+  gastoVariable: Centimos;
+}
+
+/** Única fuente de «lo que entra y sale al mes»: la usan Mi ruta y Mi dinero para que nunca se contradigan. */
+export function desgloseMensual(analisis: Analisis): DesgloseMensual {
+  const fijos = analisis.recurrentes.filter(r => r.categoria !== "deuda").map(alMes);
+  return {
+    ingresosFijos: sumar(fijos.filter(m => m > 0)),
+    ingresoVariable: Math.max(0, redondear((analisis.ingresoVariable.semanalPrudente * 52) / 12)),
+    gastosFijos: -sumar(fijos.filter(m => m < 0)),
+    gastoVariable: Math.max(0, redondear(-analisis.gastoVariable.diario * 30)),
+  };
+}
+
 /** Mes típico de la persona: lo fijo detectado más lo variable estimado. Todo en céntimos enteros. */
 export function flujoMensual(perfil: Perfil, analisis: Analisis): FlujoMensual {
-  const fijos = analisis.recurrentes.filter(r => r.categoria !== "deuda").map(alMes);
-  const ingresos = sumar(fijos.filter(m => m > 0)) + redondear((analisis.ingresoVariable.semanalPrudente * 52) / 12);
-  const gastos = -sumar(fijos.filter(m => m < 0)) + redondear(-analisis.gastoVariable.diario * 30);
+  const d = desgloseMensual(analisis);
+  const ingresos = d.ingresosFijos + d.ingresoVariable;
+  const gastos = d.gastosFijos + d.gastoVariable;
   const cuotas = sumar(perfil.deudas.map(d => Math.max(d.pagoHabitual, d.pagoMinimo)));
   return { ingresos, gastos, cuotas, libre: ingresos - gastos - cuotas };
 }
+
+/**
+ * «Te entra / te sale al mes» de Mi dinero: las MISMAS cifras que usa Mi ruta (flujoMensual), con una nota que dice de
+ * dónde sale cada una. Así ninguna pantalla muestra S/ 0 de ingresos mientras otra muestra lo que el motor estima.
+ */
+export function resumenDelMes(perfil: Perfil, analisis: Analisis) {
+  const d = desgloseMensual(analisis);
+  const f = flujoMensual(perfil, analisis);
+  const notaEntra =
+    d.ingresosFijos > 0 && d.ingresoVariable > 0
+      ? `Fijos ${formatoSoles(d.ingresosFijos)} + variable estimado ${formatoSoles(d.ingresoVariable)}`
+      : d.ingresoVariable > 0
+        ? "Ingreso variable estimado, a la baja para no ilusionarte"
+        : d.ingresosFijos > 0
+          ? "Tus ingresos fijos"
+          : "Agrega tus ingresos";
+  const notaSale =
+    f.gastos === 0 ? "Sin gastos registrados" : `Fijos ${formatoSoles(d.gastosFijos)} + día a día ${formatoSoles(d.gastoVariable)}, sin cuotas de deudas`;
+  return { entra: f.ingresos, sale: f.gastos, notaEntra, notaSale };
+}
+
+/**
+ * Regla única mientras la proyección tenga un día en rojo. La repiten Mi ruta, Deudas («Qué pagar primero») y el
+ * asistente: a ninguna deuda se le suma extra ni se le adelanta el pago, y nunca se paga menos del mínimo; el hueco se
+ * tapa con la jugada más barata que lo resuelve (la misma de Inicio).
+ */
+export const REGLA_DEUDAS_EN_ROJO = (dia: string) =>
+  `Hasta que pase el ${dia}, no adelantes pagos ni sumes extra a ninguna deuda, y nunca pagues menos del mínimo.`;
 
 /** Meses de gastos que conviene tener guardados: una referencia común de educación financiera, no una regla de nadie. */
 export const MESES_DE_COLCHON = 3;
@@ -178,7 +229,7 @@ function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: 
   const { pasos, idsPasos, paso } = listaDePasos();
   const alternativas: Alternativa[] = [];
 
-  if (deficit) motivos.push(`Tu proyección deja el saldo bajo cero el ${formatoLargo(deficit.fecha)}: ese día faltarían ${formatoSoles(deficit.faltante)}.`);
+  if (deficit) motivos.push(`Tu proyección deja el saldo bajo cero el ${formatoLargo(deficit.fecha)}: ese día faltarían ${formatoSoles(deficit.faltante)}.${crecimientoDelHueco(deficit) ? ` ${crecimientoDelHueco(deficit)}` : ""}`);
   if (atraso) motivos.push(`Tienes una deuda con unos ${hechos.diasAtrasoMax} días de atraso.`);
   if (deudas.length > 0) motivos.push(`Debes ${formatoSoles(totalDeuda)} en ${plural(deudas.length, "una deuda", "deudas")}.`);
   motivos.push(fraseLibre(flujo));
@@ -190,7 +241,7 @@ function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: 
     if (jugada) paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: ${minuscula(jugada.titulo)}, que ${jugada.costo > 0 ? `cuesta ${formatoSoles(jugada.costo)}` : "no cuesta dinero"}.`);
     else if (analisis.jugadas.length > 0) paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: ninguna jugada alcanza sola, así que combina dos de las que ves en Inicio.`);
     else paso("verde_tapar_hueco", `Tapa el hueco del ${dia}: aplaza un gasto que no sea urgente o adelanta un ingreso, porque hoy no hay un pago que se pueda mover.`);
-    if (deudas.length > 0) paso("verde_pagar_minimos", "Mientras haya un día en negativo, paga solo el mínimo de cada deuda y no adelantes pagos.");
+    if (deudas.length > 0) paso("verde_pagar_minimos", REGLA_DEUDAS_EN_ROJO(dia));
     else if (flujo.libre <= 0 && !sinRegistro(flujo)) paso("verde_bajar_gasto", "Cada mes te sale más de lo que te entra: elige un gasto fijo que puedas bajar este mismo mes.");
   } else if (deudas.length > 0) {
     const primera = analisis.deudas?.primera ?? null;
@@ -199,7 +250,7 @@ function rutaEnVerde(perfil: Perfil, analisis: Analisis, hechos: Hechos, flujo: 
     else if (primera && primera.tceaBp > 0) paso("verde_adelantar_deuda", `Paga el mínimo de todas y pon lo que te sobra (${formatoSoles(flujo.libre)} al mes) en ${primera.nombre}, la de tasa más alta.`);
     else paso("verde_adelantar_deuda", `Paga el mínimo de todas y anota la tasa (TCEA) de cada una en Deudas: lo que te sobra (${formatoSoles(flujo.libre)} al mes) va a la más cara.`);
   }
-  if (c.gastoMensual > 0) paso("verde_empezar_colchon", `Cuando el mes cierre en positivo, empieza un colchón: un mes de tus gastos son ${formatoSoles(c.gastoMensual)}.`);
+  if (c.gastoMensual > 0) paso("verde_empezar_colchon", `Cuando el mes cierre en positivo, empieza un colchón: un mes de tus gastos, contando las cuotas de tus deudas, son ${formatoSoles(c.gastoMensual)}.`);
 
   if (deficit) alternativas.push(alternativa("reprogramar", `Tu proyección deja el saldo bajo cero el ${formatoLargo(deficit.fecha)}: conviene preguntarlo antes de caer en atraso.`));
   else if (atraso) alternativas.push(alternativa("reprogramar", "Tienes una deuda con atraso: conversar un nuevo plan de pago a tiempo evita que crezca."));
