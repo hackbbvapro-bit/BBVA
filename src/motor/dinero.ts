@@ -60,6 +60,15 @@ export function redondear(valor: number): Centimos {
   return r === 0 ? 0 : r;
 }
 
+/**
+ * Monto semanal llevado a un mes típico (× 52 / 12), redondeado al sol. Es una estimación —un mes no tiene semanas
+ * exactas—, así que no se finge precisión de céntimos: 415.38 por semana son S/ 1,800 al mes, no S/ 1,799.98.
+ */
+export function semanalAMes(semanal: Centimos): Centimos {
+  exigirCentimos(semanal);
+  return redondear(redondear((semanal * 52) / 12) / 100) * 100;
+}
+
 /** Porcentaje de un monto, con el porcentaje en puntos básicos. 15 % = 1500. */
 export function porcentaje(monto: Centimos, bp: PuntosBasicos): Centimos {
   exigirCentimos(monto);

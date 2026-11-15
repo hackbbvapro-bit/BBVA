@@ -4,7 +4,7 @@
  * Las fechas son aproximadas a propósito (la entrada pregunta «cuándo te entra la plata», no el día exacto);
  * después se corrigen en Mi dinero y en Deudas.
  */
-import { formatoSoles, type Centimos, type FechaISO, type Movimiento } from "../motor";
+import { formatoSoles, semanalAMes, type Centimos, type FechaISO, type Movimiento } from "../motor";
 import { sumarDias } from "../motor/fechas";
 import { datosVacios } from "../datos/semilla";
 import type { Datos, DeudaGuardada, Fijo, TipoDeudaDebo } from "../datos/tipos";
@@ -17,7 +17,7 @@ export type Atraso = "al_dia" | "menos_de_un_mes" | "uno_a_dos_meses" | "mas_de_
 export type Meta = "ahorrar" | "salir_deudas" | "hacer_crecer" | "construir_historial";
 
 export function mensualDe(monto: Centimos, cobro: Cobro): Centimos {
-  return cobro === "semanal" || cobro === "diario" ? Math.floor(monto * 52 / 12) : cobro === "quincena" ? monto * 2 : monto;
+  return cobro === "semanal" || cobro === "diario" ? semanalAMes(monto) : cobro === "quincena" ? monto * 2 : monto;
 }
 
 export interface RespuestaDeuda {

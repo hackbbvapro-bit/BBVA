@@ -47,7 +47,7 @@ describe("flujoMensual", () => {
     };
     const f = flujoMensual(perfil, otro);
     expect(f.ingresos).toBe(soles(2500) + 130_000);            // 30 000 × 52 / 12
-    expect(f.gastos).toBe(soles(1700) + 43_333 + 37_020);      // 10 000 × 52 / 12 = 43 333,33… y 1 234 × 30
+    expect(f.gastos).toBe(soles(1700) + 43_300 + 37_020);      // 10 000 × 52 / 12 = 43 333,33… → S/ 433 al sol; y 1 234 × 30
     expect(f.libre).toBe(f.ingresos - f.gastos - f.cuotas);
     expect(Object.values(f).every(Number.isInteger)).toBe(true);
   });
@@ -160,11 +160,12 @@ describe("rutas elegidas y recomendadas", () => {
     const { perfil, analisis } = caso(base);
     expect(trazarRuta(perfil, analisis, { ...SIN_HECHOS, rutaElegida: "salir_deudas" }).id).toBe("ahorrar");
   });
-  it("solo la ruta grande habla de crédito y primero explica el motivo", () => {
+  it("solo la ruta grande habla de crédito: explica el motivo y su primer paso es una acción", () => {
     const { perfil, analisis } = caso(base);
     const rutas = opcionesDeRuta(perfil, analisis);
     const grande = rutas.find(r => r.id === "construir_historial")!;
-    expect(grande.pasos[0]).toContain("El banco mira tu historial antes de prestarte para una casa o un auto; sin historial te lo pueden negar o cobrar más caro");
+    expect(grande.motivos.join(" ")).toContain("El banco mira tu historial antes de prestarte para una casa o un auto; sin historial te lo pueden negar o cobrar más caro");
+    expect(grande.pasos[0]).toMatch(/^Define qué quieres comprar/);
     for (const r of rutas.filter(r => r !== grande)) expect(todoElTexto(r)).not.toMatch(/historial|primer crédito|producto de crédito/);
   });
   it("solo aconseja cancelar toda la deuda si queda colchón tras hacerlo", () => {
@@ -194,6 +195,8 @@ describe("lo que se dice en cada ruta", () => {
     caso(base).ruta, caso(con({ meta: "construir_historial" })).ruta, caso(con({ meta: "hacer_crecer", saldo: soles(9000) })).ruta,
     caso(con({ deuda: tarjeta(3000, 250) })).ruta, caso(con({ deuda: tarjeta(3000, 250, "mas_de_dos_meses") })).ruta,
     caso(con({ saldo: soles(10_000), deuda: tarjeta(3000, 250) })).ruta, caso(con({ ingresoMensual: soles(1200), saldo: soles(100) })).ruta,
+    // Le falta plata cada mes: el primer paso repite la cifra y el saludo no debe decirla dos veces.
+    caso(con({ fijosMensual: soles(2000) })).ruta, caso(con({ meta: "hacer_crecer", fijosMensual: soles(2000) })).ruta,
   ];
 
   it("cubre rutas elegidas y la ruta por déficit", () => {
@@ -228,7 +231,10 @@ describe("lo que se dice en cada ruta", () => {
   it("la versión hablada dice la ruta, lo primero y el primer paso; la explicada añade el aviso", () => {
     for (const r of rutas) {
       const hablada = rutaHablada(r);
-      expect(hablada).toContain(r.motivos[0].charAt(0).toLowerCase() + r.motivos[0].slice(1));
+      // La cifra del mes se dice una sola vez, aunque el primer paso también la mencione.
+      const cifra = r.motivos[0].replace(/\.$/, "").toLowerCase();
+      expect(hablada.toLowerCase().split(cifra)).toHaveLength(2);
+      expect(hablada.split(". ")[0]).not.toContain("porque"); // la sugerencia no se pega a la cifra con «porque»
       expect(hablada).toMatch(/Primer paso: /);
       expect(hablada.length).toBeLessThan(700);
       const explicada = rutaExplicada(r);

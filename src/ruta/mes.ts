@@ -1,4 +1,4 @@
-import { formatoSoles, sumar } from "../motor/dinero";
+import { formatoSoles, semanalAMes, sumar } from "../motor/dinero";
 import { variables } from "../motor/recurrentes";
 import type { Analisis, Categoria, Centimos, Perfil, Recurrente } from "../motor/tipos";
 import { desgloseMensual, flujoMensual } from "./ruta";
@@ -56,7 +56,7 @@ export function repartir(total: Centimos, pesos: readonly number[]): Centimos[] 
   return base;
 }
 
-const alMes = (r: Recurrente): Centimos => (r.frecuencia === "mensual" ? r.monto : Math.round((r.monto * 52) / 12));
+const alMes = (r: Recurrente): Centimos => (r.frecuencia === "mensual" ? r.monto : semanalAMes(r.monto));
 const cuando = (r: Recurrente) => (r.frecuencia === "mensual" ? `Cada mes, el día ${r.diaDelMes}` : "Cada semana");
 
 /** Las descripciones más repetidas de un grupo de movimientos, para decir qué hay dentro de una categoría. */
