@@ -17,7 +17,7 @@ import { MenuUsuario } from "@/componentes/menu-usuario";
 import { Bienvenida, guardarModo, leerModo, type Modo } from "@/componentes/bienvenida";
 import { ID_PROPIO } from "@/datos/semilla";
 import type { Datos } from "@/datos/tipos";
-import { anotarEnRepo, type Deshacer } from "@/datos/anotar";
+import { anotarConRecibo, deshacerRecibo, type Recibo } from "@/datos/anotar";
 import type { Accion } from "@/agente/registro";
 
 import { Chat, ComoFunciona, Dataset, Deudas, Evaluacion, MiDinero, MiRuta, VistaPerfil, precargarPantallas } from "@/componentes/pantallas";
@@ -240,16 +240,17 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
       return nuevos;
     });
   }
-  /** Lo que el asistente anotó va a la base como cualquier otro cambio; devuelve cómo deshacerlo. */
-  async function anotar(accion: Accion): Promise<() => Promise<void>> {
-    let deshacer: Deshacer | undefined;
+  /** Lo que el asistente anotó va a la base como cualquier otro cambio; devuelve el recibo para deshacerlo. */
+  async function anotar(accion: Accion): Promise<Recibo> {
+    let recibo: Recibo | undefined;
     await cambiar(async repo => {
-      deshacer = await anotarEnRepo(repo, accion);
+      recibo = await anotarConRecibo(repo, accion);
     });
-    const hecho = deshacer;
-    if (!hecho) throw new Error("sin_deshacer");
-    return () => cambiar(hecho);
+    const hecho = recibo;
+    if (!hecho) throw new Error("sin_recibo");
+    return hecho;
   }
+  const deshacerAnotado = (recibo: Recibo) => cambiar(repo => deshacerRecibo(repo, recibo));
   function elegirRuta(id: IdRuta) {
     const nueva = { ...situacion, rutaElegida: id };
     if (persistente) guardarSituacion(nueva);
@@ -484,7 +485,7 @@ function Sesion({ perfil, cambiarModo, reciente }: { perfil: Perfil; cambiarModo
         {pestana === "datos" && <Dataset alProbar={probarCliente} viendo={perfil.id} />}
         {pestana === "evaluacion" && <Evaluacion />}
         {pestana === "asistente" && (
-          <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} avance={avance} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} cobros={datos.cobros} alAnotar={anotar} guardar={persistente} />
+          <Chat perfil={perfil} analisis={analisis} demo={demo} externo={externo} ruta={ruta} hechos={hechos} apertura={saludo} avance={avance} alCambiarExterno={demo ? undefined : cambiarExterno} leer={leer} detener={detener} sonando={sonando} cobros={datos.cobros} alAnotar={anotar} alDeshacer={deshacerAnotado} guardar={persistente} />
         )}
         </div>
       </main>

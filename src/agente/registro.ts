@@ -180,6 +180,37 @@ function cambioDelMinimo(antes: { saldoMasBajo: Centimos; enRojoDesde: FechaISO 
   return `Tu punto más bajo de los próximos 30 días pasa de ${soles(antes.saldoMasBajo)} a ${soles(despues.saldoMasBajo)} (el ${formatoCorto(dia)}).`;
 }
 
+/** El monto principal de la acción, siempre en positivo (el de la deuda es su saldo). */
+export function montoDe(accion: Accion): Centimos {
+  return accion.tipo === "deuda" ? accion.saldo : Math.abs(accion.monto);
+}
+
+/**
+ * ¿Hay que preguntar antes de guardar? Sí cuando lo dicho cambia mucho los números: un gasto mayor que todo
+ * el saldo de hoy, o algo que deja en rojo a quien no lo estaba. Un cero de más (por voz es fácil) no debe
+ * quedar guardado sin que la persona lo vea primero. Lo chico («gasté 80 en el mercado») se anota al instante.
+ */
+export function pideConfirmacion(accion: Accion, { antes, despues }: Efecto): boolean {
+  if (!antes.enRojoDesde && despues.enRojoDesde) return true;
+  return accion.tipo === "saldo" && accion.monto < 0 && antes.saldoHoy > 0 && -accion.monto > antes.saldoHoy;
+}
+
+/** La pregunta, siempre con estas palabras: por ella el código reconoce después el «sí» de la persona. */
+export const PREGUNTA_CONFIRMAR = "¿Lo anoto?";
+
+/** Lo que se responde en vez de guardar: el efecto calculado (sin anotar) y la pregunta. */
+export function fraseDeConfirmacion(accion: Accion, efecto: Efecto): string {
+  return `${frase(accion, efecto, false)} Como cambia mucho tus números, todavía no lo guardé. ${PREGUNTA_CONFIRMAR} Dime «sí» para guardarlo, o el monto correcto si me equivoqué.`;
+}
+
+const sinEspacios = (t: string) => t.replace(/\s+/g, "");
+
+/** ¿El asistente ya preguntó por este mismo monto en su último mensaje? Solo así vale un «sí, anótalo». */
+export function yaPreguntoPor(accion: Accion, ultimoDelAsistente: string | undefined): boolean {
+  if (!ultimoDelAsistente || !ultimoDelAsistente.includes("?")) return false;
+  return sinEspacios(ultimoDelAsistente).includes(sinEspacios(soles(montoDe(accion))));
+}
+
 /**
  * La respuesta escrita por el código. `anotado` = ya quedó en el panel; si no, es una simulación
  * («si te llegara mañana…»).
@@ -289,7 +320,7 @@ function leerDiaDelMes(t: string): number | null {
 const PALABRAS_VACIAS = new Set([
   "como", "el", "la", "los", "las", "y", "que", "hoy", "manana", "cada", "al", "este", "esta", "esto", "mi", "me", "mes",
   "dia", "lo", "a", "un", "una", "pero", "si", "cambia", "situacion", "todos", "semana", "proxima", "fin", "en", "de", "por",
-  "para", "ya", "mas", "eso", "con", "su", "tu", "le", "se", "es", "son", "va", "van", "voy",
+  "para", "ya", "mas", "eso", "con", "su", "tu", "le", "se", "es", "son", "va", "van", "voy", "vez", "veces", "cuando",
   ...Object.keys(DIAS_SEMANA), ...Object.keys(MESES),
 ]);
 const VERBOS = /^(pag|d[aio]|deposit|cobr|recib|gan|gast|compr|transfer|yape|cay|lleg|acab|ten|deb|prest|sac|pas)/;
@@ -333,7 +364,7 @@ function categoriaDe(texto: string, sentido: "ingreso" | "gasto"): Categoria {
 
 const HIPOTESIS = /(^| )(y si|si gasto|si compro|si pago|me alcanza|alcanzaria|alcanza para|puedo gastar|puedo comprar|podria|que pasa si|que pasaria|deberia|conviene)( |$)/;
 const MENSUAL = /(^| )(cada mes|al mes|mensual|mensualmente|todos los meses|cada fin de mes|por mes)( |$)/;
-const DEUDA = /(^| )(debo|le debo|les debo|tengo una deuda|me endeude|me prestaron|me (dieron|aprobaron|dan|van a dar) un (prestamo|credito)|(saque|pedi|tengo|tome|saco|voy a sacar) (un|otro) (prestamo|credito))( |$)/;
+const DEUDA = /(^| )(debo|le debo|les debo|tengo una deuda|me endeude|me prestaron|me preste|me he prestado|me habia prestado|me (dieron|aprobaron|dan|van a dar) un (prestamo|credito)|(saque|pedi|tengo|tome|saco|voy a sacar) (un|otro) (prestamo|credito))( |$)/;
 const INGRESO_FUTURO = /(^| )(me van a (pagar|dar|depositar|transferir|yapear|pasar|devolver)|voy a (ganar|cobrar|recibir)|me (pagaran|daran|depositaran|devolveran)|me (debe|deben)|me tienen que pagar|me tiene que pagar)( |$)/;
 const GASTO_PASADO = /(^| )(gaste|pague|compre|me cobraron|me acaban de cobrar|me descontaron|se me fue|perdi|preste|tuve que pagar)( |$)/;
 const INGRESO_PASADO = /(^| )(me pagaron|me dieron|me depositaron|me yapearon|me transfirieron|me devolvieron|cobre|recibi|me cayo|me cayeron|me llego|me llegaron|me acaban de (pagar|dar|depositar|yapear|transferir)|gane|ya me pagaron)( |$)/;
@@ -456,6 +487,17 @@ export function interpretarRegistro(texto: string, hoy: FechaISO, previa?: strin
   return null;
 }
 
+const AFIRMA = /^(si+|sip|claro|dale|ok|okay|okey|ya|listo|correcto|confirmo|confirmado|exacto|asi es|de acuerdo|hazlo|anotalo|guardalo|esta bien)( |$)/;
+const NIEGA = /^(no+|nop|nel|mejor no|cancela|cancelalo|olvidalo|dejalo|no lo anotes|no lo guardes)( |$)/;
+
+/** «sí», «dale, anótalo», «no, mejor no»: respuesta corta y sin cifras a la pregunta de confirmación. */
+function respuestaCorta(texto: string): "si" | "no" | null {
+  const t = normalizar(texto).replace(/[.]/g, " ").trim();
+  if (!t || t.split(" ").length > 6 || buscarMonto(sinFechasNiPorcentajes(texto))) return null;
+  if (NIEGA.test(t)) return "no";
+  return AFIRMA.test(t) ? "si" : null;
+}
+
 export interface MensajeSimple {
   rol: "usuario" | "asistente";
   texto: string;
@@ -472,7 +514,20 @@ export function responderRegistro(
   const deUsuario = mensajes.filter(m => m.rol === "usuario" && m.texto.trim());
   const ultimo = deUsuario.at(-1);
   if (!ultimo || mensajes.at(-1)?.rol !== "usuario") return null;
-  const lectura = interpretarRegistro(ultimo.texto, situacion.perfil.hoy, deUsuario.at(-2)?.texto);
+  const hoy = situacion.perfil.hoy;
+  const anterior = mensajes.at(-2);
+  const dichoPorAsistente = anterior?.rol === "asistente" ? anterior.texto : undefined;
+  // ¿Responde a «¿Lo anoto?»? Solo cuenta si esa pregunta la hizo el código justo antes, por lo que ella misma dijo.
+  if (dichoPorAsistente?.includes(PREGUNTA_CONFIRMAR)) {
+    const corta = respuestaCorta(ultimo.texto);
+    const previo = deUsuario.at(-2);
+    const pendiente = corta && previo ? interpretarRegistro(previo.texto, hoy, deUsuario.at(-3)?.texto) : null;
+    if (pendiente?.tipo === "accion" && yaPreguntoPor(pendiente.accion, dichoPorAsistente)) {
+      if (corta === "no") return { texto: "Listo, no anoté nada. Si el monto era otro, dímelo y lo vemos." };
+      return { texto: frase(pendiente.accion, efectoDe(pendiente.accion, situacion), true), accion: pendiente.accion };
+    }
+  }
+  const lectura = interpretarRegistro(ultimo.texto, hoy, deUsuario.at(-2)?.texto);
   if (!lectura) return null;
   switch (lectura.tipo) {
     case "guia":
@@ -485,6 +540,11 @@ export function responderRegistro(
     }
     case "accion": {
       const efecto = efectoDe(lectura.accion, situacion);
+      // Si cambia mucho sus números, primero se muestra y se pregunta; se guarda cuando lo repite o dice que sí.
+      const yaPreguntado = dichoPorAsistente?.includes(PREGUNTA_CONFIRMAR) && yaPreguntoPor(lectura.accion, dichoPorAsistente);
+      if (pideConfirmacion(lectura.accion, efecto) && !yaPreguntado) {
+        return { texto: fraseDeConfirmacion(lectura.accion, efecto) };
+      }
       return { texto: frase(lectura.accion, efecto, true), accion: lectura.accion };
     }
   }

@@ -25,7 +25,8 @@ import {
 } from "@/componentes/subida";
 import { EXTRACCION_EJEMPLO } from "@/documentos/ejemplo";
 import { AVISO_SIMULACION, preguntasSugeridas, type Avance, type Hechos, type Ruta } from "@/ruta/ruta";
-import { borrarHistorial, guardarHistorial, leerHistorial } from "@/cliente/memoria";
+import { borrarHistorial, guardarHistorial, leerHistorial, type MensajeGuardado, type NotaGuardada } from "@/cliente/memoria";
+import type { Recibo } from "@/datos/anotar";
 type Burbuja = MensajeChat & {
   respaldo?: boolean;
   /** Lo que el asistente anotó con esta respuesta. */
@@ -33,8 +34,35 @@ type Burbuja = MensajeChat & {
   /** Qué modelo respondió («Opus 5.5 · respuesta rápida»). Solo en esta sesión: no se guarda. */
   cerebro?: string;
 };
-/** Guarda en el panel lo que anotó el asistente y devuelve cómo deshacerlo. */
-export type Anotar = (accion: Accion) => Promise<() => Promise<void>>;
+/** Guarda en el panel lo que anotó el asistente y devuelve el recibo con el que se deshace. */
+export type Anotar = (accion: Accion) => Promise<Recibo>;
+
+/**
+ * La conversación guardada, lista para pintar: cada anotación vuelve con su tarjeta («Anotado en tu panel» y
+ * «Deshacer», o «Lo quité de tu panel»). Los ids son solo de esta sesión: posición del mensaje y de la nota.
+ */
+export function restaurar(guardados: readonly MensajeGuardado[]): { mensajes: Burbuja[]; notas: Record<string, Nota> } {
+  const notas: Record<string, Nota> = {};
+  const mensajes = guardados.map(({ anotado, ...m }, i): Burbuja => {
+    if (!anotado?.length) return m;
+    const ids = anotado.map((n, j) => {
+      const id = `g${i}-${j}`;
+      notas[id] = { estado: n.deshecho ? "deshecho" : "listo", accion: n.accion, recibo: n.recibo };
+      return id;
+    });
+    return { ...m, notas: ids };
+  });
+  return { mensajes, notas };
+}
+
+/** Lo que se guarda de una respuesta: solo las notas que de verdad quedaron en el panel (o se deshicieron). */
+export function notasParaGuardar(ids: readonly string[] | undefined, notas: Record<string, Nota>): NotaGuardada[] {
+  return (ids ?? []).flatMap((id): NotaGuardada[] => {
+    const n = notas[id];
+    if (!n || n.estado === "guardando" || n.estado === "error") return [];
+    return [n.estado === "deshecho" ? { accion: n.accion, recibo: n.recibo, deshecho: true } : { accion: n.accion, recibo: n.recibo }];
+  });
+}
 const preguntas = [
   "¿Cómo llego a fin de mes?",
   "¿Me alcanza para gastar S/ 300?",
@@ -169,6 +197,7 @@ export function Chat({
   sonando: sonandoExterior,
   cobros,
   alAnotar,
+  alDeshacer,
   avance,
   guardar = true,
 }: {
@@ -192,6 +221,8 @@ export function Chat({
   cobros?: readonly CobroPendiente[];
   /** Guarda en el panel lo que el asistente anotó («me acaban de pagar 1.000»). Sin esto, solo se muestra. */
   alAnotar?: Anotar;
+  /** Quita del panel lo que dice el recibo de una anotación (botón «Deshacer»). */
+  alDeshacer?: (recibo: Recibo) => Promise<void>;
   /** Pasos de «Mi ruta» que la persona ya marcó: el asistente sigue desde el siguiente. */
   avance?: Avance;
   /** false en una pestaña de solo mirar (otra pestaña tiene la base): muestra lo guardado pero no lo pisa. */
@@ -216,7 +247,8 @@ export function Chat({
     catch { setEstilo("directo"); }
   }
   // La conversación se guarda en este equipo (por caso) y se recupera al volver.
-  const [mensajes, setMensajes] = useState<Burbuja[]>(() => leerHistorial(perfil.id)),
+  const [inicial] = useState(() => restaurar(leerHistorial(perfil.id)));
+  const [mensajes, setMensajes] = useState<Burbuja[]>(inicial.mensajes),
     [texto, setTexto] = useState("");
   const [ocupado, setOcupado] = useState(false),
     [micro, setMicro] = useState(false),
@@ -226,7 +258,7 @@ export function Chat({
     [pidiendo, setPidiendo] = useState(false);
   const [subiendo, setSubiendo] = useState(false),
     [porExplicar, setPorExplicar] = useState<string | null>(null);
-  const [notas, setNotas] = useState<Record<string, Nota>>({});
+  const [notas, setNotas] = useState<Record<string, Nota>>(inicial.notas);
   const subida = useSubida();
   const lectura = useLecturaDisponible(externo);
   const paso = subida.estado.paso;
@@ -257,11 +289,12 @@ export function Chat({
   useEffect(() => {
     // Guarda la conversación cuando termina cada respuesta (no en cada trozo que llega).
     if (ocupado || !guardar) return;
+    // Las notas van con su recibo: «Deshacer» sigue ahí al cambiar de pestaña o recargar.
     guardarHistorial(
       perfil.id,
-      mensajes.map(({ rol, texto, respaldo }) => ({ rol, texto, respaldo })),
+      mensajes.map(({ rol, texto, respaldo, notas: ids }) => ({ rol, texto, respaldo, anotado: notasParaGuardar(ids, notas) })),
     );
-  }, [perfil.id, mensajes, ocupado, guardar]);
+  }, [perfil.id, mensajes, notas, ocupado, guardar]);
   useEffect(() => {
     // Al abrir el panel o cambiar de paso (elegir, leyendo, revisar) se lleva a la vista su inicio.
     if (subiendo) desplazar(panel.current, "start");
@@ -273,8 +306,8 @@ export function Chat({
     if (!alAnotar)
       return fijarNota(id, { estado: "error", accion, mensaje: "En esta vista no se puede guardar." });
     try {
-      const deshacer = await alAnotar(accion);
-      fijarNota(id, { estado: "listo", accion, deshacer });
+      const recibo = await alAnotar(accion);
+      fijarNota(id, { estado: "listo", accion, recibo });
     } catch (e) {
       const mensaje = e instanceof ErrorDatos ? e.message : "Inténtalo otra vez o agrégalo desde Mi dinero.";
       fijarNota(id, { estado: "error", accion, mensaje });
@@ -282,11 +315,11 @@ export function Chat({
   }
   async function deshacerNota(id: string) {
     const nota = notas[id];
-    if (nota?.estado !== "listo") return;
-    fijarNota(id, { estado: "deshaciendo", accion: nota.accion });
+    if (nota?.estado !== "listo" || !alDeshacer) return;
+    fijarNota(id, { ...nota, estado: "deshaciendo" });
     try {
-      await nota.deshacer();
-      fijarNota(id, { estado: "deshecho", accion: nota.accion });
+      await alDeshacer(nota.recibo);
+      fijarNota(id, { ...nota, estado: "deshecho" });
     } catch {
       fijarNota(id, nota);
       setError("No pude deshacerlo. Inténtalo otra vez.");

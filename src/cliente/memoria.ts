@@ -3,13 +3,42 @@
  * como hechos. Se guarda por caso (el ejemplo y el caso propio no se mezclan), solo en este navegador:
  * guardar no envía nada a ningún servidor. Se borra con «Borrar conversación» o al reemplazar el caso propio.
  */
+import { EsquemaAccion, type Accion } from "../agente/registro";
+import { EsquemaRecibo, type Recibo } from "../datos/anotar";
 import { IDS_PASO, type IdPaso } from "../ruta/ruta";
+
+/** Algo que el asistente anotó en el panel con una respuesta, con su recibo para poder deshacerlo más tarde. */
+export interface NotaGuardada {
+  accion: Accion;
+  recibo: Recibo;
+  /** La persona ya lo deshizo con el botón. */
+  deshecho?: boolean;
+}
 
 export interface MensajeGuardado {
   rol: "usuario" | "asistente";
   texto: string;
   /** La respuesta la dio el motor, sin IA. */
   respaldo?: boolean;
+  /** Lo anotado con esta respuesta: así «Deshacer» sigue disponible al volver a la conversación. */
+  anotado?: NotaGuardada[];
+}
+
+/** Tope de anotaciones guardadas por respuesta. */
+const MAX_NOTAS = 10;
+
+/** Solo pasan las notas bien formadas: lo guardado puede estar roto o venir de una versión anterior. */
+function notasValidas(crudo: unknown): NotaGuardada[] {
+  if (!Array.isArray(crudo)) return [];
+  const validas: NotaGuardada[] = [];
+  for (const item of crudo.slice(0, MAX_NOTAS)) {
+    if (typeof item !== "object" || item === null) continue;
+    const { accion, recibo, deshecho } = item as Record<string, unknown>;
+    const a = EsquemaAccion.safeParse(accion);
+    const r = EsquemaRecibo.safeParse(recibo);
+    if (a.success && r.success) validas.push(deshecho === true ? { accion: a.data, recibo: r.data, deshecho: true } : { accion: a.data, recibo: r.data });
+  }
+  return validas;
 }
 
 /** Tope de mensajes guardados: al pasarlo se sueltan los más antiguos. */
@@ -26,7 +55,10 @@ function limpiar(mensajes: readonly MensajeGuardado[]): MensajeGuardado[] {
     // Una burbuja vacía es una respuesta que no llegó: no es parte de la conversación.
     if (!m.texto.trim()) continue;
     const texto = m.texto.slice(0, MAX_TEXTO_GUARDADO);
-    limpios.push(m.respaldo ? { rol: m.rol, texto, respaldo: true } : { rol: m.rol, texto });
+    const limpio: MensajeGuardado = m.respaldo ? { rol: m.rol, texto, respaldo: true } : { rol: m.rol, texto };
+    const anotado = m.rol === "asistente" ? notasValidas(m.anotado) : [];
+    if (anotado.length) limpio.anotado = anotado;
+    limpios.push(limpio);
   }
   return limpios.slice(-MAX_HISTORIAL);
 }
@@ -41,9 +73,9 @@ export function leerHistorial(perfilId: string): MensajeGuardado[] {
     const validos: MensajeGuardado[] = [];
     for (const item of lista) {
       if (typeof item !== "object" || item === null) continue;
-      const { rol, texto, respaldo } = item as Record<string, unknown>;
+      const { rol, texto, respaldo, anotado } = item as Record<string, unknown>;
       if ((rol !== "usuario" && rol !== "asistente") || typeof texto !== "string") continue;
-      validos.push({ rol, texto, respaldo: respaldo === true });
+      validos.push({ rol, texto, respaldo: respaldo === true, anotado: notasValidas(anotado) });
     }
     return limpiar(validos);
   } catch {

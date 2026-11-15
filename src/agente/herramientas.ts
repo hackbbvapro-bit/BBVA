@@ -9,7 +9,10 @@ import { datosDeudas, datosJugadas, datosProximosPagos, datosResumen, datosRuta,
 import { FAMILIAS, buscarEnCatalogo, menuDelCatalogo } from "../catalogo-bbva/catalogo";
 import { SENALES_DICHAS } from "../catalogo-bbva/orientacion";
 import { senalesDe } from "../catalogo-bbva/senales";
-import { CATEGORIAS, EsquemaAccion, aplicar, efectoComoDato, efectoDe, frase, leerFecha, type Accion, type Situacion } from "./registro";
+import {
+  CATEGORIAS, EsquemaAccion, aplicar, efectoComoDato, efectoDe, frase, fraseDeConfirmacion, leerFecha, pideConfirmacion, yaPreguntoPor,
+  type Accion, type Situacion,
+} from "./registro";
 
 const SinDatos = z.object({});
 const BusquedaCatalogo = z.object({
@@ -30,6 +33,8 @@ const montoDicho = () =>
     .describe("El monto tal como lo dijo la persona, sin calcular nada: «1000», «1.000», «mil», «S/ 250.50», «cien soles».");
 const anotar = z.boolean()
   .describe("true si es un hecho (ya pasó, o la persona afirma que pasará) y debe quedar en su panel; false si solo pregunta «¿y si…?».");
+const confirmado = z.boolean().optional()
+  .describe("Ponlo en true SOLO si en tu mensaje anterior le preguntaste si anotabas este mismo monto y la persona acaba de responder que sí. En cualquier otro caso, no lo pongas.");
 const descripcion = z.string().trim().max(40).optional().describe("Qué es, en 1 a 4 palabras: «Limpieza», «Luz», «Sueldo».");
 const diaDelMes = z.number().int().min(1).max(31).optional().describe("Solo para cada_mes: el día del mes que dijo la persona (1 a 31).");
 
@@ -50,6 +55,7 @@ const GastoAnotado = z.object({
   descripcion,
   categoria: z.enum(CATEGORIAS).optional().describe("Solo para cada_mes."),
   anotar,
+  confirmado,
 });
 const DeudaAnotada = z.object({
   entidad: z.string().trim().min(1).max(40).describe("A quién le debe: una entidad, o «Familiar», «Amigo»."),
@@ -60,6 +66,7 @@ const DeudaAnotada = z.object({
   dia_de_pago: z.number().int().min(1).max(31),
   tcea_dicha: z.string().trim().max(20).optional().describe("El costo anual (TCEA) si lo dijo, por ejemplo «45%». Si no lo dijo, no lo pongas."),
   anotar,
+  confirmado,
 });
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -79,6 +86,8 @@ export interface OpcionesHerramientas {
   avance?: Avance;
   /** Historial crediticio declarado (tuvo crédito, días de atraso): afina las señales del catálogo. */
   hechos?: Hechos;
+  /** El último mensaje del asistente antes de este turno: un «confirmado» solo vale si ahí preguntó por ese monto. */
+  ultimoDelAsistente?: string;
 }
 
 const comoTexto = (datos: unknown): string => JSON.stringify(datos);
@@ -91,11 +100,22 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
   let actual = analisis;
   const yaAnotadas = new Set<string>();
 
-  function registrar(propuesta: Accion, quiereAnotar: boolean): string {
+  function registrar(propuesta: Accion, quiereAnotar: boolean, confirmado = false): string {
     const valida = EsquemaAccion.safeParse(propuesta);
     if (!valida.success) return error("Faltan datos o no son válidos. Pregúntale a la persona lo que falta.");
     const accion = valida.data;
     const efecto = efectoDe(accion, situacion);
+    // Si cambia mucho sus números, no se guarda hasta que la persona lo confirme. Que ya se le preguntó lo
+    // comprueba el código (el mensaje anterior del asistente nombra ese monto en una pregunta), no el modelo.
+    const confirmada = confirmado && yaPreguntoPor(accion, opciones.ultimoDelAsistente);
+    if (quiereAnotar && pideConfirmacion(accion, efecto) && !confirmada) {
+      return comoTexto({
+        anotado_en_su_panel: false,
+        necesita_confirmacion: "NO se guardó: cambia mucho sus números. Muéstrale el efecto y pregúntale si lo anotas, con el monto exacto. Si responde que sí, vuelve a llamar con confirmado=true.",
+        ...efectoComoDato(accion, efecto),
+        respuesta_sugerida: fraseDeConfirmacion(accion, efecto),
+      });
+    }
     const texto = frase(accion, efecto, quiereAnotar);
     const clave = JSON.stringify(accion);
     if (quiereAnotar && !yaAnotadas.has(clave)) {
@@ -176,18 +196,19 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
     betaZodTool({
       name: "anotar_gasto",
       description:
-        "Cuando la persona cuenta que gastó o pagó algo («gasté 80 en el mercado», «pagué 120 de luz») o tiene un gasto que se repite cada mes («pago 50 de internet cada mes el 15»). El motor recalcula y, con anotar=true, queda en su panel. Para «¿me alcanza para gastar…?» no uses esta: usa simular_gasto.",
+        "Cuando la persona cuenta que gastó o pagó algo («gasté 80 en el mercado», «pagué 120 de luz») o tiene un gasto que se repite cada mes («pago 50 de internet cada mes el 15»). El motor recalcula y, con anotar=true, queda en su panel. Para «¿me alcanza para gastar…?» no uses esta: usa simular_gasto. Plata que pidió prestada («me presté», «saqué un préstamo») no es un gasto: es una deuda, usa anotar_deuda.",
       inputSchema: GastoAnotado,
       eager_input_streaming: true,
-      run: ({ monto, cuando, dia_del_mes, descripcion: d, categoria, anotar: si }) => {
+      run: ({ monto, cuando, dia_del_mes, descripcion: d, categoria, anotar: si, confirmado: ok }) => {
         const centimos = leerMonto(monto);
         if (centimos === null || centimos <= 0) return error(SIN_MONTO);
         const nombre = d?.trim() || undefined;
-        if (cuando === "ya_paso") return registrar({ tipo: "saldo", monto: -centimos, descripcion: nombre ? `Gasto: ${nombre}` : "Gasto" }, si);
+        if (cuando === "ya_paso") return registrar({ tipo: "saldo", monto: -centimos, descripcion: nombre ? `Gasto: ${nombre}` : "Gasto" }, si, ok);
         if (!dia_del_mes) return error("Falta el día del mes en que lo paga. Pregúntaselo.");
         return registrar(
           { tipo: "fijo", sentido: "gasto", descripcion: nombre ?? "Gasto fijo", monto: centimos, dia: dia_del_mes, categoria: categoria ?? "otros" },
           si,
+          ok,
         );
       },
     }),
@@ -197,13 +218,14 @@ export function crearHerramientas(perfil: Perfil, analisis: Analisis, ruta?: Rut
         "Cuando la persona cuenta una deuda nueva con cuánto debe, cuánto paga al mes y qué día. Si falta alguno de esos datos, pregúntalo antes de llamarla; no los inventes. El motor recalcula y, con anotar=true, queda en su panel.",
       inputSchema: DeudaAnotada,
       eager_input_streaming: true,
-      run: ({ entidad, nombre, tipo, saldo, pago_mensual, dia_de_pago, tcea_dicha, anotar: si }) => {
+      run: ({ entidad, nombre, tipo, saldo, pago_mensual, dia_de_pago, tcea_dicha, anotar: si, confirmado: ok }) => {
         const total = leerMonto(saldo);
         const cuota = leerMonto(pago_mensual);
         if (!total || !cuota) return error(SIN_MONTO);
         return registrar(
           { tipo: "deuda", entidad, nombre, tipoDeuda: tipo, saldo: total, pagoMensual: cuota, dia: dia_de_pago, tceaBp: leerTcea(tcea_dicha) },
           si,
+          ok,
         );
       },
     }),
