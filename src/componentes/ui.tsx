@@ -93,14 +93,14 @@ export function Portada({ children }: { children: ReactNode }) {
   return <section className="aparecer mb-4 rounded-2xl border border-linea bg-white p-4 md:mb-6 md:rounded-[22px] md:p-8">{children}</section>;
 }
 /** Encabezado de página: título a escala de producto (no de cartel), bajada y acciones a la derecha. */
-export function Encabezado({ titulo, bajada, acciones }: { titulo: string; bajada?: ReactNode; acciones?: ReactNode }) {
+export function Encabezado({ titulo, bajada, acciones, compacto = false }: { titulo: string; bajada?: ReactNode; acciones?: ReactNode; compacto?: boolean }) {
   return (
-    <header className="aparecer mb-4 flex flex-col gap-3 md:mb-6 md:gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <header className={compacto ? "aparecer flex items-start justify-between gap-3 sm:items-center" : "aparecer mb-4 flex flex-col gap-3 md:mb-6 md:gap-4 lg:flex-row lg:items-end lg:justify-between"}>
       <div className="min-w-0 lg:flex-1">
         <h1 className="text-[1.375rem] font-semibold leading-tight tracking-[-0.02em] text-noche md:text-[1.875rem]">{titulo}</h1>
         {bajada && <p className="mt-1 max-w-2xl text-sm leading-relaxed text-gris md:mt-1.5 md:text-[15px]">{bajada}</p>}
       </div>
-      {acciones && <div className="flex flex-wrap gap-2 lg:shrink-0">{acciones}</div>}
+      {acciones && <div className={`flex flex-wrap gap-2 ${compacto ? "shrink-0" : "lg:shrink-0"}`}>{acciones}</div>}
     </header>
   );
 }

@@ -1,5 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
+import "fake-indexeddb/auto";
+import { abrirBaseLocal, crearRepositorioIndexedDB } from "./indexeddb";
 import { crearRepositorioPGlite } from "./pglite";
 import { crearRepositorioMemoria, type Repositorio } from "./repositorio";
 import { MIGRACIONES, VERSION_ACTUAL, migrar } from "./esquema";
@@ -10,8 +12,14 @@ import { ErrorDatos } from "./validar";
 import type { DeudaGuardada } from "./tipos";
 
 const bases: PGlite[] = [];
+const basesLocales: IDBDatabase[] = [];
 const fabricas: [string, () => Promise<Repositorio>][] = [
   ["memoria", async () => crearRepositorioMemoria()],
+  ["IndexedDB", async () => {
+    const db = await abrirBaseLocal(crypto.randomUUID());
+    basesLocales.push(db);
+    return crearRepositorioIndexedDB(db);
+  }],
   [
     "PGlite",
     async () => {
@@ -21,7 +29,10 @@ const fabricas: [string, () => Promise<Repositorio>][] = [
     },
   ],
 ];
-afterAll(() => Promise.all(bases.map(b => b.close())));
+afterAll(async () => {
+  basesLocales.forEach(b => b.close());
+  await Promise.all(bases.map(b => b.close()));
+});
 
 const deuda = (extra: Partial<DeudaGuardada> = {}): DeudaGuardada => ({
   id: "d-1", entidad: "Caja Ejemplo", nombre: "Préstamo Caja", tipo: "personal", saldo: 120000, tceaBp: 3500,
