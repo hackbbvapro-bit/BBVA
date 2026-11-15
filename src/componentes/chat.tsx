@@ -347,9 +347,9 @@ export function Chat({
           if (!silenciado.current && vozRef.current && (!porVoz || faseRef.current === "pensando")) {
             if (!sesionVoz.current) {
               setVozEnCurso(true);
-              sesionVoz.current = hablarEnVivo(() => {
-                if (vivo.current) setVozEnCurso(false);
-              });
+              const apagar = () => { if (vivo.current) setVozEnCurso(false); };
+              // Si otra voz la corta (botón «Escuchar», nueva lectura), el indicador también se apaga.
+              sesionVoz.current = hablarEnVivo(apagar, apagar);
             }
             sesionVoz.current.agregar(trozo);
           }

@@ -158,8 +158,12 @@ export interface VozEnVivo {
   inicio: Promise<MotorVoz>;
 }
 
-/** Mantiene el turno abierto entre bloques; el callback solo llega tras cerrar y vaciar la cola. */
-export function hablarEnVivo(alTerminar?: () => void): VozEnVivo {
+/**
+ * Mantiene el turno abierto entre bloques; alTerminar solo llega tras cerrar y vaciar la cola.
+ * alCortar llega si otra voz o callar() corta esta sesión antes de terminar: así quien la abrió
+ * nunca se queda creyendo que sigue sonando.
+ */
+export function hablarEnVivo(alTerminar?: () => void, alCortar?: () => void): VozEnVivo {
   callar();
   const miTurno = turno;
   const corte = new AbortController();
@@ -183,7 +187,10 @@ export function hablarEnVivo(alTerminar?: () => void): VozEnVivo {
     resolver(motor);
 
   };
-  cancelarSesion = () => { corte.abort(); marcar("ninguna"); };
+  cancelarSesion = () => {
+    corte.abort(); marcar("ninguna");
+    if (!terminado) { terminado = true; alCortar?.(); }
+  };
   const acabar = () => {
     if (!vigente() || terminado || !cerrado || ocupado || cola.length) return;
     terminado = true; marcar("ninguna"); liberarUrl(); alTerminar?.();
