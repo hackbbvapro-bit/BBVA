@@ -46,7 +46,7 @@ fechas `AAAA-MM-DD`.
 
 [`docs/DATOS.md` §7](../../docs/DATOS.md#7-qué-tan-realista-es-y-qué-no) explica qué se parece a la
 realidad peruana y qué no. Las cifras de contexto (informalidad, uso de billeteras, costo de tarjetas)
-se citan con su fuente en [`investigacion/10-verificacion-de-cifras.md`](../../investigacion/10-verificacion-de-cifras.md).
+se citan con su fuente en la verificación de cifras del equipo (no publicada).
 
 Límite principal, dicho sin adornos: el generador y el motor los escribió el mismo equipo, así que
 acertar con estos datos no prueba que se acierte con personas reales.
