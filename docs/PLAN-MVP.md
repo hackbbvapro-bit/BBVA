@@ -42,7 +42,7 @@ Las ideas y por qué esta primero: `docs/IDEAS.md`.
 ## Guion de la demo (3 minutos)
 1. **El problema** (30 s): solo 39 % de los peruanos podría afrontar un gasto imprevisto de un mes
    de ingresos (SBS-CAF, 2026); las apps te dicen en qué gastaste, no lo que viene. Las frases
-   con fuente están en `investigacion/10-verificacion-de-cifras.md`.
+   con fuente están en la verificación de cifras del equipo (no publicada).
 2. **La persona** (20 s): independiente con ingresos irregulares, dos tarjetas, Yape diario.
 3. **El aviso** (60 s): «el lunes 23 te faltarán S/ 119.07» (perfil Andrea) → por qué → 3 jugadas
    con su costo. El guion detallado, con las cifras que hoy muestra la app, está en

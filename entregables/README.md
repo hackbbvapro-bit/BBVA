@@ -44,4 +44,4 @@ Las mismas cuatro primeras comprobaciones corren en cada pull request
 - `[MEDIDO]`: cifra obtenida ejecutando el código del repositorio.
 - `[SIN VERIFICAR]`: dato que no se pudo comprobar; no se presenta como hecho.
 - Las cifras de mercado se citan con su fuente en
-  [`investigacion/10-verificacion-de-cifras.md`](../investigacion/10-verificacion-de-cifras.md).
+  la verificación de cifras del equipo (no publicada).

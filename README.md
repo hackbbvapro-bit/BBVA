@@ -41,13 +41,6 @@ pantalla debe salir de una función con test.
 | Carpeta | Contenido |
 |---|---|
 | **`entregables/`** | **Índice de los 5 entregables pedidos por la organización** (demo, dataset, modelo/IA, evidencia, arquitectura), cada uno con su resumen y enlaces |
-| `investigacion/01-problemas-financieros-peru.md` | Qué le duele al peruano con su plata (SBS, Ipsos, Indecopi, INEI) |
-| `investigacion/02-que-hace-bbva-y-que-no.md` | Qué ya tiene la app de BBVA Perú y dónde están los huecos |
-| `investigacion/03-benchmark-asesores-ia-top.md` | Qué hacen los mejores asesores con IA del mundo (Cleo, Monarch, Rocket Money, Plum…) |
-| `conocimiento/metodo-asesor.md` | Método de un asesor financiero: gastos, prioridades, deuda, escáner de estados de cuenta, errores a evitar |
-| `investigacion/04` a `09` | Deuda y tarjetas, acceso al crédito, BBVA a fondo, cómo se gana una hackathon, voz del usuario y competencia |
-| `investigacion/10-verificacion-de-cifras.md` | **Fuente de verdad de las cifras de mercado.** Qué está verificado, qué se corrigió y qué no se dice. Si otro documento la contradice, vale este |
-| `conocimiento/asesorfi/` | Conocimiento incorporado de AsesorFi |
 | `docs/PLAN-MVP.md` | Alcance del MVP, reparto del equipo y guion de la demo |
 | `docs/IDEAS.md` | Las ideas planteadas para la final |
 | `docs/INFRAESTRUCTURA.md` | Qué está montado, qué no y por qué; variables de entorno y plan B |
@@ -82,7 +75,7 @@ motor y la voz es la del propio celular. Con `ANTHROPIC_API_KEY` conversa el age
 - [x] Datos sintéticos (Andrea, fisioterapeuta independiente inventada; Carlos y Lucía solo en pruebas)
 - [x] Motor de proyección + tests
 - [x] Interfaz para celular, chat con respaldo sin IA y avisos dentro de la app
-- [x] Cifras del pitch revisadas contra su fuente (`investigacion/10-verificacion-de-cifras.md`)
+- [x] Cifras del pitch revisadas contra su fuente
 - [x] App publicada en `https://copiloto-anticipador-hack.vercel.app` desde el repositorio del equipo `hackbbvapro-bit/BBVA`; Vercel despliega `main` automáticamente
 - [x] Claves de Anthropic, Fish Audio y avisos cargadas en Vercel (`/api/estado` responde `ia`, `voz` y `push` en `true` [MEDIDO 15-nov])
 - [x] Agente con IA real: 0 de 36 respuestas con cifras ajenas al motor y 12 de 12 preguntas tramposas bien resueltas (`docs/EVALUACION.md` §14)
