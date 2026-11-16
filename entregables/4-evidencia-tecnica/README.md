@@ -88,5 +88,5 @@ métodos; la precisión del aviso es 53,8 %; el aviso detecta peor a los dependi
 | Antes y después de cada corrección | [`docs/EVALUACION.md` §13 y §15](../../docs/EVALUACION.md#13-corrección-hecha-con-esta-evidencia-antes-y-después) |
 | Historia de cambios | Pull requests en GitHub con su CI; commits pequeños y explicativos |
 | Auditorías internas (integral, seguridad, comunicación) | [`docs/auditorias/`](../../docs/auditorias/); resumen en [`RESUMEN-AUDITORIAS-2026-11-14.md`](../../docs/auditorias/RESUMEN-AUDITORIAS-2026-11-14.md) |
-| Fuente de cada cifra de mercado | [`investigacion/10-verificacion-de-cifras.md`](../../investigacion/10-verificacion-de-cifras.md) |
+| Fuente de cada cifra de mercado | la verificación de cifras del equipo (no publicada) |
 | Registro de fallos en el servidor | Solo pieza, tipo de error y código de estado; nunca el mensaje, el cuerpo ni una clave — [`src/servidor/registro.ts`](../../src/servidor/registro.ts) |

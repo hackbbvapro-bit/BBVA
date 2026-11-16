@@ -5,7 +5,7 @@ No confundir con `~/Proyectos/Hackathon-BBVA-2026/`, que es la prueba técnica i
 y tiene sus propias reglas.
 
 ## Lo primero
-- Lee `README.md`, `docs/PLAN-MVP.md` y, según la tarea, `investigacion/` y `conocimiento/`.
+- Lee `README.md` y `docs/PLAN-MVP.md`.
 - El producto es un **copiloto anticipador**: proyecta el saldo a 30 días, avisa del déficit con
   fecha y causa y propone 2-3 jugadas con su costo en soles.
 

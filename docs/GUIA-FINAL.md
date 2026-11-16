@@ -149,7 +149,7 @@ no dependen de la voz.
 
 Regla del proyecto: ninguna cifra de mercado sin fuente. El detalle, los enlaces y lo que se
 descartó están en
-[`investigacion/10-verificacion-de-cifras.md`](../investigacion/10-verificacion-de-cifras.md).
+la verificación de cifras del equipo (no publicada).
 Si una cifra no aparece ahí como verificada, no se dice.
 
 Las tres que mejor cuentan el problema (elige dos; treinta segundos no dan para más):
